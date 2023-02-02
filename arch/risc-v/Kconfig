@@ -251,6 +251,11 @@ config ARCH_CHIP_K230
 		Kendryte K230 SoC (RV64GCV and RV64GCVX C908 cores).
 
 
+config ARCH_CHIP_HPMICRO
+	bool "HPMicro Chip"
+	---help---
+		HPMicro processor selection.
+
 config ARCH_CHIP_RISCV_CUSTOM
 	bool "Custom RISC-V chip"
 	select ARCH_CHIP_CUSTOM
@@ -311,6 +316,7 @@ config ARCH_CHIP
 	default "jh7110"	if ARCH_CHIP_JH7110
 	default "bl808"		if ARCH_CHIP_BL808
 	default "k230"		if ARCH_CHIP_K230
+	default "hpmicro"	if ARCH_CHIP_HPMICRO
 
 config ARCH_RISCV_INTXCPT_EXTENSIONS
 	bool "RISC-V Integer Context Extensions"
@@ -481,5 +487,8 @@ source "arch/risc-v/src/bl808/Kconfig"
 endif
 if ARCH_CHIP_K230
 source "arch/risc-v/src/k230/Kconfig"
+endif
+if ARCH_CHIP_HPMICRO
+source "arch/risc-v/src/hpmicro/Kconfig"
 endif
 endif
