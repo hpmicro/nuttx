@@ -3,7 +3,7 @@
 # see misc/tools/kconfig-language.txt.
 #
 
-if ARCH_BOARD_HPM6750EVK2
+if ARCH_BOARD_HPM6750EVK2_SDK
 
 choice
 	prompt "HPM6750EVK2 Build Type Selection"

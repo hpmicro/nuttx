@@ -12,13 +12,22 @@
 
 4. Configure and build NuttX
 
-  $ cd nuttxspace/nuttx
+  $ mkdir ./nuttxspace
+  $ cd ./nuttxspace
+  $ git clone https://github.com/hpmicro/nuttx.git nuttx
+  $ git clone https://github.com/apache/nuttx-apps.git apps
+  $ cd nuttx
+  $ git checkout -b nuttx_with_hpmsdk origin/nuttx_with_hpmsdk
+  $ cd ../apps
+  $ git checkout -b releases/12.0 origin/releases/12.0
+  $ cd ../nuttx
   $ make distclean
-  $ ./tools/configure.sh hpm6750evk2:nsh
+  $ ./tools/configure.sh -l hpm6750evk2-sdk:nsh
   $ make V=1
 
   note:
   [1] Default linker file is flash_xip.ld, you can config to ram.ld or flash_sdram_xip.ld.
+  [2] Now, the nuttx and apps version is release/12.0.
 
 5. Flash the nuttx with openocd and run
 
