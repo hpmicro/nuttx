@@ -32,6 +32,12 @@
 #include <nuttx/board.h>
 #include <nuttx/input/buttons.h>
 
+#include "board.h"
+
+#ifdef CONFIG_USERLED
+#  include <nuttx/leds/userled.h>
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -61,6 +67,17 @@ int hpm6750_bringup(void)
   if (ret < 0)
     {
       serr("ERROR: Failed to mount procfs at %s: %d\n", "/proc", ret);
+    }
+#endif
+
+  board_init();
+#ifdef CONFIG_USERLED
+  /* Register the LED driver */
+
+  ret = userled_lower_initialize("/dev/userleds");
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: userled_lower_initialize() failed: %d\n", ret);
     }
 #endif
 

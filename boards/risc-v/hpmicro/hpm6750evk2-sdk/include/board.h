@@ -31,6 +31,27 @@
  * Pre-processor Definitions
  ****************************************************************************/
 
+/* LED definitions **********************************************************/
+
+/* Define how many LEDs this board has (needed by userleds) */
+
+#define BOARD_LED1        0
+#define BOARD_LED2        1
+#define BOARD_LED3        2
+#define BOARD_NLEDS       3
+
+/* The board has only one controllable LED */
+
+#define LED_STARTED       0  /* No LEDs */
+#define LED_HEAPALLOCATE  1  /* LED1 on */
+#define LED_IRQSENABLED   2  /* LED2 on */
+#define LED_STACKCREATED  3  /* LED1 on */
+#define LED_INIRQ         4  /* LED1 off */
+#define LED_SIGNAL        5  /* LED2 on */
+#define LED_ASSERTION     6  /* LED1 + LED2 */
+#define LED_PANIC         7  /* LED1 / LED2 blinking */
+
+
 /****************************************************************************
  * Public Types
  ****************************************************************************/
