@@ -26,4 +26,8 @@ ifeq ($(CONFIG_BOARDCTL),y)
 CSRCS += hpm6750_appinit.c
 endif
 
+ifeq ($(CONFIG_USERLED),y)
+  CSRCS += hpm6750_userleds.c
+endif
+
 include $(TOPDIR)/boards/Board.mk
