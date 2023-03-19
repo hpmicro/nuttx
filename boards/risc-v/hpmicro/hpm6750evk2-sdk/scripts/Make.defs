@@ -63,6 +63,7 @@ ifeq ($(CONFIG_HPM_BUILD_TYPE_FLASH_SDRAM_XIP),y)
 endif
 
 LDFLAGS += --defsym=_stack_size=$(CONFIG_IDLETHREAD_STACKSIZE)
+LDFLAGS += --defsym=_heap_size=$(CONFIG_SYSTEM_HEAPSIZE)
 ARCHSCRIPT += $(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)toolchains$(DELIM)gcc$(DELIM)$(LDSCRIPT)
 
 # Add include directories
@@ -72,5 +73,7 @@ CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHI
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)ip
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)inc
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)boards$(DELIM)$(HPM_BOARD_SELECT)
+CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)debug_console
+CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)dma_manager
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm6750

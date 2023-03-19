@@ -30,4 +30,12 @@ ifeq ($(CONFIG_USERLED),y)
   CSRCS += hpm6750_userleds.c
 endif
 
+ifeq ($(CONFIG_SPI_DRIVER),y)
+  CSRCS += hpm6750_spi.c
+endif
+
+ifeq ($(CONFIG_DEV_GPIO),y)
+  CSRCS += hpm6750_gpio.c
+endif
+
 include $(TOPDIR)/boards/Board.mk

@@ -22,11 +22,14 @@ config HPM_BUILD_TYPE_FLASH_SDRAM_XIP
 
 endchoice
 
+config SYSTEM_HEAPSIZE
+	int "system heap size"
+	default 16384
+
 config HAVE_LEDS
 	bool "Have user leds"
 	default y
 	select ARCH_HAVE_LEDS
-
 
 config INCLUDE_BOOTHEADER
 	bool

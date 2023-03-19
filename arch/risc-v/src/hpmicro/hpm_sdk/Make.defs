@@ -44,6 +44,15 @@ CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)src$(DELIM)hpm_mchtmr
 CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)src$(DELIM)hpm_gpio_drv.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)src$(DELIM)hpm_femc_drv.c
 
+# Include components files
+ifeq ($(CONFIG_HPM_COMPONENTS_DMA_MANAGER),y)
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)components$(DELIM)dma_manager$(DELIM)hpm_dma_manager.c
+endif
+
+ifeq ($(CONFIG_HPM_COMPONENTS_SPI),y)
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)components$(DELIM)spi$(DELIM)hpm_spi.c
+endif
+
 ifeq ($(CONFIG_HPM_SDP_DRV),y)
   CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)src$(DELIM)hpm_sdp_drv.c
 endif

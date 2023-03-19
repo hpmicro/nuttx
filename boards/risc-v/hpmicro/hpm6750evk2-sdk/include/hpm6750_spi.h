@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/src/hpm6750_boot.c
+ * boards/risc-v/hpmicro/hpm6750evk2/include/hpn6750_spi.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,44 +18,54 @@
  *
  ****************************************************************************/
 
+#ifndef __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_HPM6750_SPI_H
+#define __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_HPM6750_SPI_H
+
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
 
-#include <debug.h>
-
-#include <nuttx/board.h>
-#include <arch/board/board.h>
-#include "board.h"
-#include "hpm_l1c_drv.h"
-
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-
 /****************************************************************************
- * Private Functions
+ * Public Types
  ****************************************************************************/
 
-/****************************************************************************
- * Public Functions
- ****************************************************************************/
+#ifndef __ASSEMBLY__
 
 /****************************************************************************
- * Name: hpm6750_boardinitialize
- *
- * Description:
- *   All FE310 architectures must provide the following entry point.
- *   This entry point is called early in the initialization -- after all
- *   memory has been configured and mapped but before any devices have been
- *   initialized.
- *
+ * Public Data
  ****************************************************************************/
 
-void hpm6750_boardinitialize(void)
+#undef EXTERN
+#if defined(__cplusplus)
+#define EXTERN extern "C"
+extern "C"
 {
-  // l1c_dc_disable();
-  board_init_pmp();
+#else
+#define EXTERN extern
+#endif
+
+/****************************************************************************
+ * Public Function Prototypes
+ ****************************************************************************/
+
+/****************************************************************************
+ * 
+ * Name: hpm6750_spi2initialize
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_HPM6750_SPI2
+struct spi_dev_s *hpm6750_spi2initialize(void);
+#endif
+
+#undef EXTERN
+#if defined(__cplusplus)
 }
+#endif
+#endif /* __ASSEMBLY__ */
+#endif /* __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H */

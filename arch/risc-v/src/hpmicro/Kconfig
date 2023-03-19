@@ -27,7 +27,7 @@ config ARCH_CHIP_HPM6360
 	select ONESHOT
 	select ALARM_ARCH
 
-endchoice # ESP32-C3 Chip Selection
+endchoice # HPMicro Chip Selection
 
 if ARCH_CHIP_HPM6750
 source "arch/risc-v/src/hpmicro/hpm6750/Kconfig"
