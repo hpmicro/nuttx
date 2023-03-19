@@ -51,6 +51,16 @@
 #define LED_ASSERTION     6  /* LED1 + LED2 */
 #define LED_PANIC         7  /* LED1 / LED2 blinking */
 
+/* GPIO Configuration */
+
+#define BOARD_NGPIOIN     1 /* Amount of GPIO Input pins */
+#define BOARD_NGPIOOUT    2 /* Amount of GPIO Output pins */
+#define BOARD_NGPIOINT    1 /* Amount of GPIO Input w/ Interruption pins */
+
+#define BOARD_GPIO_IN1    (IOC_PAD_PZ02)
+#define BOARD_GPIO_OUT1   (IOC_PAD_PZ04)
+#define BOARD_GPIO_OUT2   (IOC_PAD_PZ05)
+#define BOARD_GPIO_INT1   (IOC_PAD_PZ03)
 
 /****************************************************************************
  * Public Types

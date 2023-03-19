@@ -25,4 +25,5 @@ CHIP_CSRCS = hpmicro$(DELIM)hpm6750$(DELIM)hpm_allocateheap.c hpmicro$(DELIM)hpm
 CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_irq.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_irq_dispatch.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_lowputc.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_serial.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_start.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_timerisr.c
-CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_printf.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_printf.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_dma.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_spi.c
