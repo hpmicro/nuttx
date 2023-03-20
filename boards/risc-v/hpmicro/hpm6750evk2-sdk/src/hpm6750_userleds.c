@@ -29,11 +29,13 @@
 #include <debug.h>
 
 #include <arch/board/board.h>
+
 #include "board.h"
 #include "chip.h"
 #include "hpm.h"
 #include "hpm6750evk2.h"
 #include "hpm_gpio_drv.h"
+
 #ifndef CONFIG_ARCH_LEDS
 
 /****************************************************************************
@@ -59,8 +61,6 @@ static const uint32_t g_ledcfg[BOARD_NLEDS] =
 
 uint32_t board_userled_initialize(void)
 {
-  // int i;
-
   /* Configure LED1-8 GPIOs for output */
   board_init_led_pins();
 
