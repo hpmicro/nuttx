@@ -842,18 +842,7 @@ static int spi_dmarxwait(struct hpm_spidev_s *priv)
    * DMA must not really have completed???
    */
 
-  do
-    {
-      ret = nxsem_wait_uninterruptible(&priv->rxsem);
-
-      /* The only expected error is ECANCELED which would occur if the
-       * calling thread were canceled.
-       */
-
-      DEBUGASSERT(ret == OK || ret == -ECANCELED);
-    }
-  while (ret == OK);
-
+  ret = nxsem_wait_uninterruptible(&priv->rxsem);
   return ret;
 }
 #endif
@@ -882,19 +871,7 @@ static int spi_dmatxwait(struct hpm_spidev_s *priv)
   /* Take the semaphore (perhaps waiting).  If the result is zero, then the
    * DMA must not really have completed???
    */
-
-  do
-    {
-      ret = nxsem_wait_uninterruptible(&priv->txsem);
-
-      /* The only expected error is ECANCELED which would occur if the
-       * calling thread were canceled.
-       */
-
-      DEBUGASSERT(ret == OK || ret == -ECANCELED);
-    }
-  while (ret == OK);
-
+  ret = nxsem_wait_uninterruptible(&priv->txsem);
   return ret;
 }
 #endif
@@ -915,7 +892,7 @@ static void  spi_rx_dma_channel_callback(DMA_Type *ptr, uint32_t channel, void *
   UNUSED(channel);
   spiinfo("RX interrupt fired with status %u\n", int_stat);
   if (int_stat == DMA_CHANNEL_STATUS_TC)
-    {
+    {     
       nxsem_post(&priv->rxsem);
     }
   else
@@ -1391,7 +1368,7 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
   uint32_t addr = 0x10;
   hpm_stat_t stat;
   DEBUGASSERT(priv != NULL);
-
+  nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
 #if defined(CONFIG_HPM6750_SPI0_DMA) || defined(CONFIG_HPM6750_SPI1_DMA) || \
     defined(CONFIG_HPM6750_SPI2_DMA) || defined(CONFIG_HPM6750_SPI3_DMA)
   if ((priv->dma_txchan < 0) || (priv->dma_rxchan < 0))
@@ -1449,6 +1426,8 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
 
       priv->spi_context->rx_buff          = (uint8_t *)rxbuffer;
       priv->spi_context->rx_count         = priv->spi_context->rx_size / priv->spi_context->data_len_in_byte;
+
+      priv->spi_context->dma_context.data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) - 1;
       
       stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
       if (stat != status_success) 

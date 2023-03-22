@@ -384,7 +384,7 @@ hpm_stat_t spi_control_init(SPI_Type *ptr, spi_control_config_t *config, uint32_
 }
 
 
-hpm_stat_t spi_transfer(SPI_Type *ptr,
+hpm_stat_t hpm_spi_transfer(SPI_Type *ptr,
                         spi_control_config_t *config,
                         uint8_t *cmd, uint32_t *addr,
                         uint8_t *wbuff, uint32_t wcount, uint8_t *rbuff, uint32_t rcount)

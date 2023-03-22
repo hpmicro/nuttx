@@ -296,7 +296,7 @@ void spi_format_init(SPI_Type *ptr, spi_format_config_t *config);
  * @param [in] rcount spi receive data count, not greater than SPI_SOC_TRANSFER_COUNT_MAX
  * @retval hpm_stat_t status_success if spi transfer without any error
  */
-hpm_stat_t spi_transfer(SPI_Type *ptr,
+hpm_stat_t hpm_spi_transfer(SPI_Type *ptr,
                         spi_control_config_t *config,
                         uint8_t *cmd, uint32_t *addr,
                         uint8_t *wbuff, uint32_t wcount,  uint8_t *rbuff, uint32_t rcount);

@@ -50,11 +50,20 @@ typedef struct _dmamux_channel_context {
     bool     is_allocated;      /**< Whether DMA channel was allocated */
 } hpm_dmamux_channel_context_t;
 
+typedef struct _dma_channel_source {  
+    DMA_Type *base;                         /**< The DMA intance that the allocated channel belongs to */
+    uint32_t channel;                       /**< Channel index */
+    int      os_irq_num;                       /*irq number*/
+    void     *user_data;
+    hpm_dma_channel_callback_t callback;    /*dma callback*/
+}dma_channel_source_t;
+
 /****************************************************************************
  * Private Data
  ****************************************************************************/
 
-static hpm_dma_resource_t dma_resource_pools[DMA_RESOURCE_NUM];
+static hpm_dma_resource_t   dma_resource_pools[DMA_RESOURCE_NUM];
+static dma_channel_source_t dmasource_pools[DMA_RESOURCE_NUM];
 
 static hpm_dmamux_channel_context_t dmamux_context_pools[DMA_SOC_MAX_COUNT][DMA_SOC_CHANNEL_NUM];;
 static hpm_dmamux_resource_t dmamux_resource_pools[DMA_SOC_MAX_COUNT][DMA_SOC_CHANNEL_NUM];
@@ -62,6 +71,37 @@ static hpm_dmamux_resource_t dmamux_resource_pools[DMA_SOC_MAX_COUNT][DMA_SOC_CH
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
+
+/****************************************************************************
+ * Name: hpm_dmainterrupt
+ *
+ * Description:
+ *  DMA interrupt handler
+ *
+ ****************************************************************************/
+
+static int hpm_dmainterrupt(int irq, void *context, void *arg)
+{
+  for(uint8_t i = 0; i < DMA_RESOURCE_NUM; i++)
+    {
+      if(irq == dmasource_pools[i].os_irq_num)
+        {
+          uint32_t int_disable_mask = dma_check_channel_interrupt_mask(dmasource_pools[i].base, dmasource_pools[i].channel);
+          /* If Channel interrupt is enabled */
+          if (int_disable_mask != (DMA_INTERRUPT_MASK_ERROR | DMA_INTERRUPT_MASK_ABORT | DMA_INTERRUPT_MASK_TERMINAL_COUNT)) 
+            {
+                uint32_t chn_int_stat = dma_check_transfer_status(dmasource_pools[i].base, dmasource_pools[i].channel);
+                if (chn_int_stat != DMA_CHANNEL_STATUS_ONGOING) 
+                  {
+                    if(dmasource_pools[i].callback != NULL)
+                      {
+                        dmasource_pools[i].callback(dmasource_pools[i].base, dmasource_pools[i].channel, dmasource_pools[i].user_data, chn_int_stat);
+                      }
+                  } 
+            }     
+        }
+    }
+}
 
 /****************************************************************************
  * Name: hpm_dma_channel_request
@@ -74,7 +114,7 @@ static hpm_dmamux_resource_t dmamux_resource_pools[DMA_SOC_MAX_COUNT][DMA_SOC_CH
  *    arg: user point data
  *
  * Returned Value:
- *   0-15: DMA channel
+ *   0-15: DMA channel HPM_IRQ_PERI_START
  *   -1: Failed
  *
  ****************************************************************************/
@@ -88,8 +128,11 @@ int8_t hpm_dma_channel_request(hpm_dma_channel_callback_t callback, void *arg)
           hpm_dma_resource_t *resource = &dma_resource_pools[i];
           if(dma_manager_request_resource(resource) == status_success)
             {
-              dma_manager_install_interrupt_callback(resource, callback, arg);
-              dma_manager_enable_dma_interrupt(resource, 1);
+              dmasource_pools[i].base        = resource->base;
+              dmasource_pools[i].channel     = resource->channel;
+              dmasource_pools[i].os_irq_num  = (resource->irq_num + HPM_IRQ_PERI_START);
+              dmasource_pools[i].callback    = callback;
+              dmasource_pools[i].user_data   = arg;
               return i;
             }
         }
@@ -125,7 +168,7 @@ int hpm_dma_channel_release(uint8_t channel_id)
     }
   
   hpm_dma_resource_t *resource = &dma_resource_pools[channel_id];
-  dma_manager_disable_channel_interrupt(resource, 0xffff);
+  dma_manager_disable_channel_interrupt(resource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
   dma_manager_release_resource(resource);
 
   memset(&dma_resource_pools[channel_id], 0, sizeof(dma_resource_pools[channel_id]));
@@ -155,6 +198,7 @@ int hpm_dma_channel_start(uint8_t channel_id)
     }
   
   hpm_dma_resource_t *resource = &dma_resource_pools[channel_id];
+  dma_manager_enable_dma_interrupt(resource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
   if (dma_enable_channel(resource->base, resource->channel) == status_success)
     {
       return 0;
@@ -185,7 +229,9 @@ int hpm_dma_channel_stop(uint8_t channel_id)
     }
   
   hpm_dma_resource_t *resource = &dma_resource_pools[channel_id];
+  dma_manager_disable_channel_interrupt(resource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
   dma_disable_channel(resource->base, resource->channel);
+
   return 0;
 }
 
@@ -382,5 +428,15 @@ void weak_function riscv_dma_initialize(void)
   dmamux_context_pools[0]->base = HPM_HDMA;
   dmamux_context_pools[1]->base = HPM_XDMA;
   dma_manager_init();
+
+  /* Attach DMA interrupt vectors */
+
+  irq_attach(IRQn_HDMA + HPM_IRQ_PERI_START, hpm_dmainterrupt, NULL);
+  irq_attach(IRQn_XDMA + HPM_IRQ_PERI_START, hpm_dmainterrupt, NULL);
+
+  /* Enable the IRQ at the NVIC (still disabled at the DMA controller) */
+
+  up_enable_irq(IRQn_HDMA + HPM_IRQ_PERI_START);
+  up_enable_irq(IRQn_XDMA + HPM_IRQ_PERI_START);
 
 }
