@@ -38,10 +38,21 @@
 #  include <nuttx/leds/userled.h>
 #endif
 
+#ifdef CONFIG_LCD_DEV
+#include <nuttx/lcd/lcd_dev.h>
+#endif
+
+#ifdef CONFIG_SPI_DRIVER
+#  include <nuttx/spi/spi.h>
+#  include <nuttx/spi/spi_transfer.h>
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
-
+#ifdef CONFIG_HPM6750_SPI2
+extern struct spi_dev_s *hpm6750_spi2initialize(void);
+#endif
 /****************************************************************************
  * Name: hpm6750_bringup
  ****************************************************************************/
@@ -50,6 +61,8 @@ int hpm6750_bringup(void)
 {
   int ret = OK;
 
+  board_init();
+  
 #ifdef CONFIG_FS_BINFS
   /* Mount the binfs file system */
 
@@ -70,7 +83,6 @@ int hpm6750_bringup(void)
     }
 #endif
 
-  board_init();
 #ifdef CONFIG_USERLED
   /* Register the LED driver */
 
@@ -79,6 +91,34 @@ int hpm6750_bringup(void)
     {
       syslog(LOG_ERR, "ERROR: userled_lower_initialize() failed: %d\n", ret);
     }
+#endif
+
+#ifdef CONFIG_SPI_DRIVER
+#  ifdef CONFIG_HPM6750_SPI2
+  struct spi_dev_s *spi;
+  spi = hpm6750_spi2initialize();
+  if (spi == NULL)
+  {
+    syslog(LOG_ERR, "Failed to initialize SPI2 \n");
+    return -ENODEV;
+  }
+
+  ret = spi_register(spi, 2);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "Failed to register /dev/spi2: %d\n", ret);
+    }
+#  endif
+
+#ifdef CONFIG_LCD_DEV
+  ret = lcddev_register(0);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: lcddev_register() failed: %d\n", ret);
+      return ret;
+    }
+#endif
+
 #endif
 
   return ret;
