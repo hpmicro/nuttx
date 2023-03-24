@@ -39,7 +39,7 @@
 #endif
 
 #ifdef CONFIG_LCD_DEV
-#include <nuttx/lcd/lcd_dev.h>
+#  include <nuttx/lcd/lcd_dev.h>
 #endif
 
 #ifdef CONFIG_SPI_DRIVER

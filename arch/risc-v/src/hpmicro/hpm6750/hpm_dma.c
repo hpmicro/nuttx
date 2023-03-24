@@ -34,6 +34,8 @@
 #include "riscv_internal.h"
 #include "hpm_dma.h"
 
+#if defined(CONFIG_HPM_DMA_DRV) && defined(CONFIG_HPM_COMPONENTS_DMA_MANAGER)
+
 /****************************************************************************
  * Pre-processor Macros
  ****************************************************************************/
@@ -440,3 +442,5 @@ void weak_function riscv_dma_initialize(void)
   up_enable_irq(IRQn_XDMA + HPM_IRQ_PERI_START);
 
 }
+
+#endif

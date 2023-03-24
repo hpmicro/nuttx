@@ -29,7 +29,6 @@
 #include <nuttx/board.h>
 #include <arch/board/board.h>
 #include "board.h"
-#include "hpm_l1c_drv.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -56,6 +55,5 @@
 
 void hpm6750_boardinitialize(void)
 {
-  // l1c_dc_disable();
   board_init_pmp();
 }

@@ -46,11 +46,45 @@ config HPM_SPI_DRV
 	bool
 	default n
 
+config HPM_COMPONENTS_DMA_MANAGER
+	bool "DMA_MANAGER"
+	default n
+
+config HPM_COMPONENTS_SPI
+	bool "COMPONENTS_SPI"
+	default n
+
 config HPM_DMA
 	bool "DMA"
 	select ARCH_DMA
 	select HPM_DMA_DRV
 	default n
+
+config HPM6750_SPI0
+	bool "SPI0"
+	default n
+	select HPM_SPI_DRV
+
+config HPM6750_SPI0_DMA
+	bool "SPI0_DMA"
+	default n
+	select ARCH_DMA
+	select HPM_DMA_DRV
+	select HPM_COMPONENTS_DMA_MANAGER
+	select HPM_COMPONENTS_SPI
+
+config HPM6750_SPI1
+	bool "SPI1"
+	default n
+	select HPM_SPI_DRV
+	
+config HPM6750_SPI1_DMA
+	bool "SPI1_DMA"
+	default n
+	select ARCH_DMA
+	select HPM_DMA_DRV
+	select HPM_COMPONENTS_DMA_MANAGER
+	select HPM_COMPONENTS_SPI
 
 config HPM6750_SPI2
 	bool "SPI2"
@@ -62,14 +96,21 @@ config HPM6750_SPI2_DMA
 	default n
 	select ARCH_DMA
 	select HPM_DMA_DRV
+	select HPM_COMPONENTS_DMA_MANAGER
+	select HPM_COMPONENTS_SPI
 
-config HPM_COMPONENTS_DMA_MANAGER
-	bool "DMA_MANAGER"
+config HPM6750_SPI3
+	bool "SPI3"
 	default n
-
-config HPM_COMPONENTS_SPI
-	bool "COMPONENTS_SPI"
+	select HPM_SPI_DRV
+	
+config HPM6750_SPI3_DMA
+	bool "SPI3_DMA"
 	default n
+	select ARCH_DMA
+	select HPM_DMA_DRV
+	select HPM_COMPONENTS_DMA_MANAGER
+	select HPM_COMPONENTS_SPI
 
 endmenu
 
