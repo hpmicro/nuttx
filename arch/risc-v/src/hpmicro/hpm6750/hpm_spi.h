@@ -93,7 +93,7 @@ struct spi_dev_s *hpm6750_spibus_initialize(int bus);
 void hpm6750_spi0select(struct spi_dev_s *dev, uint32_t devid,
                       bool selected);
 uint8_t hpm6750_spi0status(struct spi_dev_s *dev, uint32_t devid);
-int hpm6750_spi4cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd);
+int hpm6750_spi0cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd);
 #endif
 
 #ifdef CONFIG_HPM6750_SPI1

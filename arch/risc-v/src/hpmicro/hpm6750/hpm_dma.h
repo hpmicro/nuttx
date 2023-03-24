@@ -28,6 +28,8 @@
 #include <nuttx/config.h>
 #include <stdint.h>
 
+#if defined(CONFIG_HPM_DMA_DRV) && defined(CONFIG_HPM_COMPONENTS_DMA_MANAGER)
+
 #include "hpm_dma_manager.h"
 #include "hpm_dma_drv.h"
 
@@ -195,6 +197,8 @@ int hpm_dmamux_channel_get_resource(uint8_t dma_channel_id, hpm_dmamux_resource_
  ****************************************************************************/
 
 void hpm_dma_init(void);
+
+#endif
 
 #endif /* __ARCH_RISCV_SRC_HPMICRO_HPM6750_DMA_H */
 

@@ -254,29 +254,29 @@ static int         spi_pm_prepare(struct pm_callback_s *cb, int domain,
 #ifdef CONFIG_HPM6750_SPI0
 static const struct spi_ops_s g_spi0ops =
 {
-  .lock              = spi_lock,
-  .select            = hpm6750_spi0select,
-  .setfrequency      = spi_setfrequency,
+  .lock                    = spi_lock,
+  .select                  = hpm6750_spi0select,
+  .setfrequency            = spi_setfrequency,
 #ifdef CONFIG_SPI_DELAY_CONTROL
-  .setdelay          = spi_setdelay,
+  .setdelay                = spi_setdelay,
 #endif
-  .setmode           = spi_setmode,
-  .setbits           = spi_setbits,
-  .status            = hpm6750_spi0status,
+  .setmode                 = spi_setmode,
+  .setbits                 = spi_setbits,
+  .status                  = hpm6750_spi0status,
 #ifdef CONFIG_SPI_CMDDATA
-  .cmddata           = hpm6750_spi0cmddata,
+  .cmddata                 = hpm6750_spi0cmddata,
 #endif
-  .send              = spi_send,
+  .send                    = spi_send,
 #ifdef CONFIG_SPI_EXCHANGE
-  .exchange          = spi_exchange,
+  .exchange                = spi_exchange,
 #else
-  .sndblock          = spi_sndblock,
-  .recvblock         = spi_recvblock,
+  .sndblock                = spi_sndblock,
+  .recvblock               = spi_recvblock,
 #endif
 #ifdef CONFIG_SPI_TRIGGER
-  .trigger           = spi_trigger,
+  .trigger                 = spi_trigger,
 #endif
-  .registercallback  = 0,                   /* not implemented */
+  .registercallback        = 0,                   /* not implemented */
 };
 
 #ifdef CONFIG_HPM6750_SPI0_DMA
@@ -284,52 +284,52 @@ static const struct spi_ops_s g_spi0ops =
 ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi0_dma_linked_descriptor[HPM6750_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
 ATTR_PLACE_AT_NONCACHEABLE uint32_t spi0_transctrl[HPM6750_MAX_SPI_DMA_COUNT];
 spi_context_t spi0_context = {
-    .ptr = HPM_SPI0,
-    .write_cs = NULL,
-    .tx_buff = 0,
-    .tx_size = 0,
-    .tx_count = 0,
-    .rx_buff = 0,
-    .rx_size = 0,
-    .rx_count = 0,
-    .data_len_in_byte = 1,
+    .ptr                   = HPM_SPI0,
+    .write_cs              = NULL,
+    .tx_buff               = 0,
+    .tx_size               = 0,
+    .tx_count              = 0,
+    .rx_buff               = 0,
+    .rx_size               = 0,
+    .rx_count              = 0,
+    .data_len_in_byte      = 1,
     .per_trans_max = SPI_SOC_TRANSFER_COUNT_MAX,
     .dma_context = {
-            .dma_ptr = 0,
-            .rx_dma_ch = 0,
-            .tx_dma_ch = 0,
-            .dmamux_ptr = HPM_DMAMUX,
-            .rx_dmamux_ch = 0,
-            .tx_dmamux_ch = 0,
-            .rx_req = HPM_DMA_SRC_SPI0_RX,
-            .tx_req = HPM_DMA_SRC_SPI0_TX,
-            .data_width = DMA_TRANSFER_WIDTH_BYTE,
+            .dma_ptr       = 0,
+            .rx_dma_ch     = 0,
+            .tx_dma_ch     = 0,
+            .dmamux_ptr    = HPM_DMAMUX,
+            .rx_dmamux_ch  = 0,
+            .tx_dmamux_ch  = 0,
+            .rx_req        = HPM_DMA_SRC_SPI0_RX,
+            .tx_req        = HPM_DMA_SRC_SPI0_TX,
+            .data_width    = DMA_TRANSFER_WIDTH_BYTE,
     },
-    .running_core = HPM_CORE0,
+    .running_core          = HPM_CORE0,
     .dma_linked_descriptor = spi0_dma_linked_descriptor,
-    .spi_transctrl = spi0_transctrl,
+    .spi_transctrl         = spi0_transctrl,
 };
 #endif
 
 static struct hpm_spidev_s g_spi0dev =
 {
-  .spidev     =
+  .spidev                  =
   {
-    .ops         = &g_spi0ops,
+    .ops                   = &g_spi0ops,
   },
-  .spibase       = HPM_SPI0,
-  .spiclock      = clock_spi0,
-  .spiirq        = IRQn_SPI0,
+  .spibase                 = HPM_SPI0,
+  .spiclock                = clock_spi0,
+  .spiirq                  = IRQn_SPI0,
 #ifdef CONFIG_HPM6750_SPI0_DMA
-  .spi_context   = &spi0_context,
-  .rxsem         = SEM_INITIALIZER(0),
-  .txsem         = SEM_INITIALIZER(0),
+  .spi_context             = &spi0_context,
+  .rxsem                   = SEM_INITIALIZER(0),
+  .txsem                   = SEM_INITIALIZER(0),
 #endif
-  .lock          = NXMUTEX_INITIALIZER,
+  .lock                    = NXMUTEX_INITIALIZER,
 #ifdef CONFIG_PM
-  .pm_cb.prepare = spi_pm_prepare,
+  .pm_cb.prepare           = spi_pm_prepare,
 #endif
-  .config        = SIMPLEX_TX,
+  .config                  = SIMPLEX_TX,
 };
 
 #endif /* CONFIG_HPMICRO_SPI0 */
@@ -337,29 +337,29 @@ static struct hpm_spidev_s g_spi0dev =
 #ifdef CONFIG_HPM6750_SPI1
 static const struct spi_ops_s g_sp1iops =
 {
-  .lock              = spi_lock,
-  .select            = hpm6750_spi1select,
-  .setfrequency      = spi_setfrequency,
+  .lock                   = spi_lock,
+  .select                 = hpm6750_spi1select,
+  .setfrequency           = spi_setfrequency,
 #ifdef CONFIG_SPI_DELAY_CONTROL
-  .setdelay          = spi_setdelay,
+  .setdelay               = spi_setdelay,
 #endif
-  .setmode           = spi_setmode,
-  .setbits           = spi_setbits,
-  .status            = hpm6750_spi1status,
+  .setmode                = spi_setmode,
+  .setbits                = spi_setbits,
+  .status                 = hpm6750_spi1status,
 #ifdef CONFIG_SPI_CMDDATA
-  .cmddata           = hpm6750_spi1cmddata,
+  .cmddata                = hpm6750_spi1cmddata,
 #endif
-  .send              = spi_send,
+  .send                   = spi_send,
 #ifdef CONFIG_SPI_EXCHANGE
-  .exchange          = spi_exchange,
+  .exchange               = spi_exchange,
 #else
-  .sndblock          = spi_sndblock,
-  .recvblock         = spi_recvblock,
+  .sndblock               = spi_sndblock,
+  .recvblock              = spi_recvblock,
 #endif
 #ifdef CONFIG_SPI_TRIGGER
-  .trigger           = spi_trigger,
+  .trigger                = spi_trigger,
 #endif
-  .registercallback  = 0,                   /* Not implemented */
+  .registercallback       = 0,                   /* Not implemented */
 };
 
 #ifdef CONFIG_HPM6750_SPI1_DMA
@@ -367,52 +367,52 @@ static const struct spi_ops_s g_sp1iops =
 ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi1_dma_linked_descriptor[HPM6750_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
 ATTR_PLACE_AT_NONCACHEABLE uint32_t spi1_transctrl[HPM6750_MAX_SPI_DMA_COUNT];
 spi_context_t spi1_context = {
-    .ptr = HPM_SPI1,
-    .write_cs = NULL,
-    .tx_buff = 0,
-    .tx_size = 0,
-    .tx_count = 0
-    .rx_buff = 0,
-    .rx_size = 0,
-    .rx_count = 0,
-    .data_len_in_byte = 1,
-    .per_trans_max = SPI_SOC_TRANSFER_COUNT_MAX,
+    .ptr                   = HPM_SPI1,
+    .write_cs              = NULL,
+    .tx_buff               = 0,
+    .tx_size               = 0,
+    .tx_count              = 0,
+    .rx_buff               = 0,
+    .rx_size               = 0,
+    .rx_count              = 0,
+    .data_len_in_byte      = 1,
+    .per_trans_max         = SPI_SOC_TRANSFER_COUNT_MAX,
     .dma_context = {
-            .dma_ptr = 0,
-            .rx_dma_ch = 0,
-            .tx_dma_ch = 0,
-            .dmamux_ptr = HPM_DMAMUX,
-            .rx_dmamux_ch = 0,
-            .tx_dmamux_ch = 0,
-            .rx_req = HPM_DMA_SRC_SPI1_RX,
-            .tx_req = HPM_DMA_SRC_SPI1_TX,
-            .data_width = DMA_TRANSFER_WIDTH_BYTE,
+            .dma_ptr       = 0,
+            .rx_dma_ch     = 0,
+            .tx_dma_ch     = 0,
+            .dmamux_ptr    = HPM_DMAMUX,
+            .rx_dmamux_ch  = 0,
+            .tx_dmamux_ch  = 0,
+            .rx_req        = HPM_DMA_SRC_SPI1_RX,
+            .tx_req        = HPM_DMA_SRC_SPI1_TX,
+            .data_width    = DMA_TRANSFER_WIDTH_BYTE,
     },
-    .running_core = HPM_CORE0,
+    .running_core          = HPM_CORE0,
     .dma_linked_descriptor = spi1_dma_linked_descriptor,
-    .spi_transctrl = spi1_transctrl,
+    .spi_transctrl         = spi1_transctrl,
 };
 #endif
 
 static struct hpm_spidev_s g_spi1dev =
 {
-  .spidev   =
+  .spidev                  =
   {
-    .ops        = &g_sp1iops,
+    .ops                   = &g_sp1iops,
   },
-  .spibase       = HPM_SPI1,
-  .spiclock      = clock_spi1,
-  .spiirq        = IRQn_SPI1,
+  .spibase                 = HPM_SPI1,
+  .spiclock                = clock_spi1,
+  .spiirq                  = IRQn_SPI1,
 #if defined(CONFIG_HPM6750_SPI1_DMA) 
-  .spi_context   = &spi1_context,
-  .rxsem         = SEM_INITIALIZER(0),
-  .txsem         = SEM_INITIALIZER(0),
+  .spi_context             = &spi1_context,
+  .rxsem                   = SEM_INITIALIZER(0),
+  .txsem                   = SEM_INITIALIZER(0),
 #endif
-  .lock          = NXMUTEX_INITIALIZER,
+  .lock                    = NXMUTEX_INITIALIZER,
 #ifdef CONFIG_PM
-  .pm_cb.prepare = spi_pm_prepare,
+  .pm_cb.prepare           = spi_pm_prepare,
 #endif
-  .config        = SIMPLEX_TX,
+  .config                  = SIMPLEX_TX,
 };
 
 #endif /* CONFIG_HPM6750_SPI1 */
@@ -420,29 +420,29 @@ static struct hpm_spidev_s g_spi1dev =
 #ifdef CONFIG_HPM6750_SPI2
 static const struct spi_ops_s g_sp2iops =
 {
-  .lock              = spi_lock,
-  .select            = hpm6750_spi2select,
-  .setfrequency      = spi_setfrequency,
+  .lock                    = spi_lock,
+  .select                  = hpm6750_spi2select,
+  .setfrequency            = spi_setfrequency,
 #ifdef CONFIG_SPI_DELAY_CONTROL
-  .setdelay          = spi_setdelay,
+  .setdelay                = spi_setdelay,
 #endif
-  .setmode           = spi_setmode,
-  .setbits           = spi_setbits,
-  .status            = hpm6750_spi2status,
+  .setmode                 = spi_setmode,
+  .setbits                 = spi_setbits,
+  .status                  = hpm6750_spi2status,
 #ifdef CONFIG_SPI_CMDDATA
-  .cmddata           = hpm6750_spi2cmddata,
+  .cmddata                 = hpm6750_spi2cmddata,
 #endif
-  .send              = spi_send,
+  .send                    = spi_send,
 #ifdef CONFIG_SPI_EXCHANGE
-  .exchange          = spi_exchange,
+  .exchange                = spi_exchange,
 #else
-  .sndblock          = spi_sndblock,
-  .recvblock         = spi_recvblock,
+  .sndblock                = spi_sndblock,
+  .recvblock               = spi_recvblock,
 #endif
 #ifdef CONFIG_SPI_TRIGGER
-  .trigger           = spi_trigger,
+  .trigger                 = spi_trigger,
 #endif
-  .registercallback  = 0,  /* not implemented */
+  .registercallback        = 0,  /* not implemented */
 };
 
 #ifdef CONFIG_HPM6750_SPI2_DMA
@@ -450,52 +450,52 @@ static const struct spi_ops_s g_sp2iops =
 ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi2_dma_linked_descriptor[HPM6750_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
 ATTR_PLACE_AT_NONCACHEABLE uint32_t spi2_transctrl[HPM6750_MAX_SPI_DMA_COUNT];
 spi_context_t spi2_context = {
-    .ptr = HPM_SPI2,
-    .write_cs = NULL,
-    .tx_buff = 0,
-    .tx_size = 0,
-    .tx_count = 0,
-    .rx_buff = 0,
-    .rx_size = 0,
-    .rx_count = 0,
-    .data_len_in_byte = 1,
-    .per_trans_max = SPI_SOC_TRANSFER_COUNT_MAX,
+    .ptr                   = HPM_SPI2,
+    .write_cs              = NULL,
+    .tx_buff               = 0,
+    .tx_size               = 0,
+    .tx_count              = 0,
+    .rx_buff               = 0,
+    .rx_size               = 0,
+    .rx_count              = 0,
+    .data_len_in_byte      = 1,
+    .per_trans_max         = SPI_SOC_TRANSFER_COUNT_MAX,
     .dma_context = {
-            .dma_ptr = 0,
-            .rx_dma_ch = 0,
-            .tx_dma_ch = 0,
-            .dmamux_ptr = HPM_DMAMUX,
-            .rx_dmamux_ch = 0,
-            .tx_dmamux_ch = 0,
-            .rx_req = HPM_DMA_SRC_SPI2_RX,
-            .tx_req = HPM_DMA_SRC_SPI2_TX,
-            .data_width = DMA_TRANSFER_WIDTH_BYTE,
+            .dma_ptr       = 0,
+            .rx_dma_ch     = 0,
+            .tx_dma_ch     = 0,
+            .dmamux_ptr    = HPM_DMAMUX,
+            .rx_dmamux_ch  = 0,
+            .tx_dmamux_ch  = 0,
+            .rx_req        = HPM_DMA_SRC_SPI2_RX,
+            .tx_req        = HPM_DMA_SRC_SPI2_TX,
+            .data_width    = DMA_TRANSFER_WIDTH_BYTE,
     },
-    .running_core = HPM_CORE0,
+    .running_core          = HPM_CORE0,
     .dma_linked_descriptor = spi2_dma_linked_descriptor,
-    .spi_transctrl = spi2_transctrl,
+    .spi_transctrl         = spi2_transctrl,
 };
 #endif
 
 static struct hpm_spidev_s g_spi2dev =
 {
-  .spidev        =
+  .spidev                  =
   {
-    .ops         = &g_sp2iops,
+    .ops                   = &g_sp2iops,
   },
-  .spibase       = HPM_SPI2,
-  .spiclock      = clock_spi2,
-  .spiirq        = IRQn_SPI2,
+  .spibase                 = HPM_SPI2,
+  .spiclock                = clock_spi2,
+  .spiirq                  = IRQn_SPI2,
 #if defined(CONFIG_HPM6750_SPI2_DMA)
-  .spi_context   = &spi2_context,
-  .rxsem         = SEM_INITIALIZER(0),
-  .txsem         = SEM_INITIALIZER(0),
+  .spi_context             = &spi2_context,
+  .rxsem                   = SEM_INITIALIZER(0),
+  .txsem                   = SEM_INITIALIZER(0),
 #endif
-  .lock          = NXMUTEX_INITIALIZER,
+  .lock                    = NXMUTEX_INITIALIZER,
 #ifdef CONFIG_PM
-  .pm_cb.prepare = spi_pm_prepare,
+  .pm_cb.prepare           = spi_pm_prepare,
 #endif
-  .config        = SIMPLEX_TX,
+  .config                  = SIMPLEX_TX,
 };
 
 #endif /* CONFIG_HPM6750_SPI2 */
@@ -503,29 +503,29 @@ static struct hpm_spidev_s g_spi2dev =
 #ifdef CONFIG_HPM6750_SPI3
 static const struct spi_ops_s g_sp3iops =
 {
-  .lock              = spi_lock,
-  .select            = hpm6750_spi3select,
-  .setfrequency      = spi_setfrequency,
+  .lock                    = spi_lock,
+  .select                  = hpm6750_spi3select,
+  .setfrequency            = spi_setfrequency,
 #ifdef CONFIG_SPI_DELAY_CONTROL
-  .setdelay          = spi_setdelay,
+  .setdelay                = spi_setdelay,
 #endif
-  .setmode           = spi_setmode,
-  .setbits           = spi_setbits,
-  .status            = hpm6750_spi3status,
+  .setmode                 = spi_setmode,
+  .setbits                 = spi_setbits,
+  .status                  = hpm6750_spi3status,
 #ifdef CONFIG_SPI_CMDDATA
-  .cmddata           = hpm6750_spi3cmddata,
+  .cmddata                 = hpm6750_spi3cmddata,
 #endif
-  .send              = spi_send,
+  .send                    = spi_send,
 #ifdef CONFIG_SPI_EXCHANGE
-  .exchange          = spi_exchange,
+  .exchange                = spi_exchange,
 #else
-  .sndblock          = spi_sndblock,
-  .recvblock         = spi_recvblock,
+  .sndblock                = spi_sndblock,
+  .recvblock               = spi_recvblock,
 #endif
 #ifdef CONFIG_SPI_TRIGGER
-  .trigger           = spi_trigger,
+  .trigger                 = spi_trigger,
 #endif
-  .registercallback  = 0,                   /* not implemented */
+  .registercallback        = 0,                   /* not implemented */
 };
 
 #ifdef CONFIG_HPM6750_SPI2_DMA
@@ -533,52 +533,52 @@ static const struct spi_ops_s g_sp3iops =
 ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi3_dma_linked_descriptor[HPM6750_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
 ATTR_PLACE_AT_NONCACHEABLE uint32_t spi3_transctrl[HPM6750_MAX_SPI_DMA_COUNT];
 spi_context_t spi3_context = {
-    .ptr = HPM_SPI3,
-    .write_cs = NULL,
-    .tx_buff = 0,
-    .tx_size = 0,
-    .tx_count = 0,
-    .rx_buff = 0,
-    .rx_size = 0,
-    .rx_count = 0,
-    .data_len_in_byte = 1,
-    .per_trans_max = SPI_SOC_TRANSFER_COUNT_MAX,
+    .ptr                   = HPM_SPI3,
+    .write_cs              = NULL,
+    .tx_buff               = 0,
+    .tx_size               = 0,
+    .tx_count              = 0,
+    .rx_buff               = 0,
+    .rx_size               = 0,
+    .rx_count              = 0,
+    .data_len_in_byte      = 1,
+    .per_trans_max         = SPI_SOC_TRANSFER_COUNT_MAX,
     .dma_context = {
-            .dma_ptr = 0,
-            .rx_dma_ch = 0,
-            .tx_dma_ch = 0,
-            .dmamux_ptr = HPM_DMAMUX,
-            .rx_dmamux_ch = 0,
-            .tx_dmamux_ch = 0,
-            .rx_req = HPM_DMA_SRC_SPI3_RX,
-            .tx_req = HPM_DMA_SRC_SPI3_TX,
-            .data_width = DMA_TRANSFER_WIDTH_BYTE,
+            .dma_ptr       = 0,
+            .rx_dma_ch     = 0,
+            .tx_dma_ch     = 0,
+            .dmamux_ptr    = HPM_DMAMUX,
+            .rx_dmamux_ch  = 0,
+            .tx_dmamux_ch  = 0,
+            .rx_req        = HPM_DMA_SRC_SPI3_RX,
+            .tx_req        = HPM_DMA_SRC_SPI3_TX,
+            .data_width    = DMA_TRANSFER_WIDTH_BYTE,
     },
-    .running_core = HPM_CORE0,
+    .running_core          = HPM_CORE0,
     .dma_linked_descriptor = spi3_dma_linked_descriptor,
-    .spi_transctrl = spi3_transctrl,
+    .spi_transctrl         = spi3_transctrl,
 };
 #endif
 
 static struct hpm_spidev_s g_spi3dev =
 {
-  .spidev        =
+  .spidev                  =
   {
-    .ops         = &g_sp3iops,
-  },
-  .spibase       = HPM_SPI3,
-  .spiclock      = clock_spi3,
-  .spiirq        = IRQn_SPI3,
+    .ops                   = &g_sp3iops,
+  }, 
+  .spibase                 = HPM_SPI3,
+  .spiclock                = clock_spi3,
+  .spiirq                  = IRQn_SPI3,
 #if defined(CONFIG_HPM6750_SPI3_DMA)
-  .spi_context   = &spi3_context,
-  .rxsem         = SEM_INITIALIZER(0),
-  .txsem         = SEM_INITIALIZER(0),
+  .spi_context             = &spi3_context,
+  .rxsem                   = SEM_INITIALIZER(0),
+  .txsem                   = SEM_INITIALIZER(0),
 #endif
-  .lock          = NXMUTEX_INITIALIZER,
+  .lock                    = NXMUTEX_INITIALIZER,
 #ifdef CONFIG_PM
-  .pm_cb.prepare = spi_pm_prepare,
+  .pm_cb.prepare           = spi_pm_prepare,
 #endif
-  .config        = SIMPLEX_TX,
+  .config                  = SIMPLEX_TX,
 };
 
 #endif /* CONFIG_HPM6750_SPI3 */
@@ -1368,9 +1368,10 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
   uint32_t addr = 0x10;
   hpm_stat_t stat;
   DEBUGASSERT(priv != NULL);
-  nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
+  
 #if defined(CONFIG_HPM6750_SPI0_DMA) || defined(CONFIG_HPM6750_SPI1_DMA) || \
     defined(CONFIG_HPM6750_SPI2_DMA) || defined(CONFIG_HPM6750_SPI3_DMA)
+    nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
   if ((priv->dma_txchan < 0) || (priv->dma_rxchan < 0))
     {
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
