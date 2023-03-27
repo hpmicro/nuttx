@@ -38,6 +38,10 @@
 #  include <nuttx/leds/userled.h>
 #endif
 
+#ifdef CONFIG_HPM_CAN_DRV
+#  include"hpm6750_can.h"
+#endif
+
 #ifdef CONFIG_LCD_DEV
 #  include <nuttx/lcd/lcd_dev.h>
 #endif
@@ -92,6 +96,28 @@ int hpm6750_bringup(void)
       syslog(LOG_ERR, "ERROR: userled_lower_initialize() failed: %d\n", ret);
     }
 #endif
+
+#ifdef CONFIG_HPM_CAN_CHARDRIVER
+
+  /* Initialize CAN and register the CAN driver. */
+
+  ret = hpm6750_can_setup();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: hpm6750_can_setup failed: %d\n", ret);
+    }
+#endif
+
+#ifdef CONFIG_HPM_CAN_SOCKET
+  /* Initialize CAN socket interface */
+
+  ret = hpm6750_cansock_setup();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: hpm6750_cansock_setup failed: %d\n", ret);
+    }
+#endif
+
 
 #ifdef CONFIG_SPI_DRIVER
 #  ifdef CONFIG_HPM6750_SPI2

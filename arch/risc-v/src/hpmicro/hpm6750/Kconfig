@@ -111,6 +111,472 @@ config HPM6750_SPI3_DMA
 	select HPM_DMA_DRV
 	select HPM_COMPONENTS_DMA_MANAGER
 	select HPM_COMPONENTS_SPI
+config HPM_CAN_DRV
+	bool
+	default n
+
+config HPM_CAM
+	bool 
+	select HPM_CAN_DRV
+	default n
+
+config HPM6750_CAN0
+	bool "CAN0"
+	select HPM_CAM
+	default n
+	
+menu "CAN0 device driver options"
+	depends on HPM6750_CAN0
+
+comment "CAN MODE:0 means can_mode_normal"
+comment "CAN MODE:1 means can_mode_loopback_internal"
+comment "CAN MODE:2 means can_mode_loopback_external"
+comment "CAN MODE:3 means can_mode_listen_only"
+config HPM6750_CAN0_MODE
+	int "CAN0_MODE"
+	range 0 3
+	default 0
+	---help---
+		0 means can_mode_normal
+		1 means can_mode_loopback_internal
+		2 means can_mode_loopback_external
+		3 means can_mode_listen_only
+
+config HPM6750_CAN0_FD_ISO_MODE
+	bool "CAN0_FD_ISO_MODE"
+	default y
+
+config HPM6750_CAN0_USER_SET_TINING
+	bool "CAN0_USER_SET_TINING"
+	default n
+ 
+config HPM6750_CAN0_NUM_SEG1
+	depends on HPM6750_CAN0_USER_SET_TINING
+	int "CAN0_NUM_SEG1"
+	default 60
+
+config CONFIG_HPM6750_CAN0_NUM_SEG2
+	depends on HPM6750_CAN0_USER_SET_TINING
+	int "CAN0_NUM_SEG2"
+	default 20
+
+config HPM6750_CAN0_NUM_SJW
+	depends on HPM6750_CAN0_USER_SET_TINING
+	int "CAN0_NUM_SJW"
+	default 16
+
+config CONFIG_HPM6750_CAN0_PRESCALER
+	depends on HPM6750_CAN0_USER_SET_TINING
+	int "CAN0_PRESCALER"
+	default 2
+
+config HPM6750_CAN0_FD_NUM_SEG1
+	depends on (HPM6750_CAN0_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN0_FD_NUM_SEG1"
+	default 12
+
+config HPM6750_CAN0_FD_NUM_SEG2
+	depends on (HPM6750_CAN0_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN0_FD_NUM_SEG2"
+	default 4
+
+config HPM6750_CAN0_FD_NUM_SJW
+	depends on (HPM6750_CAN0_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN0_FD_NUM_SJW"
+	default 4
+
+config CONFIG_HPM6750_CAN0_FD_PRESCALER
+	depends on (HPM6750_CAN0_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN0_FD_PRESCALER"
+	default 1
+
+config HPM6750_CAN0_BAUDRATE
+	depends on !HPM6750_CAN0_USER_SET_TINING
+	int "CAN0_BAUDRATE"
+	default 500000
+	range 0 1000000
+
+config HPM6750_CAN0_MIN_SAMPLEPOINT
+	depends on !HPM6750_CAN0_USER_SET_TINING
+	int "CAN0_MIN_SAMPLEPOINT"
+	default 750
+	range 0 65535
+
+config HPM6750_CAN0_MAX_SAMPLEPOINT
+	depends on !HPM6750_CAN0_USER_SET_TINING
+	int "CAN0_MAX_SAMPLEPOINT"
+	default 875
+	range 0 65535
+
+config HPM6750_CAN0_FD_BAUDRATE
+	depends on (!HPM6750_CAN0_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN0_FD_BAUDRATE"
+	default 5000000
+	range 0 8000000
+
+config HPM6750_CAN0_FD_MIN_SAMPLEPOINT
+	depends on (!HPM6750_CAN0_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN0_FD_MIN_SAMPLEPOINT"
+	default 750
+	range 0 65535
+
+config HPM6750_CAN0_FD_MAX_SAMPLEPOINT
+	depends on (!HPM6750_CAN0_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN0_FD_MAX_SAMPLEPOINT"
+	default 875
+	range 0 65535
+
+endmenu # CAN0 device driver options
+
+config HPM6750_CAN1
+	bool "CAN1"
+	select HPM_CAM
+	default n
+
+menu "CAN1 device driver options"
+	depends on HPM6750_CAN1
+
+comment "CAN MODE:0 means can_mode_normal"
+comment "CAN MODE:1 means can_mode_loopback_internal"
+comment "CAN MODE:2 means can_mode_loopback_external"
+comment "CAN MODE:3 means can_mode_listen_only"
+config HPM6750_CAN1_MODE
+	int "CAN1_MODE"
+	range 0 3
+	default 0
+	---help---
+		0 means can_mode_normal
+		1 means can_mode_loopback_internal
+		2 means can_mode_loopback_external
+		3 means can_mode_listen_only
+
+config HPM6750_CAN1_FD_ISO_MODE
+	bool "CAN1_FD_ISO_MODE"
+	default y
+
+config HPM6750_CAN1_USER_SET_TINING
+	bool "CAN1_USER_SET_TINING"
+	default n
+ 
+config HPM6750_CAN1_NUM_SEG1
+	depends on HPM6750_CAN1_USER_SET_TINING
+	int "CAN1_NUM_SEG1"
+	default 60
+
+config CONFIG_HPM6750_CAN1_NUM_SEG2
+	depends on HPM6750_CAN1_USER_SET_TINING
+	int "CAN1_NUM_SEG2"
+	default 20
+
+config HPM6750_CAN1_NUM_SJW
+	depends on HPM6750_CAN1_USER_SET_TINING
+	int "CAN1_NUM_SJW"
+	default 16
+
+config CONFIG_HPM6750_CAN1_PRESCALER
+	depends on HPM6750_CAN1_USER_SET_TINING
+	int "CAN1_PRESCALER"
+	default 2
+
+config HPM6750_CAN1_FD_NUM_SEG1
+	depends on (HPM6750_CAN1_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN1_FD_NUM_SEG1"
+	default 12
+
+config HPM6750_CAN1_FD_NUM_SEG2
+	depends on (HPM6750_CAN1_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN1_FD_NUM_SEG2"
+	default 4
+
+config HPM6750_CAN1_FD_NUM_SJW
+	depends on (HPM6750_CAN1_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN1_FD_NUM_SJW"
+	default 4
+
+config CONFIG_HPM6750_CAN1_FD_PRESCALER
+	depends on (HPM6750_CAN1_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN1_FD_PRESCALER"
+	default 1
+
+config HPM6750_CAN1_BAUDRATE
+	depends on !HPM6750_CAN1_USER_SET_TINING
+	int "CAN1_BAUDRATE"
+	default 500000
+	range 0 1000000
+
+config HPM6750_CAN1_MIN_SAMPLEPOINT
+	depends on !HPM6750_CAN1_USER_SET_TINING
+	int "CAN1_MIN_SAMPLEPOINT"
+	default 750
+	range 0 65535
+
+config HPM6750_CAN1_MAX_SAMPLEPOINT
+	depends on !HPM6750_CAN1_USER_SET_TINING
+	int "CAN1_MAX_SAMPLEPOINT"
+	default 875
+	range 0 65535
+
+config HPM6750_CAN1_FD_BAUDRATE
+	depends on (!HPM6750_CAN1_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN1_FD_BAUDRATE"
+	default 5000000
+	range 0 8000000
+
+config HPM6750_CAN1_FD_MIN_SAMPLEPOINT
+	depends on (!HPM6750_CAN1_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN1_FD_MIN_SAMPLEPOINT"
+	default 750
+	range 0 65535
+
+config HPM6750_CAN1_FD_MAX_SAMPLEPOINT
+	depends on (!HPM6750_CAN1_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN1_FD_MAX_SAMPLEPOINT"
+	default 875
+	range 0 65535
+
+endmenu # CAN1 device driver options
+
+config HPM6750_CAN2
+	bool "CAN2"
+	select HPM_CAM
+	default n
+
+menu "CAN2 device driver options"
+	depends on HPM6750_CAN2
+
+comment "CAN MODE:0 means can_mode_normal"
+comment "CAN MODE:1 means can_mode_loopback_internal"
+comment "CAN MODE:2 means can_mode_loopback_external"
+comment "CAN MODE:3 means can_mode_listen_only"
+config HPM6750_CAN2_MODE
+	int "CAN2_MODE"
+	range 0 3
+	default 0
+	---help---
+		0 means can_mode_normal
+		1 means can_mode_loopback_internal
+		2 means can_mode_loopback_external
+		3 means can_mode_listen_only
+
+config HPM6750_CAN2_FD_ISO_MODE
+	bool "CAN2_FD_ISO_MODE"
+	default y
+
+config HPM6750_CAN2_USER_SET_TINING
+	bool "CAN2_USER_SET_TINING"
+	default n
+ 
+config HPM6750_CAN2_NUM_SEG1
+	depends on HPM6750_CAN2_USER_SET_TINING
+	int "CAN2_NUM_SEG1"
+	default 60
+
+config CONFIG_HPM6750_CAN2_NUM_SEG2
+	depends on HPM6750_CAN2_USER_SET_TINING
+	int "CAN2_NUM_SEG2"
+	default 20
+
+config HPM6750_CAN2_NUM_SJW
+	depends on HPM6750_CAN2_USER_SET_TINING
+	int "CAN2_NUM_SJW"
+	default 16
+
+config CONFIG_HPM6750_CAN2_PRESCALER
+	depends on HPM6750_CAN2_USER_SET_TINING
+	int "CAN2_PRESCALER"
+	default 2
+
+config HPM6750_CAN2_FD_NUM_SEG1
+	depends on (HPM6750_CAN2_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN2_FD_NUM_SEG1"
+	default 12
+
+config HPM6750_CAN2_FD_NUM_SEG2
+	depends on (HPM6750_CAN2_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN2_FD_NUM_SEG2"
+	default 4
+
+config HPM6750_CAN2_FD_NUM_SJW
+	depends on (HPM6750_CAN2_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN2_FD_NUM_SJW"
+	default 4
+
+config CONFIG_HPM6750_CAN2_FD_PRESCALER
+	depends on (HPM6750_CAN2_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN2_FD_PRESCALER"
+	default 1
+
+config HPM6750_CAN2_BAUDRATE
+	depends on !HPM6750_CAN2_USER_SET_TINING
+	int "CAN2_BAUDRATE"
+	default 500000
+	range 0 1000000
+
+config HPM6750_CAN2_MIN_SAMPLEPOINT
+	depends on !HPM6750_CAN2_USER_SET_TINING
+	int "CAN2_MIN_SAMPLEPOINT"
+	default 750
+	range 0 65535
+
+config HPM6750_CAN2_MAX_SAMPLEPOINT
+	depends on !HPM6750_CAN2_USER_SET_TINING
+	int "CAN2_MAX_SAMPLEPOINT"
+	default 875
+	range 0 65535
+
+config HPM6750_CAN2_FD_BAUDRATE
+	depends on (!HPM6750_CAN2_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN2_FD_BAUDRATE"
+	default 5000000
+	range 0 8000000
+
+config HPM6750_CAN2_FD_MIN_SAMPLEPOINT
+	depends on (!HPM6750_CAN2_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN2_FD_MIN_SAMPLEPOINT"
+	default 750
+	range 0 65535
+
+config HPM6750_CAN2_FD_MAX_SAMPLEPOINT
+	depends on (!HPM6750_CAN2_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN2_FD_MAX_SAMPLEPOINT"
+	default 875
+	range 0 65535
+
+endmenu # CAN2 device driver options
+
+config HPM6750_CAN3
+	bool "CAN3"
+	select HPM_CAM
+	default n
+
+menu "CAN3 device driver options"
+	depends on HPM6750_CAN3
+
+comment "CAN MODE:0 means can_mode_normal"
+comment "CAN MODE:1 means can_mode_loopback_internal"
+comment "CAN MODE:2 means can_mode_loopback_external"
+comment "CAN MODE:3 means can_mode_listen_only"
+config HPM6750_CAN3_MODE
+	int "CAN3_MODE"
+	range 0 3
+	default 0
+	---help---
+		0 means can_mode_normal
+		1 means can_mode_loopback_internal
+		2 means can_mode_loopback_external
+		3 means can_mode_listen_only
+
+config HPM6750_CAN3_FD_ISO_MODE
+	bool "CAN3_FD_ISO_MODE"
+	default y
+
+config HPM6750_CAN3_USER_SET_TINING
+	bool "CAN3_USER_SET_TINING"
+	default n
+ 
+config HPM6750_CAN3_NUM_SEG1
+	depends on HPM6750_CAN3_USER_SET_TINING
+	int "CAN3_NUM_SEG1"
+	default 60
+
+config CONFIG_HPM6750_CAN3_NUM_SEG2
+	depends on HPM6750_CAN3_USER_SET_TINING
+	int "CAN3_NUM_SEG2"
+	default 20
+
+config HPM6750_CAN3_NUM_SJW
+	depends on HPM6750_CAN3_USER_SET_TINING
+	int "CAN3_NUM_SJW"
+	default 16
+
+config CONFIG_HPM6750_CAN3_PRESCALER
+	depends on HPM6750_CAN3_USER_SET_TINING
+	int "CAN3_PRESCALER"
+	default 2
+
+config HPM6750_CAN3_FD_NUM_SEG1
+	depends on (HPM6750_CAN3_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN3_FD_NUM_SEG1"
+	default 12
+
+config HPM6750_CAN3_FD_NUM_SEG2
+	depends on (HPM6750_CAN3_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN3_FD_NUM_SEG2"
+	default 4
+
+config HPM6750_CAN3_FD_NUM_SJW
+	depends on (HPM6750_CAN3_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN3_FD_NUM_SJW"
+	default 4
+
+config CONFIG_HPM6750_CAN3_FD_PRESCALER
+	depends on (HPM6750_CAN3_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN3_FD_PRESCALER"
+	default 1
+
+config HPM6750_CAN3_BAUDRATE
+	depends on !HPM6750_CAN3_USER_SET_TINING
+	int "CAN3_BAUDRATE"
+	default 500000
+	range 0 1000000
+
+config HPM6750_CAN3_MIN_SAMPLEPOINT
+	depends on !HPM6750_CAN3_USER_SET_TINING
+	int "CAN3_MIN_SAMPLEPOINT"
+	default 750
+	range 0 65535
+
+config HPM6750_CAN3_MAX_SAMPLEPOINT
+	depends on !HPM6750_CAN3_USER_SET_TINING
+	int "CAN3_MAX_SAMPLEPOINT"
+	default 875
+	range 0 65535
+
+config HPM6750_CAN3_FD_BAUDRATE
+	depends on (!HPM6750_CAN3_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN3_FD_BAUDRATE"
+	default 5000000
+	range 0 8000000
+
+config HPM6750_CAN3_FD_MIN_SAMPLEPOINT
+	depends on (!HPM6750_CAN3_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN3_FD_MIN_SAMPLEPOINT"
+	default 750
+	range 0 65535
+
+config HPM6750_CAN3_FD_MAX_SAMPLEPOINT
+	depends on (!HPM6750_CAN3_USER_SET_TINING) && (CAN_FD || NET_CAN_HAVE_CANFD)
+	int "CAN3_FD_MAX_SAMPLEPOINT"
+	default 875
+	range 0 65535
+
+endmenu # CAN3 device driver options
+
+menu "CAN driver configuration"
+	depends on HPM_CAM
+
+choice
+	prompt "CAN character driver or SocketCAN support"
+	default HPM_CAN_CHARDRIVER
+
+config HPM_CAN_CHARDRIVER
+	bool "HPM CAN character driver support"
+	select ARCH_HAVE_CAN_ERRORS
+	select CAN
+
+config CAN_FD
+	bool "CANFD haracter driver support"
+	depends on HPM_CAN_CHARDRIVER
+	default n
+
+config HPM_CAN_SOCKET
+	bool "HPM_CAN SocketCAN support"
+	select NET_CAN_HAVE_ERRORS
+	select NET_CAN_HAVE_CANFD
+
+endchoice # CAN character driver or SocketCAN support
+
+endmenu # CAN driver configuration
 
 endmenu
 
