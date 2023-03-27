@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/include/board.h
+ * arch/risc-v/src/hpmicro/hpm6750/hpm_can.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,8 +18,8 @@
  *
  ****************************************************************************/
 
-#ifndef __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
-#define __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_HPM6750_HPM_CAN_H
+#define __ARCH_RISCV_SRC_HPMICRO_HPM6750_HPM_CAN_H
 
 /****************************************************************************
  * Included Files
@@ -27,87 +27,61 @@
 
 #include <nuttx/config.h>
 
+
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-
-/* LED definitions **********************************************************/
-
-/* Define how many LEDs this board has (needed by userleds) */
-
-#define BOARD_LED1        0
-#define BOARD_LED2        1
-#define BOARD_LED3        2
-#define BOARD_NLEDS       3
-
-/* The board has only one controllable LED */
-
-#define LED_STARTED       0  /* No LEDs */
-#define LED_HEAPALLOCATE  1  /* LED1 on */
-#define LED_IRQSENABLED   2  /* LED2 on */
-#define LED_STACKCREATED  3  /* LED1 on */
-#define LED_INIRQ         4  /* LED1 off */
-#define LED_SIGNAL        5  /* LED2 on */
-#define LED_ASSERTION     6  /* LED1 + LED2 */
-#define LED_PANIC         7  /* LED1 / LED2 blinking */
-
-/* The board has one phy can,it's can0; but the other three are also defined,and you can modify the pins number */
-
-#define CAN0_RXD_PIN     IOC_PAD_PB17
-#define CAN0_TXD_PIN     IOC_PAD_PB15
-
-#define CAN1_RXD_PIN     IOC_PAD_PB18
-#define CAN1_TXD_PIN     IOC_PAD_PB19
-
-#define CAN2_RXD_PIN     IOC_PAD_PB08
-#define CAN2_TXD_PIN     IOC_PAD_PB09
-
-#define CAN3_RXD_PIN     IOC_PAD_PB20
-#define CAN3_TXD_PIN     IOC_PAD_PB12
-
-/* GPIO Configuration */
-
-#define BOARD_NGPIOIN     1 /* Amount of GPIO Input pins */
-#define BOARD_NGPIOOUT    2 /* Amount of GPIO Output pins */
-#define BOARD_NGPIOINT    1 /* Amount of GPIO Input w/ Interruption pins */
-
-#define BOARD_GPIO_IN1    (IOC_PAD_PZ02)
-#define BOARD_GPIO_OUT1   (IOC_PAD_PZ04)
-#define BOARD_GPIO_OUT2   (IOC_PAD_PZ05)
-#define BOARD_GPIO_INT1   (IOC_PAD_PZ03)
 
 /****************************************************************************
  * Public Types
  ****************************************************************************/
 
-#ifndef __ASSEMBLY__
-
 /****************************************************************************
  * Public Data
  ****************************************************************************/
 
-#undef EXTERN
-#if defined(__cplusplus)
-#define EXTERN extern "C"
+#ifndef __ASSEMBLY__
+#ifdef __cplusplus
 extern "C"
 {
-#else
-#define EXTERN extern
 #endif
 
 /****************************************************************************
- * Public Function Prototypes
+ * Public Functions Prototypes
  ****************************************************************************/
 
 /****************************************************************************
- * Name: hpm6750_boardinitialize
+ * Name: esp32c3_twaiinitialize
+ *
+ * Description:
+ *   Initialize the selected CAN port
+ *
+ * Input Parameters:
+ *   Port number (for hardware that has multiple TWAI interfaces)
+ *
+ * Returned Value:
+ *   Valid TWAI device structure reference on success; a NULL on failure
+ *
  ****************************************************************************/
 
-void hpm6750_boardinitialize(void);
+#if  (defined(CONFIG_HPM6750_CAN0) || defined(CONFIG_HPM6750_CAN1) || \
+     defined(CONFIG_HPM6750_CAN2)  || defined(CONFIG_HPM6750_CAN3))
 
-#undef EXTERN
-#if defined(__cplusplus)
+int   hpm_init_can_pins(int port);
+
+#  ifdef CONFIG_HPM_CAN_CHARDRIVER
+struct can_dev_s *hpm6750_caninitialize(int port);
+#  endif
+
+#  ifdef CONFIG_HPM_CAN_SOCKET
+int hpm_cansockinitialize(int port);
+#  endif
+
+#endif
+
+#ifdef __cplusplus
 }
 #endif
 #endif /* __ASSEMBLY__ */
-#endif /* __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H */
+
+#endif /* __ARCH_RISCV_SRC_HPMICRO_HPM6750_HPM_CAN_H */

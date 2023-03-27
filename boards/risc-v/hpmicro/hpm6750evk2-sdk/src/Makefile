@@ -30,6 +30,10 @@ ifeq ($(CONFIG_USERLED),y)
   CSRCS += hpm6750_userleds.c
 endif
 
+ifeq ($(CONFIG_HPM_CAN_DRV),y)
+  CSRCS += hpm6750_can.c
+endif
+
 ifeq ($(CONFIG_SPI_DRIVER),y)
   CSRCS += hpm6750_spi.c
 endif

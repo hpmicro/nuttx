@@ -1585,8 +1585,6 @@ static int spi_pm_prepare(struct pm_callback_s *cb, int domain,
 
 static void spi_bus_initialize(struct hpm_spidev_s *priv)
 {
-  hpm_dma_resource_t dma_resource;
-  hpm_dmamux_resource_t dmamux_resource;
   spi_setmode((struct spi_dev_s *)priv, SPIDEV_MODE0);
   spi_setbits((struct spi_dev_s *)priv, 8);
 
@@ -1597,6 +1595,9 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
 
 #if defined(CONFIG_HPM6750_SPI0_DMA) || defined(CONFIG_HPM6750_SPI1_DMA) || \
     defined(CONFIG_HPM6750_SPI2_DMA) || defined(CONFIG_HPM6750_SPI3_DMA)
+  
+  hpm_dma_resource_t dma_resource;
+  hpm_dmamux_resource_t dmamux_resource;
 
   priv->dma_rxchan = hpm_dma_channel_request(spi_rx_dma_channel_callback, (void *)priv);
   priv->dma_txchan = hpm_dma_channel_request(spi_tx_dma_channel_callback, (void *)priv); 
