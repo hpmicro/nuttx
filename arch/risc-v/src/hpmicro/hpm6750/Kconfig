@@ -20,16 +20,6 @@ config HPM_LCDC
 	select HPM_LCDC_DRV
 	default n
 
-config HPM_I2C0
-	bool "I2C0"
-	select HPM_I2C_DRV
-	default n
-
-config HPM_I2C1
-	bool "I2C1"
-	select HPM_I2C_DRV
-	default n
-
 config HPM_UART0
 	bool "UART0"
 	select HPM_UART_DRV
@@ -37,6 +27,258 @@ config HPM_UART0
 	select UART0_SERIALDRIVER
 	select ARCH_HAVE_SERIAL_TERMIOS
 	default y
+
+#####################################################################
+#  I2C Configuration 
+#####################################################################
+
+config HPM_I2C_DRV
+	bool 
+	default n
+
+#####################################################################
+#  I2C0 Configuration 
+#####################################################################
+config HPM6750_I2C0
+	bool "I2C0"
+	select HPM_I2C_DRV
+	select I2C
+	default n
+
+choice
+	depends on HPM6750_I2C0
+	prompt "I2C0 driver"
+	default HPM6750_I2C0_MASTER
+
+comment "******I2C Mode*********"
+comment "0 means i2c_mode_normal"
+comment "1 means i2c_mode_fast"
+comment "2 means i2c_mode_fast_plus"
+comment "***********************"
+
+config HPM6750_I2C0_MASTER
+	bool "I2C0_MASTER"
+	select I2C_DRIVER
+
+config HPM6750_I2C0_SLAVE
+	bool "I2C0_SLAVE"
+	select I2C_DRIVER
+	select I2C_SLAVE
+
+endchoice # I2C0 driver
+
+config HPM6750_I2C0_MASTER_MODE
+	depends on HPM6750_I2C0_MASTER
+	int "I2C0_MASTER_MODE"
+	range 0 2
+	default 0
+
+config HPM6750_I2C0_MASTER_10BIT_ADDR
+	depends on HPM6750_I2C0_MASTER
+	int "I2C0_MASTER_10BIT_ADDRESS"
+	range 0 1
+	default 0
+
+config HPM6750_I2C0_SLAVE_MODE
+	depends on HPM6750_I2C0_SLAVE
+	int "I2C0_MASTER_MODE"
+	range 0 2
+	default 0
+
+config HPM6750_I2C0_SLAVE_10BIT_ADDR
+	depends on HPM6750_I2C0_SLAVE
+	int "I2C0_SLAVE_10BIT_ADDRESS"
+	range 0 1
+	default 0
+
+config HPM6750_I2C0_SLAVE_ADDR
+	depends on HPM6750_I2C0_SLAVE
+	int "I2C0_SLAVE_ADDRESS"
+	range 1 1023
+	default 16
+
+#####################################################################
+#  I2C1 Configuration 
+#####################################################################
+config HPM6750_I2C1
+	bool "I2C1"
+	select HPM_I2C_DRV
+	select I2C
+	default n
+
+choice
+	depends on HPM6750_I2C1
+	prompt "I2C1 driver"
+	default HPM6750_I2C1_MASTER
+
+comment "******I2C Mode*********"
+comment "0 means i2c_mode_normal"
+comment "1 means i2c_mode_fast"
+comment "2 means i2c_mode_fast_plus"
+comment "***********************"
+
+config HPM6750_I2C1_MASTER
+	bool "I2C1_MASTER"
+	select I2C_DRIVER
+
+config HPM6750_I2C1_SLAVE
+	bool "I2C1_SLAVE"
+	select I2C_DRIVER
+	select I2C_SLAVE
+
+endchoice # I2C1 driver
+
+config HPM6750_I2C1_MASTER_MODE
+	depends on HPM6750_I2C1_MASTER
+	int "I2C1_MASTER_MODE"
+	range 0 2
+	default 0
+
+config HPM6750_I2C1_MASTER_10BIT_ADDR
+	depends on HPM6750_I2C1_MASTER
+	int "I2C1_MASTER_10BIT_ADDRESS"
+	range 0 1
+	default 0
+
+config HPM6750_I2C1_SLAVE_MODE
+	depends on HPM6750_I2C1_SLAVE
+	int "I2C1_MASTER_MODE"
+	range 0 2
+	default 0
+
+config HPM6750_I2C1_SLAVE_10BIT_ADDR
+	depends on HPM6750_I2C1_SLAVE
+	int "I2C1_SLAVE_10BIT_ADDRESS"
+	range 0 1
+	default 0
+
+config HPM6750_I2C1_SLAVE_ADDR
+	depends on HPM6750_I2C1_SLAVE
+	int "I2C1_SLAVE_ADDRESS"
+	range 1 1023
+	default 16
+
+#####################################################################
+#  I2C2 Configuration 
+#####################################################################
+config HPM6750_I2C2
+	bool "I2C2"
+	select HPM_I2C_DRV
+	select I2C
+	default n
+
+choice
+	depends on HPM6750_I2C2
+	prompt "I2C2 driver"
+	default HPM6750_I2C2_MASTER
+
+comment "******I2C Mode*********"
+comment "0 means i2c_mode_normal"
+comment "1 means i2c_mode_fast"
+comment "2 means i2c_mode_fast_plus"
+comment "***********************"
+
+config HPM6750_I2C2_MASTER
+	bool "I2C2_MASTER"
+	select I2C_DRIVER
+
+config HPM6750_I2C2_SLAVE
+	bool "I2C2_SLAVE"
+	select I2C_DRIVER
+	select I2C_SLAVE
+
+endchoice # I2C2 driver
+
+config HPM6750_I2C2_MASTER_MODE
+	depends on HPM6750_I2C2_MASTER
+	int "I2C2_MASTER_MODE"
+	range 0 2
+	default 0
+
+config HPM6750_I2C2_MASTER_10BIT_ADDR
+	depends on HPM6750_I2C2_MASTER
+	int "I2C2_MASTER_10BIT_ADDRESS"
+	range 0 1
+	default 0
+
+config HPM6750_I2C2_SLAVE_MODE
+	depends on HPM6750_I2C2_SLAVE
+	int "I2C2_MASTER_MODE"
+	range 0 2
+	default 0
+
+config HPM6750_I2C2_SLAVE_10BIT_ADDR
+	depends on HPM6750_I2C2_SLAVE
+	int "I2C2_SLAVE_10BIT_ADDRESS"
+	range 0 1
+	default 0
+
+config HPM6750_I2C2_SLAVE_ADDR
+	depends on HPM6750_I2C2_SLAVE
+	int "I2C2_SLAVE_ADDRESS"
+	range 1 1023
+	default 16
+
+#####################################################################
+#  I2C3 Configuration 
+#####################################################################
+config HPM6750_I2C3
+	bool "I2C3"
+	select HPM_I2C_DRV
+	select I2C
+	default n
+
+choice
+	depends on HPM6750_I2C3
+	prompt "I2C3 driver"
+	default HPM6750_I2C3_MASTER
+
+comment "******I2C Mode*********"
+comment "0 means i2c_mode_normal"
+comment "1 means i2c_mode_fast"
+comment "2 means i2c_mode_fast_plus"
+comment "***********************"
+
+config HPM6750_I2C3_MASTER
+	bool "I2C3_MASTER"
+	select I2C_DRIVER
+
+config HPM6750_I2C3_SLAVE
+	bool "I2C3_SLAVE"
+	select I2C_DRIVER
+	select I2C_SLAVE
+
+endchoice # I2C3 driver
+
+config HPM6750_I2C3_MASTER_MODE
+	depends on HPM6750_I2C3_MASTER
+	int "I2C3_MASTER_MODE"
+	range 0 2
+	default 0
+
+config HPM6750_I2C3_MASTER_10BIT_ADDR
+	depends on HPM6750_I2C3_MASTER
+	int "I2C3_MASTER_10BIT_ADDRESS"
+	range 0 1
+	default 0
+
+config HPM6750_I2C3_SLAVE_MODE
+	depends on HPM6750_I2C3_SLAVE
+	int "I2C3_MASTER_MODE"
+	range 0 2
+	default 0
+
+config HPM6750_I2C3_SLAVE_10BIT_ADDR
+	depends on HPM6750_I2C3_SLAVE
+	int "I2C3_SLAVE_10BIT_ADDRESS"
+	range 0 1
+	default 0
+
+config HPM6750_I2C3_SLAVE_ADDR
+	depends on HPM6750_I2C3_SLAVE
+	int "I2C3_SLAVE_ADDRESS"
+	range 1 1023
+	default 16
 
 config HPM_DMA_DRV
 	bool

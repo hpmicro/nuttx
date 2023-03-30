@@ -38,6 +38,10 @@
 #  include <nuttx/leds/userled.h>
 #endif
 
+#ifdef CONFIG_HPM6750_I2C0_MASTER
+#  include "hpm6750_i2c.h"
+#endif
+
 #ifdef CONFIG_HPM_CAN_DRV
 #  include"hpm6750_can.h"
 #endif
@@ -68,6 +72,7 @@ int hpm6750_bringup(void)
   board_init();
   
 #ifdef CONFIG_FS_BINFS
+
   /* Mount the binfs file system */
 
   ret = nx_mount(NULL, "/bin", "binfs", 0, NULL);
@@ -78,6 +83,7 @@ int hpm6750_bringup(void)
 #endif
 
 #ifdef CONFIG_FS_PROCFS
+
   /* Mount the procfs file system */
 
   ret = nx_mount(NULL, "/proc", "procfs", 0, NULL);
@@ -88,6 +94,7 @@ int hpm6750_bringup(void)
 #endif
 
 #ifdef CONFIG_USERLED
+
   /* Register the LED driver */
 
   ret = userled_lower_initialize("/dev/userleds");
@@ -95,6 +102,13 @@ int hpm6750_bringup(void)
     {
       syslog(LOG_ERR, "ERROR: userled_lower_initialize() failed: %d\n", ret);
     }
+#endif
+
+#if defined(CONFIG_HPM6750_I2C0_MASTER)
+
+  /* Initialize I2C buses */
+
+  hpm6750evk2_i2cdev_initialize();
 #endif
 
 #ifdef CONFIG_HPM_CAN_CHARDRIVER
@@ -109,6 +123,7 @@ int hpm6750_bringup(void)
 #endif
 
 #ifdef CONFIG_HPM_CAN_SOCKET
+
   /* Initialize CAN socket interface */
 
   ret = hpm6750_cansock_setup();
