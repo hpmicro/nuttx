@@ -26,7 +26,7 @@ CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_irq.c hpmicro$(DELIM)hpm6750$(DE
 CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_lowputc.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_serial.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_start.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_timerisr.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_printf.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_dma.c
-CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_spi.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_spi.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_rng.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_i2c_slave.c hpmicro$(DELIM)hpm6750$(DELIM)hpm_i2c.c
 ifeq ($(CONFIG_HPM_CAN_CHARDRIVER),y)
 CHIP_CSRCS += hpmicro$(DELIM)hpm6750$(DELIM)hpm_can.c

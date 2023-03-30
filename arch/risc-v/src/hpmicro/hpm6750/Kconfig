@@ -820,5 +820,18 @@ endchoice # CAN character driver or SocketCAN support
 
 endmenu # CAN driver configuration
 
+config HPM_RNG_DRV
+	bool
+	default n
+
+config HPM6750_RNG
+	bool "RNG"
+	select HPM_RNG_DRV
+	select ARCH_HAVE_RNG
+	default n
+
 endmenu
+
+
+
 

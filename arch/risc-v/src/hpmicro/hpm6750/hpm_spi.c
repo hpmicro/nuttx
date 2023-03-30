@@ -1592,7 +1592,6 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
 
   spi_setfrequency((struct spi_dev_s *)priv, 400000);
 
-
 #if defined(CONFIG_HPM6750_SPI0_DMA) || defined(CONFIG_HPM6750_SPI1_DMA) || \
     defined(CONFIG_HPM6750_SPI2_DMA) || defined(CONFIG_HPM6750_SPI3_DMA)
   
