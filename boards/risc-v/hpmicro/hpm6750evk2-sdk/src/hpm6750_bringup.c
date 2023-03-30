@@ -55,6 +55,11 @@
 #  include <nuttx/spi/spi_transfer.h>
 #endif
 
+#ifdef CONFIG_RTC_DRIVER
+#  include <nuttx/timers/rtc.h>
+#  include "hpm_rtc.h"
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -164,6 +169,12 @@ int hpm6750_bringup(void)
     }
 #endif
 
+#endif
+
+#ifdef CONFIG_RTC_DRIVER
+  struct rtc_lowerhalf_s *lower;
+  lower = hpm6750_rtc_lowerhalf();
+  rtc_initialize(0, lower);
 #endif
 
   return ret;

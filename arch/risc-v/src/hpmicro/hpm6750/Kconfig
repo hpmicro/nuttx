@@ -830,6 +830,15 @@ config HPM6750_RNG
 	select ARCH_HAVE_RNG
 	default n
 
+config HPM_RTC_DRV
+	bool
+	default n
+
+config HPM6750_RTC
+	bool "RTC"
+	default n
+	select HPM_RTC_DRV
+
 endmenu
 
 
