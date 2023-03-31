@@ -55,6 +55,16 @@
 #  include <nuttx/spi/spi_transfer.h>
 #endif
 
+#ifdef CONFIG_SPI_DRIVER
+#  include <nuttx/spi/spi.h>
+#  include <nuttx/spi/spi_transfer.h>
+#endif
+
+#ifdef CONFIG_TIMER
+#  include <nuttx/timers/timer.h>
+#  include "hpm_tim_lowerhalf.h"
+#endif
+
 #ifdef CONFIG_RTC_DRIVER
 #  include <nuttx/timers/rtc.h>
 #  include "hpm_rtc.h"
@@ -171,6 +181,156 @@ int hpm6750_bringup(void)
 
 #endif
 
+#if defined(CONFIG_TIMER)
+#  if defined(CONFIG_HPM6750_TIMER0)
+  ret = hpm_timer_initialize("/dev/timer0", 0);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer0 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER1)
+  ret = hpm_timer_initialize("/dev/timer1", 1);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer1 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER2)
+  ret = hpm_timer_initialize("/dev/timer2", 2);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer2 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER3)
+  ret = hpm_timer_initialize("/dev/timer3", 3);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer3 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER4)
+  ret = hpm_timer_initialize("/dev/timer4", 4);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer4 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER5)
+  ret = hpm_timer_initialize("/dev/timer5", 5);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer5 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER6)
+  ret = hpm_timer_initialize("/dev/timer6", 6);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer6 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER7)
+  ret = hpm_timer_initialize("/dev/timer7", 7);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer7 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#endif
+
+#if defined(CONFIG_TIMER)
+#  if defined(CONFIG_HPM6750_TIMER0)
+  ret = hpm_timer_initialize("/dev/timer0", 0);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer0 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER1)
+  ret = hpm_timer_initialize("/dev/timer1", 1);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer1 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER2)
+  ret = hpm_timer_initialize("/dev/timer2", 2);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer2 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER3)
+  ret = hpm_timer_initialize("/dev/timer3", 3);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer3 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER4)
+  ret = hpm_timer_initialize("/dev/timer4", 4);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer4 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER5)
+  ret = hpm_timer_initialize("/dev/timer5", 5);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer5 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER6)
+  ret = hpm_timer_initialize("/dev/timer6", 6);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer6 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#  if defined(CONFIG_HPM6750_TIMER7)
+  ret = hpm_timer_initialize("/dev/timer7", 7);
+  if (ret < 0)
+    {
+      syslog(LOG_DEBUG,
+        "Failed to initialize /dev/timer7 Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#endif
+
 #ifdef CONFIG_RTC_DRIVER
   struct rtc_lowerhalf_s *lower;
   lower = hpm6750_rtc_lowerhalf();
@@ -179,3 +339,5 @@ int hpm6750_bringup(void)
 
   return ret;
 }
+
+
