@@ -839,6 +839,50 @@ config HPM6750_RTC
 	default n
 	select HPM_RTC_DRV
 
+config HPM_GPTMR_DRV
+	bool
+	default n
+
+config HPM6750_TIMER0
+	bool "TIMER0"
+	default n
+	select HPM_GPTMR_DRV
+
+config HPM6750_TIMER1
+	bool "TIMER1"
+	default n
+	select HPM_GPTMR_DRV
+
+config HPM6750_TIMER2
+	bool "TIMER2"
+	default n
+	select HPM_GPTMR_DRV
+
+config HPM6750_TIMER3
+	bool "TIMER3"
+	default n
+	select HPM_GPTMR_DRV
+
+config HPM6750_TIMER4
+	bool "TIMER4"
+	default n
+	select HPM_GPTMR_DRV
+
+config HPM6750_TIMER5
+	bool "TIMER5"
+	default n
+	select HPM_GPTMR_DRV
+
+config HPM6750_TIMER6
+	bool "TIMER6"
+	default n
+	select HPM_GPTMR_DRV
+
+config HPM6750_TIMER7
+	bool "TIMER7"
+	default n
+	select HPM_GPTMR_DRV
+
 endmenu
 
 
