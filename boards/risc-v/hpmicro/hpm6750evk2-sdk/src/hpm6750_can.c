@@ -76,7 +76,7 @@ int hpm_init_can_pins(int port)
   else
 #endif
     {
-      canerr("ERROR: hpm6750evk can pins Unsupported port %d\n", port);
+      canerr("ERROR: hpm6750evk2 can pins Unsupported port %d\n", port);
       return -1;
     }
   
