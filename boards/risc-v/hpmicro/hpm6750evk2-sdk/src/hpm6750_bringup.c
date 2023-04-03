@@ -38,7 +38,7 @@
 #  include <nuttx/leds/userled.h>
 #endif
 
-#ifdef CONFIG_HPM6750_I2C0_MASTER
+#ifdef CONFIG_HPM_I2C_DRV
 #  include "hpm6750_i2c.h"
 #endif
 
