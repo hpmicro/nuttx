@@ -755,7 +755,10 @@ static int hpm_can_setup(struct can_dev_s *dev)
   clock_enable(priv->clock_name);
   clock_add_to_group(priv->clock_name, BOARD_RUNNING_CORE);
   
-  hpm_init_can_pins(priv->port);
+  if (hpm_init_can_pins(priv->port) <0)
+    {
+      return -1;
+    }
 
   if (can_set_cfg(dev) < 0)
     {
