@@ -71,45 +71,12 @@ int hpm_init_can_pins(int port)
 #ifdef CONFIG_HPM6750_CAN0
   if (port == 0)
     {
-      /* the function pinmux select 7,means can device*/
-
-      HPM_IOC->PAD[CAN0_RXD_PIN].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(7);
-      HPM_IOC->PAD[CAN0_TXD_PIN].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(7);    
-    }
-  else
-#endif
-#ifdef CONFIG_HPM6750_CAN1
-  if (port == 1)
-    {
-      /* the function pinmux select 7,means can device*/
-
-      HPM_IOC->PAD[CAN1_RXD_PIN].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(7);
-      HPM_IOC->PAD[CAN1_TXD_PIN].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(7);    
-    }
-  else
-#endif
-#ifdef CONFIG_HPM6750_CAN2
-  if (port == 2)
-    {
-      /* the function pinmux select 7,means can device*/
-
-      HPM_IOC->PAD[CAN2_RXD_PIN].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(7);
-      HPM_IOC->PAD[CAN2_TXD_PIN].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(7);    
-    }
-  else
-#endif
-#ifdef CONFIG_HPM6750_CAN3
-  if (port == 3)
-    {
-      /* the function pinmux select 7,means can device*/
-
-      HPM_IOC->PAD[CAN3_RXD_PIN].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(7);
-      HPM_IOC->PAD[CAN3_TXD_PIN].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(7);    
+      board_init_can(HPM_CAN0);  
     }
   else
 #endif
     {
-      canerr("ERROR: can pins Unsupported port %d\n", port);
+      canerr("ERROR: hpm6750evk can pins Unsupported port %d\n", port);
       return -1;
     }
   

@@ -51,20 +51,6 @@
 #define LED_ASSERTION     6  /* LED1 + LED2 */
 #define LED_PANIC         7  /* LED1 / LED2 blinking */
 
-/* The board has one phy can,it's can0; but the other three are also defined,and you can modify the pins number */
-
-#define CAN0_RXD_PIN     IOC_PAD_PB17
-#define CAN0_TXD_PIN     IOC_PAD_PB15
-
-#define CAN1_RXD_PIN     IOC_PAD_PB18
-#define CAN1_TXD_PIN     IOC_PAD_PB19
-
-#define CAN2_RXD_PIN     IOC_PAD_PB08
-#define CAN2_TXD_PIN     IOC_PAD_PB09
-
-#define CAN3_RXD_PIN     IOC_PAD_PB20
-#define CAN3_TXD_PIN     IOC_PAD_PB12
-
 /* GPIO Configuration */
 
 #define BOARD_NGPIOIN     1 /* Amount of GPIO Input pins */
