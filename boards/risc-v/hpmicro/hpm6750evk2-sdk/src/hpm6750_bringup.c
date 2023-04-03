@@ -108,7 +108,11 @@ int hpm6750_bringup(void)
 
   /* Initialize I2C buses */
 
-  hpm6750evk2_i2cdev_initialize();
+  ret = hpm6750evk2_i2cdev_initialize(0);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: i2c0 hpm6750evk2_i2cdev_initialize failed: %d\n", ret);
+    }
 #endif
 
 #ifdef CONFIG_HPM_CAN_CHARDRIVER

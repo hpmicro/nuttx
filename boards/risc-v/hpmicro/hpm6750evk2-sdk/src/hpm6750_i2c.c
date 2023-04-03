@@ -86,6 +86,9 @@ int hpm6750_i2cbus_pins_initialize(int port)
   return 0;
 }
 
+#if defined(CONFIG_HPM6750_I2C0_MASTER) || defined(CONFIG_HPM6750_I2C1_MASTER) || \
+    defined(CONFIG_HPM6750_I2C2_MASTER) || defined(CONFIG_HPM6750_I2C3_MASTER)
+
 /****************************************************************************
  * Name: hpm6750evk2_i2cdev_initialize
  *
@@ -93,13 +96,12 @@ int hpm6750_i2cbus_pins_initialize(int port)
  *   Called to configure I2C
  *
  ****************************************************************************/
-#ifdef CONFIG_HPM6750_I2C0_MASTER
 
-int hpm6750evk2_i2cdev_initialize(void)
+int hpm6750evk2_i2cdev_initialize(uint8_t port)
 {
-  int ret = OK;
+  int ret = ERROR;
 
-
+#ifdef CONFIG_HPM6750_I2C0_MASTER
   g_i2c0_dev = hpm6750_i2cbus_initialize(0);
   if (g_i2c0_dev == NULL)
     {
@@ -109,14 +111,15 @@ int hpm6750evk2_i2cdev_initialize(void)
     }
   else
     {
-#ifdef CONFIG_I2C_DRIVER
+#  ifdef CONFIG_I2C_DRIVER
       ret = i2c_register(g_i2c0_dev, 0);
-#endif
+#  endif
     }
 
+#endif
 
   return ret;
 }
-
 #endif
+
 
