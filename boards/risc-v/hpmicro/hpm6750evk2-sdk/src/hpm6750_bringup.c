@@ -55,11 +55,6 @@
 #  include <nuttx/spi/spi_transfer.h>
 #endif
 
-#ifdef CONFIG_SPI_DRIVER
-#  include <nuttx/spi/spi.h>
-#  include <nuttx/spi/spi_transfer.h>
-#endif
-
 #ifdef CONFIG_TIMER
 #  include <nuttx/timers/timer.h>
 #  include "hpm_tim_lowerhalf.h"
