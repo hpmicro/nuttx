@@ -28,7 +28,7 @@ config SYSTEM_HEAPSIZE
 
 config HAVE_LEDS
 	bool "Have user leds"
-	default y
+	default n
 	select ARCH_HAVE_LEDS
 
 config INCLUDE_BOOTHEADER
