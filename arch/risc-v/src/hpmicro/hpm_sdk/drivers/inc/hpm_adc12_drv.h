@@ -23,7 +23,7 @@
 #define ADC12_IS_SIGNAL_TYPE_INVALID(TYPE)  (TYPE > (uint32_t)adc12_sample_signal_count)
 
 /** @brief Define ADC12 validity check for the channel number */
-#define ADC12_IS_CHANNEL_INVALID(PTR, CH) (CH > ADC12_SOC_MAX_CH_NUM)
+#define ADC12_IS_CHANNEL_INVALID(CH) (CH > ADC12_SOC_MAX_CH_NUM)
 
 /** @brief Define ADC12 validity check for the trigger number */
 #define ADC12_IS_TRIG_CH_INVLAID(CH) (CH > ADC12_SOC_MAX_TRIG_CH_NUM)
@@ -96,12 +96,32 @@ typedef enum {
     adc12_event_dma_fifo_full       = ADC12_INT_STS_DMA_FIFO_FULL_MASK
 } adc12_irq_event_t;
 
+/** @brief  Define ADC12 Clock Divider */
+typedef enum {
+    adc12_clock_divider_1 = 1,
+    adc12_clock_divider_2,
+    adc12_clock_divider_3,
+    adc12_clock_divider_4,
+    adc12_clock_divider_5,
+    adc12_clock_divider_6,
+    adc12_clock_divider_7,
+    adc12_clock_divider_8,
+    adc12_clock_divider_9,
+    adc12_clock_divider_10,
+    adc12_clock_divider_11,
+    adc12_clock_divider_12,
+    adc12_clock_divider_13,
+    adc12_clock_divider_14,
+    adc12_clock_divider_15,
+    adc12_clock_divider_16,
+} adc12_clock_divider_t;
+
 /** @brief ADC12 common configuration struct. */
 typedef struct {
     uint8_t res;
     uint8_t conv_mode;
-    uint8_t wait_dis;
     uint32_t adc_clk_div;
+    bool wait_dis;
     bool sel_sync_ahb;
     bool adc_ahb_en;
 } adc12_config_t;
@@ -316,16 +336,25 @@ static inline uint32_t adc12_get_status_flags(ADC12_Type *ptr)
 }
 
 /**
- * @brief Get the setting value of the WAIT_DIS bit.
+ * @brief Set value of the WAIT_DIS bit. The ADC does not block access to the associated peripheral bus
+ * until the ADC has completed its conversion.
  *
  * @param[in] ptr An ADC12 peripheral base address.
- * @return Status that indicats whether the current setting of the WAIT_DIS bit in the BUF_RESULT register is disabled.
- * @retval true  It means that the WAIT_DIS bit is 1.
- * @retval false It means that the WAIT_DIS bit is 0.
  */
-static inline bool adc12_get_wait_dis_status(ADC12_Type *ptr)
+static inline void adc12_disable_busywait(ADC12_Type *ptr)
 {
-    return ADC12_BUF_CFG0_WAIT_DIS_GET(ptr->BUF_CFG0);
+    ptr->BUF_CFG0 |= ADC12_BUF_CFG0_WAIT_DIS_SET(1);
+}
+
+/**
+ * @brief Set value of the WAIT_DIS bit. ADC blocks access to the associated peripheral bus
+ * until the ADC completes the conversion.
+ *
+ * @param[in] ptr An ADC12 peripheral base address.
+ */
+static inline void adc12_enable_busywait(ADC12_Type *ptr)
+{
+    ptr->BUF_CFG0 &= ~ADC12_BUF_CFG0_WAIT_DIS_MASK;
 }
 
 /**
@@ -393,7 +422,7 @@ static inline void adc12_disable_interrupts(ADC12_Type *ptr, uint32_t mask)
  */
 
 /**
- * @brief Trigger ADC conversions by software
+ * @brief Trigger ADC conversions by software in sequence mode
  *
  * @param[in] ptr An ADC12 peripheral base address.
  * @return An implementation result of getting an ADC12 software trigger.
@@ -401,6 +430,17 @@ static inline void adc12_disable_interrupts(ADC12_Type *ptr, uint32_t mask)
  * @retval status_fail ADC12 software triggers unsuccessfully. Please refer to @ref hpm_stat_t.
  */
 hpm_stat_t adc12_trigger_seq_by_sw(ADC12_Type *ptr);
+
+/**
+ * @brief Trigger ADC conversions by software in preemption mode
+ *
+ * @param[in] ptr An ADC12 peripheral base address.
+ * @param[in] trig_ch A trigger channel number(e.g. TRIG0A,TRIG0B,TRIG0C...).
+ * @return An implementation result of getting an ADC12 software trigger.
+ * @retval status_success ADC12 software triggers successfully. Please refer to @ref hpm_stat_t.
+ * @retval status_fail ADC12 software triggers unsuccessfully. Please refer to @ref hpm_stat_t.
+ */
+hpm_stat_t adc12_trigger_pmt_by_sw(ADC12_Type *ptr, uint8_t trig_ch);
 
 /**
  * @brief Get the result in oneshot mode.
