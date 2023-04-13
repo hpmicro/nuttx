@@ -357,14 +357,14 @@ config HPM_CAN_DRV
 	bool
 	default n
 
-config HPM_CAM
+config HPM_CAN
 	bool 
 	select HPM_CAN_DRV
 	default n
 
 config HPM6750_CAN0
 	bool "CAN0"
-	select HPM_CAM
+	select HPM_CAN
 	default n
 	
 menu "CAN0 device driver options"
@@ -472,7 +472,7 @@ endmenu # CAN0 device driver options
 
 config HPM6750_CAN1
 	bool "CAN1"
-	select HPM_CAM
+	select HPM_CAN
 	default n
 
 menu "CAN1 device driver options"
@@ -580,7 +580,7 @@ endmenu # CAN1 device driver options
 
 config HPM6750_CAN2
 	bool "CAN2"
-	select HPM_CAM
+	select HPM_CAN
 	default n
 
 menu "CAN2 device driver options"
@@ -688,7 +688,7 @@ endmenu # CAN2 device driver options
 
 config HPM6750_CAN3
 	bool "CAN3"
-	select HPM_CAM
+	select HPM_CAN
 	default n
 
 menu "CAN3 device driver options"
@@ -795,7 +795,7 @@ config HPM6750_CAN3_FD_MAX_SAMPLEPOINT
 endmenu # CAN3 device driver options
 
 menu "CAN driver configuration"
-	depends on HPM_CAM
+	depends on HPM_CAN
 
 choice
 	prompt "CAN character driver or SocketCAN support"
