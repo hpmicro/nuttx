@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 HPMicro
+ * Copyright (c) 2021-2023 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -129,7 +129,6 @@
 #define ADC_SOC_TEMPSENS_REF25_VOL                 (3300U)
 #define ADC_SOC_VOUT25C_MAX_SAMPLE_VALUE           (65535U)
 
-
 #define ADC12_SOC_CLOCK_CLK_DIV                    (2U)
 #define ADC12_SOC_CALIBRATION_WAITING_LOOP_CNT     (10)
 #define ADC12_SOC_MAX_CH_NUM                       (17U)
@@ -141,6 +140,7 @@
 #define ADC16_SOC_TEMP_CH_EN                       (1U)
 #define ADC16_SOC_MAX_SAMPLE_VALUE                 (65535U)
 #define ADC16_SOC_MAX_TRIG_CH_NUM                  (11U)
+#define ADC16_SOC_MAX_CONV_CLK_NUM                 (21U)
 
 /*
  * SYSCTL Section
