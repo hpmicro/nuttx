@@ -65,6 +65,14 @@
 #  include "hpm_rtc.h"
 #endif
 
+#ifdef CONFIG_HPM_ADC12_DRV
+#  include "hpm_adc12.h"
+#endif
+
+#ifdef CONFIG_HPM_ADC16_DRV
+#  include "hpm_adc16.h"
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -332,6 +340,23 @@ int hpm6750_bringup(void)
   rtc_initialize(0, lower);
 #endif
 
+#ifdef CONFIG_HPM_ADC12_DRV
+	/* Initialize ADC12 and register the ADC driver. */
+  ret = hpm_adc12_setup();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: hpm_adc12_setup failed: %d\n", ret);
+    }
+#endif
+
+#ifdef CONFIG_HPM_ADC16_DRV
+  /* Initialize ADC16 and register the ADC driver. */
+  ret = hpm_adc16_setup();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: hpm_adc16_setup failed: %d\n", ret);
+    }
+#endif	
   return ret;
 }
 
