@@ -883,8 +883,415 @@ config HPM6750_TIMER7
 	default n
 	select HPM_GPTMR_DRV
 
+	
+config HPM_ADC12_DRV
+    bool
+    default n 
+
+config HPM_ADC16_DRV
+    bool
+    default n 
+
+config HPM_ADC0
+    bool "ADC0"		
+    default n	
+    select HPM_ADC12_DRV	
+
+    menu "ADC0 device driver options"
+        depends on HPM_ADC0
+
+        # Channel Value Setting
+        config HPM_ADC0_CH
+        int 
+        default 7
+        depends on HPM6750EVK_ADC0_CH7
+
+        config HPM_ADC0_CH
+        int 
+        default 10
+        depends on HPM6750EVK_ADC0_CH10
+
+        config HPM_ADC0_CH
+        int 
+        default 11
+        depends on HPM6750EVK_ADC0_CH11
+        # End Of Channel Value Setting
+
+        # Channel Setting
+        choice 
+            prompt "ADC0 Channel"
+            default HPM6750EVK_ADC0_CH11
+
+            config HPM6750EVK_ADC0_CH7
+            bool "CH7"
+
+            config HPM6750EVK_ADC0_CH10
+            bool "CH10"
+
+            config HPM6750EVK_ADC0_CH11
+            bool "CH11"
+        endchoice
+        # End Of Chanenl Setting 
+
+        # Conversion Mode Setting
+        config HPM_ADC0_CONV_MODE
+        int "ADC0 Conversion Mode"
+        range 0 3
+        default 0
+        comment "0: oneshot mode"
+        comment "1: period mode"
+        comment "2: sequence mode"
+        comment "3: preemption mode"
+        # End Of Conversion Mode Setting        
+       
+        # Blocking Read Setting
+        if HPM_ADC0_CONV_MODE=0
+            config HPM_ADC0_NON_BLOCKING_READ
+            bool "ADC0 Non-Blocking Read "
+            default y
+        endif
+        # End Of Blocking Read Setting
+
+        # Trigger Source Setting      
+        config HPM6750_ADC0_TRIG_SOURCE
+        int "ADC0 Trigger Source"
+        range 0 11
+        default 0
+        comment "0:  TRG0A"
+        comment "1:  TRG0B"
+        comment "2:  TRG0C"
+        comment "3:  TRG1A"
+        comment "4:  TRG1B"
+        comment "5:  TRG1C"
+        comment "6:  TRG2A"
+        comment "7:  TRG2B"
+        comment "8:  TRG2C"
+        comment "9:  TRG3A"
+        comment "10: TRG3B"
+        comment "11: TRG3C"         
+        # End Of Trigger Source Setting
+
+        # Resolution Setting
+        config HPM_ADC0_RES
+        int "ADC0 Resolution"
+        range 0 3
+        default 3   
+        comment "0: 6-bit resolution"
+        comment "1: 8-bit resolution"
+        comment "2: 10-bit resolution"
+        comment "3: 12-bit resolution"
+        # Endi Of Resolution Setting
+
+        # Signal Type Setting
+        config HPM_ADC0_DIFF_SEL
+        int "ADC0 Signal Type"
+        range 0 1
+        default 0   
+        comment "0: signal-ended signal"
+        comment "1: differential signal"     
+        # Endi Of Signal Type Setting
+    endmenu # ADC0 device driver options
+
+config HPM_ADC1
+    bool  "ADC1"		
+    default n 
+    select HPM_ADC12_DRV
+
+    menu "ADC1 device driver options"
+        depends on HPM_ADC1
+
+         # Channel Value Setting
+        config HPM_ADC1_CH
+        int 
+        default 7
+        depends on HPM6750EVK_ADC1_CH7
+
+        config HPM_ADC1_CH
+        int 
+        default 10
+        depends on HPM6750EVK_ADC1_CH10
+
+        config HPM_ADC1_CH
+        int 
+        default 11
+        depends on HPM6750EVK_ADC1_CH11
+        # End Of Channel Value Setting
+
+        # Channel Setting
+        choice 
+            prompt "ADC1 Channel"
+            default HPM6750EVK_ADC1_CH11
+
+            config HPM6750EVK_ADC1_CH7
+            bool "CH7"
+
+            config HPM6750EVK_ADC1_CH10
+            bool "CH10"
+
+            config HPM6750EVK_ADC1_CH11
+            bool "CH11"
+        endchoice
+        # End Of Chanenl Setting 
+
+        # Conversion Mode Setting
+        config HPM_ADC1_CONV_MODE
+        int "ADC1 Conversion Mode"
+        range 0 3
+        default 0
+        comment "0: oneshot mode"
+        comment "1: period mode"
+        comment "2: sequence mode"
+        comment "3: preemption mode"
+        # End Of Conversion Mode Setting
+        
+        # Blocking Read Setting
+        if HPM_ADC1_CONV_MODE=0
+            config HPM_ADC1_NON_BLOCKING_READ
+            bool "ADC1 Non-Blocking Read "
+            default y
+        endif
+        # End Of Blocking Read Setting
+
+        # Trigger Source Setting      
+        config HPM6750_ADC1_TRIG_SOURCE
+        int "ADC1 Trigger Source"
+        range 0 11
+        default 0
+        comment "0:  TRG0A"
+        comment "1:  TRG0B"
+        comment "2:  TRG0C"
+        comment "3:  TRG1A"
+        comment "4:  TRG1B"
+        comment "5:  TRG1C"
+        comment "6:  TRG2A"
+        comment "7:  TRG2B"
+        comment "8:  TRG2C"
+        comment "9:  TRG3A"
+        comment "10: TRG3B"
+        comment "11: TRG3C"         
+        # End Of Trigger Source Setting
+
+        # Resolution Setting
+        config HPM_ADC1_RES
+        int "ADC1 Resolution"
+        range 0 3
+        default 3   
+        comment "0: 6-bit resolution"
+        comment "1: 8-bit resolution"
+        comment "2: 10-bit resolution"
+        comment "3: 12-bit resolution"
+        # Endi Of Resolution Setting
+
+        # Signal Type Setting
+        config HPM_ADC1_DIFF_SEL
+        int "ADC1 Signal Type"
+        range 0 1
+        default 0   
+        comment "0: signal-ended signal"
+        comment "1: differential signal"     
+        # Endi Of Signal Type Setting
+    endmenu # ADC1 device driver options
+
+config HPM_ADC2
+    bool "ADC2"		
+    default n 
+    select HPM_ADC12_DRV
+
+    menu "ADC2 device driver options"
+        depends on HPM_ADC2
+
+        # Channel Value Setting
+        config HPM_ADC2_CH
+        int 
+        default 7
+        depends on HPM6750EVK_ADC2_CH7
+
+        config HPM_ADC2_CH
+        int 
+        default 10
+        depends on HPM6750EVK_ADC2_CH10
+
+        config HPM_ADC2_CH
+        int 
+        default 11
+        depends on HPM6750EVK_ADC2_CH11
+        # End Of Channel Value Setting
+
+        # Channel Setting
+        choice 
+            prompt "ADC2 Channel"
+            default HPM6750EVK_ADC2_CH11
+
+            config HPM6750EVK_ADC2_CH7
+            bool "CH7"
+
+            config HPM6750EVK_ADC2_CH10
+            bool "CH10"
+
+            config HPM6750EVK_ADC2_CH11
+            bool "CH11"
+        endchoice
+        # End Of Chanenl Setting 
+
+        # Conversion Mode Setting
+        config HPM_ADC2_CONV_MODE
+        int "ADC2 Conversion Mode"
+        range 0 3
+        default 0
+        comment "0: oneshot mode"
+        comment "1: period mode"
+        comment "2: sequence mode"
+        comment "3: preemption mode"
+        # End Of Conversion Mode Setting
+        
+        # Blocking Read Setting
+        if HPM_ADC2_CONV_MODE=0
+            config HPM_ADC2_NON_BLOCKING_READ
+            bool "ADC2 Non-Blocking Read "
+            default y
+        endif
+        # End Of Blocking Read Setting
+
+        # Trigger Source Setting      
+        config HPM6750_ADC2_TRIG_SOURCE
+        int "ADC2 Trigger Source"
+        range 0 11
+        default 0
+        comment "0:  TRG0A"
+        comment "1:  TRG0B"
+        comment "2:  TRG0C"
+        comment "3:  TRG1A"
+        comment "4:  TRG1B"
+        comment "5:  TRG1C"
+        comment "6:  TRG2A"
+        comment "7:  TRG2B"
+        comment "8:  TRG2C"
+        comment "9:  TRG3A"
+        comment "10: TRG3B"
+        comment "11: TRG3C"         
+        # End Of Trigger Source Setting
+
+        # Resolution Setting
+        config HPM_ADC2_RES
+        int "ADC2 Resolution"
+        range 0 3
+        default 3   
+        comment "0: 6-bit resolution"
+        comment "1: 8-bit resolution"
+        comment "2: 10-bit resolution"
+        comment "3: 12-bit resolution"
+        # Endi Of Resolution Setting
+
+        # Signal Type Setting
+        config HPM_ADC2_DIFF_SEL
+        int "ADC2 Signal Type"
+        range 0 1
+        default 0   
+        comment "0: signal-ended signal"
+        comment "1: differential signal"     
+        # End Of Signal Type Setting
+    endmenu # ADC2 device driver options
+
+config HPM_ADC3
+    bool "ADC3"		
+    default n 
+    select HPM_ADC16_DRV
+
+    menu "ADC3 device driver options"
+    depends on HPM_ADC3
+        # Channel Setting
+        config HPM_ADC3_CH
+        int 
+        default 2
+        depends on HPM6750EVK_ADC3_CH2
+
+        choice          
+            prompt "ADC3 Channel"
+            default HPM6750EVK_ADC3_CH2
+
+            config HPM6750EVK_ADC3_CH2  
+            bool "CH2"
+        endchoice
+        # End Of Chanenl Setting 
+
+        # Conversion Mode Setting
+        config HPM_ADC3_CONV_MODE
+        int "ADC3 Conversion Mode"
+        range 0 3
+        default 0
+        comment "0: oneshot mode"
+        comment "1: period mode"
+        comment "2: sequence mode"  
+        comment "3: preemption mode"
+        # End Of Conversion Mode Setting
+         
+        # Blocking Read Setting
+        if HPM_ADC3_CONV_MODE=0
+            config HPM_ADC3_NON_BLOCKING_READ
+            bool "ADC3 Non-Blocking Read "
+            default y
+        endif
+        # End Of Blocking Read Setting
+
+        # Trigger Source Setting      
+        config HPM6750_ADC3_TRIG_SOURCE
+        int "ADC3 Trigger Source"
+        range 0 11
+        default 0
+        comment "0:  TRG0A"
+        comment "1:  TRG0B"
+        comment "2:  TRG0C"
+        comment "3:  TRG1A"
+        comment "4:  TRG1B"
+        comment "5:  TRG1C"
+        comment "6:  TRG2A"
+        comment "7:  TRG2B"
+        comment "8:  TRG2C"
+        comment "9:  TRG3A"
+        comment "10: TRG3B"
+        comment "11: TRG3C"         
+        # End Of Trigger Source Setting
+
+        # Resolution Value Setting            
+        config HPM_ADC3_RES 
+        int 
+        default 9
+        depends on ADC3_RES_8BIT
+        
+        config HPM_ADC3_RES 
+        int 
+        default 11
+        depends on ADC3_RES_10BIT
+
+        config HPM_ADC3_RES 
+        int 
+        default 14
+        depends on ADC3_RES_12BIT
+
+        config HPM_ADC3_RES 
+        int     
+        default 21
+        depends on ADC3_RES_16BIT
+        # End Of Resolution Value Setting      
+
+        # Resolution Setting      
+        choice
+            prompt "ADC3 Resolution"
+            default ADC3_RES_16BIT
+
+            config ADC3_RES_8BIT
+            bool "8-bit resolution"
+
+            config ADC3_RES_10BIT
+            bool "10-bit resolution"
+
+            config ADC3_RES_12BIT
+            bool "12-bit resolution"
+
+            config ADC3_RES_16BIT
+            bool "16-bit resolution"
+        endchoice
+        # Endi Of Resolution Setting
+    endmenu # ADC3 device driver options
 endmenu
-
-
-
 
