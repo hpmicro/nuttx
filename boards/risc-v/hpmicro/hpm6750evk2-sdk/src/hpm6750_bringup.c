@@ -73,6 +73,10 @@
 #  include "hpm_adc16.h"
 #endif
 
+#ifdef CONFIG_PWM
+#  include"hpm_pwm_lowerhalf.h"
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -161,10 +165,10 @@ int hpm6750_bringup(void)
   struct spi_dev_s *spi;
   spi = hpm6750_spi2initialize();
   if (spi == NULL)
-  {
-    syslog(LOG_ERR, "Failed to initialize SPI2 \n");
-    return -ENODEV;
-  }
+    {
+      syslog(LOG_ERR, "Failed to initialize SPI2 \n");
+      return -ENODEV;
+    }
 
   ret = spi_register(spi, 2);
   if (ret < 0)
@@ -184,77 +188,24 @@ int hpm6750_bringup(void)
 
 #endif
 
-#if defined(CONFIG_TIMER)
-#  if defined(CONFIG_HPM6750_TIMER0)
-  ret = hpm_timer_initialize("/dev/timer0", 0);
-  if (ret < 0)
+#ifdef CONFIG_PWM
+#  ifdef CONFIG_HPM6750_PWM2
+  struct pwm_lowerhalf_s *pwm;
+
+  /* Initialize PWM and register the PWM driver */
+
+  pwm = hpm6750_pwminitialize(2);
+  if (pwm == NULL)
     {
-      syslog(LOG_DEBUG,
-        "Failed to initialize /dev/timer0 Driver: %d\n", ret);
-      return ret;
+      syslog(LOG_DEBUG, "ERROR: hpm6750_pwminitialize failed\n");
     }
-#  endif
-#  if defined(CONFIG_HPM6750_TIMER1)
-  ret = hpm_timer_initialize("/dev/timer1", 1);
-  if (ret < 0)
+  else
     {
-      syslog(LOG_DEBUG,
-        "Failed to initialize /dev/timer1 Driver: %d\n", ret);
-      return ret;
-    }
-#  endif
-#  if defined(CONFIG_HPM6750_TIMER2)
-  ret = hpm_timer_initialize("/dev/timer2", 2);
-  if (ret < 0)
-    {
-      syslog(LOG_DEBUG,
-        "Failed to initialize /dev/timer2 Driver: %d\n", ret);
-      return ret;
-    }
-#  endif
-#  if defined(CONFIG_HPM6750_TIMER3)
-  ret = hpm_timer_initialize("/dev/timer3", 3);
-  if (ret < 0)
-    {
-      syslog(LOG_DEBUG,
-        "Failed to initialize /dev/timer3 Driver: %d\n", ret);
-      return ret;
-    }
-#  endif
-#  if defined(CONFIG_HPM6750_TIMER4)
-  ret = hpm_timer_initialize("/dev/timer4", 4);
-  if (ret < 0)
-    {
-      syslog(LOG_DEBUG,
-        "Failed to initialize /dev/timer4 Driver: %d\n", ret);
-      return ret;
-    }
-#  endif
-#  if defined(CONFIG_HPM6750_TIMER5)
-  ret = hpm_timer_initialize("/dev/timer5", 5);
-  if (ret < 0)
-    {
-      syslog(LOG_DEBUG,
-        "Failed to initialize /dev/timer5 Driver: %d\n", ret);
-      return ret;
-    }
-#  endif
-#  if defined(CONFIG_HPM6750_TIMER6)
-  ret = hpm_timer_initialize("/dev/timer6", 6);
-  if (ret < 0)
-    {
-      syslog(LOG_DEBUG,
-        "Failed to initialize /dev/timer6 Driver: %d\n", ret);
-      return ret;
-    }
-#  endif
-#  if defined(CONFIG_HPM6750_TIMER7)
-  ret = hpm_timer_initialize("/dev/timer7", 7);
-  if (ret < 0)
-    {
-      syslog(LOG_DEBUG,
-        "Failed to initialize /dev/timer7 Driver: %d\n", ret);
-      return ret;
+      ret = pwm_register("/dev/pwm2", pwm);
+      if (ret < 0)
+        {
+          syslog(LOG_DEBUG, "ERROR: pwm_register failed: %d\n", ret);
+        }
     }
 #  endif
 #endif

@@ -46,4 +46,8 @@ ifeq ($(CONFIG_DEV_GPIO),y)
   CSRCS += hpm6750_gpio.c
 endif
 
+ifeq ($(CONFIG_PWM),y)
+  CSRCS += hpm6750_pwm.c
+endif
+
 include $(TOPDIR)/boards/Board.mk
