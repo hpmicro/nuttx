@@ -1257,7 +1257,7 @@ config HPM_ADC3
         int 
         default 9
         depends on ADC3_RES_8BIT
-        
+        	
         config HPM_ADC3_RES 
         int 
         default 11
@@ -1293,5 +1293,39 @@ config HPM_ADC3
         endchoice
         # Endi Of Resolution Setting
     endmenu # ADC3 device driver options
+
+config HPM_PWM_DRV
+	bool
+	default n
+
+config HPM6750_PWM0
+	bool "PWM0"
+	default n
+	select HPM_PWM_DRV
+
+config HPM6750_PWM1
+	bool "PWM1"
+	default n
+	select HPM_PWM_DRV
+
+config HPM6750_PWM2
+	bool "PWM2"
+	default n
+	select HPM_PWM_DRV
+
+config HPM6750_PWM3
+	bool "PWM3"
+	default n
+	select HPM_PWM_DRV
+
+config HPM_PWM_MULTICHAN
+	bool "PWM Multiple Output Channels"
+	default n
+	depends on HPM_PWM_DRV
+	select ARCH_HAVE_PWM_MULTICHAN
+	---help---
+		Specifies that the PWM driver supports multiple output
+		channels per timer.
+		
 endmenu
 
