@@ -163,7 +163,7 @@ hpm_stat_t lin_master_sent(LIN_Type *ptr, lin_trans_config_t *config)
 
     /**  lin complete */
     retry = 0;
-    while (((ptr->STATE & LIN_STATE_COMPLETE_MASK) == LIN_STATE_COMPLETE_MASK)) {
+    while (!((ptr->STATE & LIN_STATE_COMPLETE_MASK) == LIN_STATE_COMPLETE_MASK)) {
         if (retry > HPM_LIN_DRV_RETRY_COUNT * 8) {
             break;
         }
@@ -292,7 +292,7 @@ hpm_stat_t lin_slave_sent(LIN_Type *ptr, lin_trans_config_t *config)
 
     /** lin complete */
     retry = 0;
-    while (((ptr->STATE & LIN_STATE_COMPLETE_MASK) == LIN_STATE_COMPLETE_MASK)) {
+    while (!((ptr->STATE & LIN_STATE_COMPLETE_MASK) == LIN_STATE_COMPLETE_MASK)) {
         if (retry > HPM_LIN_DRV_RETRY_COUNT * 8) {
             break;
         }
@@ -338,7 +338,7 @@ hpm_stat_t lin_slave_receive(LIN_Type *ptr, lin_trans_config_t *config)
 
     /** lin complete */
     retry = 0;
-    while (((ptr->STATE & LIN_STATE_COMPLETE_MASK) == LIN_STATE_COMPLETE_MASK)) {
+    while (!((ptr->STATE & LIN_STATE_COMPLETE_MASK) == LIN_STATE_COMPLETE_MASK)) {
         if (retry > HPM_LIN_DRV_RETRY_COUNT * 8) {
             break;
         }

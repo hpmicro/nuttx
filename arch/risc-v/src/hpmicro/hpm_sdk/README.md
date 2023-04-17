@@ -14,7 +14,7 @@ gantt
 # HPM SDK Overview
 The HPM SDK Project is a software development kit based on HPMicro's MCUs, which supports a wide range of MCUs, based on the BSD license, including drivers, middleware and RTOS, such as littlevgl/ lwIP/ TinyUSB/ FreeRTOS, etc. It supports a large number of Boards.
 
-## SDK directory
+## SDK Directory Structure
 
 | Name | Description |
 |--------|--------|
@@ -22,13 +22,23 @@ The HPM SDK Project is a software development kit based on HPMicro's MCUs, which
 | <HPM_SDK_BASE>/boards | board support files |
 | <HPM_SDK_BASE>/cmake | cmake extensions |
 | <HPM_SDK_BASE>/components | software components |
-| <HPM_SDK_BASE>/doc | documentation |
+| <HPM_SDK_BASE>/docs | documentation |
 | <HPM_SDK_BASE>/drivers | low level driver files |
 | <HPM_SDK_BASE>/middleware | middleware files |
 | <HPM_SDK_BASE>/samples | sample source for drivers, middleware, components |
 | <HPM_SDK_BASE>/scripts | util scripts |
 | <HPM_SDK_BASE>/soc | SoC specific source |
 | <HPM_SDK_BASE>/utils | util source |
+
+## SDK Documentation
+- Local:
+  SDK documentation can be built locally, once it's done, it can be accessed with the following entries:
+  - <HPM_SDK_BASE>>/docs/index.html
+  - <HPM_SDK_BASE>>/docs/index_zh.html
+  > Please refer to <HPM_SDK_BASE>/docs/README.md for more details about documentation building.
+- Online:
+  - http://hpm-sdk.readthedocs.io/
+  - http://hpm-sdk-zh.readthedocs.io/
 
 ## HPM SDK Quick Start Guide
 

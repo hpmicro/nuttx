@@ -88,9 +88,23 @@ typedef struct crc_channel_config {
     uint32_t xorout;                   /*!< XOR mask for CRC result (for no mask, should be 0). */
 } crc_channel_config_t;
 
-#define CRC_REG_WRITE8(addr, data) (*(volatile uint8_t *)(addr) = (data))
-#define CRC_REG_WRITE16(addr, data) (*(volatile uint16_t *)(addr) = (data))
-#define CRC_REG_WRITE32(addr, data) (*(volatile uint32_t *)(addr) = (data))
+#define CRC_REG_WRITE8(addr, data)\
+{\
+    uint32_t addr32 = (uint32_t)(addr);\
+    (*(volatile uint8_t *)(addr32) = (data));\
+}
+
+#define CRC_REG_WRITE16(addr, data)\
+{\
+    uint32_t addr32 = (uint32_t)(addr);\
+    (*(volatile uint16_t *)(addr32) = (data));\
+}
+
+#define CRC_REG_WRITE32(addr, data)\
+{\
+    uint32_t addr32 = (uint32_t)(addr);\
+    (*(volatile uint32_t *)(addr32) = (data));\
+}
 
 #ifdef __cplusplus
 extern "C" {

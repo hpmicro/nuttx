@@ -399,7 +399,7 @@ static hpm_stat_t mcan_set_bit_timing_from_baudrate(MCAN_Type *ptr,
             break;
         }
 
-        mcan_bit_timing_param_t timing_param;
+        mcan_bit_timing_param_t timing_param = { 0 };
         status = mcan_calc_bit_timing_from_baudrate(src_clk_freq,
                                                     option,
                                                     baudrate,
@@ -580,8 +580,8 @@ void mcan_get_defaul_ram_flexible_config(MCAN_Type *ptr, mcan_ram_flexible_confi
 
     start_addr += MCAN_TXEVT_ELEM_SIZE * tx_fifo_size;
 
-    uint32_t requestd_ram_size = start_addr - mcan_get_ram_offset(ptr);
-    assert(requestd_ram_size <= mcan_get_ram_size(ptr));
+    /* Ensure the requested MCAN RAM size is less than or equal to the total MCAN RAM size */
+    assert((start_addr - mcan_get_ram_offset(ptr)) <= mcan_get_ram_size(ptr));
 }
 
 void mcan_get_default_config(MCAN_Type *ptr, mcan_config_t *config)
@@ -824,7 +824,7 @@ hpm_stat_t mcan_config_all_filters(MCAN_Type *ptr, mcan_all_filters_config_t *co
 
         ptr->GFC = MCAN_GFC_RRFE_SET(config->global_filter_config.reject_remote_ext_frame) |
             MCAN_GFC_RRFS_SET(config->global_filter_config.reject_remote_std_frame) |
-            MCAN_GFC_ANFE_GET(config->global_filter_config.accept_non_matching_ext_frame_option) |
+            MCAN_GFC_ANFE_SET(config->global_filter_config.accept_non_matching_ext_frame_option) |
             MCAN_GFC_ANFS_SET(config->global_filter_config.accept_non_matching_std_frame_option);
 
         uint32_t elem_count = 0;
