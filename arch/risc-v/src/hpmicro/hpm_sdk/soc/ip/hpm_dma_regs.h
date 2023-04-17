@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 HPMicro
+ * Copyright (c) 2021-2023 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -287,7 +287,8 @@ typedef struct {
  * 0x8: 256 transfers
  * 0x9:512 transfers
  * 0xa: 1024 transfers
- * 0xb �?0xf: Reserved, setting this field with a reserved value triggers the error exception
+ * 0xb-0xf: Reserved, setting this field with a reserved value triggers the error exception
+ * for XDMA, the maximum allowed value is 0xa; for HDMA, the maximum allowed value is 0x7
  */
 #define DMA_CHCTRL_CTRL_SRCBURSTSIZE_MASK (0xF000000UL)
 #define DMA_CHCTRL_CTRL_SRCBURSTSIZE_SHIFT (24U)
@@ -304,7 +305,8 @@ typedef struct {
  * 0x3: Double word transfer
  * 0x4: Quad word transfer
  * 0x5: Eight word transfer
- * 0x6�?x7: Reserved, setting this field with a reserved value triggers the error exception
+ * 0x6-x7: Reserved, setting this field with a reserved value triggers the error exception
+ * for XDMA, the maximum allowed value is 0x3, for HDMA, the maximum allowed value is 0x2
  */
 #define DMA_CHCTRL_CTRL_SRCWIDTH_MASK (0xE00000UL)
 #define DMA_CHCTRL_CTRL_SRCWIDTH_SHIFT (21U)
@@ -323,7 +325,8 @@ typedef struct {
  * 0x3: Double word transfer
  * 0x4: Quad word transfer
  * 0x5: Eight word transfer
- * 0x6�?x7: Reserved, setting this field with a reserved value triggers the error exception
+ * 0x6-x7: Reserved, setting this field with a reserved value triggers the error exception
+ * for XDMA, the maximum allowed value is 0x3, for HDMA, the maximum allowed value is 0x2
  */
 #define DMA_CHCTRL_CTRL_DSTWIDTH_MASK (0x1C0000UL)
 #define DMA_CHCTRL_CTRL_DSTWIDTH_SHIFT (18U)

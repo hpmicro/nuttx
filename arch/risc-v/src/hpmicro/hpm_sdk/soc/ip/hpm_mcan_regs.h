@@ -63,7 +63,7 @@ typedef struct {
     __R  uint32_t TXEFS;                       /* 0xF4: tx event fifo status */
     __RW uint32_t TXEFA;                       /* 0xF8: tx event fifo acknowledge */
     __R  uint8_t  RESERVED7[260];              /* 0xFC - 0x1FF: Reserved */
-    __R  uint32_t TS_SEL[16];                  /* 0x200 - 0x23C: timestamp 0 */
+    __R  uint32_t TS_SEL[16];                  /* 0x200 - 0x23C: timestamp 0-15 */
     __R  uint32_t CREL;                        /* 0x240: core release register */
     __RW uint32_t TSCFG;                       /* 0x244: timestamp configuration */
     __R  uint32_t TSS1;                        /* 0x248: timestamp status1 */
@@ -73,8 +73,7 @@ typedef struct {
     __R  uint8_t  RESERVED8[424];              /* 0x258 - 0x3FF: Reserved */
     __RW uint32_t GLB_CTL;                     /* 0x400: global control */
     __R  uint32_t GLB_STATUS;                  /* 0x404: global status */
-    __R  uint32_t GLB_CAN_IR;                  /* 0x408: global m_can_ir */
-    __R  uint8_t  RESERVED9[7156];             /* 0x40C - 0x1FFF: Reserved */
+    __R  uint8_t  RESERVED9[7160];             /* 0x408 - 0x1FFF: Reserved */
     __RW uint32_t MESSAGE_BUFF[640];           /* 0x2000 - 0x29FC: message buff */
 } MCAN_Type;
 
@@ -83,7 +82,8 @@ typedef struct {
 /*
  * EVT (R)
  *
- * evt
+ * Endianness Test Value
+ * The endianness test value is 0x87654321.
  */
 #define MCAN_ENDN_EVT_MASK (0xFFFFFFFFUL)
 #define MCAN_ENDN_EVT_SHIFT (0U)
@@ -94,6 +94,8 @@ typedef struct {
  * TDC (RW)
  *
  * transmitter delay compensation enable
+ * 0= Transmitter Delay Compensation disabled
+ * 1= Transmitter Delay Compensation enabled
  */
 #define MCAN_DBTP_TDC_MASK (0x800000UL)
 #define MCAN_DBTP_TDC_SHIFT (23U)
@@ -103,7 +105,8 @@ typedef struct {
 /*
  * DBRP (RW)
  *
- * data bit rate prescaler, value range is 0-31 when TDC = 0, 0-1 when TDC=1
+ * Data Bit Rate Prescaler
+ * The value by which the oscillator frequency is divided for generating the bit time quanta. The bit time is built up from a multiple of this quanta. Valid values for the Bit Rate Prescaler are 0 to 31. When TDC = ‘1’, the range is limited to 0,1. The actual interpretation by the hardware of this value is such that one more than the value programmed here is used.
  */
 #define MCAN_DBTP_DBRP_MASK (0x1F0000UL)
 #define MCAN_DBTP_DBRP_SHIFT (16U)
@@ -113,7 +116,8 @@ typedef struct {
 /*
  * DTSEG1 (RW)
  *
- * data time segment before sample point, value range 0-31
+ * Data time segment before sample point
+ * Valid values are 0 to 31. The actual interpretation by the hardware of this value is such that one more than the programmed value is used.
  */
 #define MCAN_DBTP_DTSEG1_MASK (0x1F00U)
 #define MCAN_DBTP_DTSEG1_SHIFT (8U)
@@ -123,7 +127,8 @@ typedef struct {
 /*
  * DTSEG2 (RW)
  *
- * data time segment after sample point，value range is 0-15. the data bit time= DTSEG1+DTSEG2+3
+ * Data time segment after sample point
+ * Valid values are 0 to 15. The actual interpretation by the hardware of this value is such that one more than the programmed value is used.
  */
 #define MCAN_DBTP_DTSEG2_MASK (0xF0U)
 #define MCAN_DBTP_DTSEG2_SHIFT (4U)
@@ -133,7 +138,8 @@ typedef struct {
 /*
  * DSJW (RW)
  *
- * data synchronization jump width, value range is 0-15
+ * Data (Re)Synchronization Jump Width
+ * Valid values are 0 to 15. The actual interpretation by the hardware of this value is such that one more than the value programmed here is used.
  */
 #define MCAN_DBTP_DSJW_MASK (0xFU)
 #define MCAN_DBTP_DSJW_SHIFT (0U)
@@ -142,59 +148,67 @@ typedef struct {
 
 /* Bitfield definition for register: TEST */
 /*
- * SVAL (RW)
+ * SVAL (R)
  *
- * value of TXBNS valid
+ * Started Valid
+ * 0= Value of TXBNS not valid
+ * 1= Value of TXBNS valid
  */
 #define MCAN_TEST_SVAL_MASK (0x200000UL)
 #define MCAN_TEST_SVAL_SHIFT (21U)
-#define MCAN_TEST_SVAL_SET(x) (((uint32_t)(x) << MCAN_TEST_SVAL_SHIFT) & MCAN_TEST_SVAL_MASK)
 #define MCAN_TEST_SVAL_GET(x) (((uint32_t)(x) & MCAN_TEST_SVAL_MASK) >> MCAN_TEST_SVAL_SHIFT)
 
 /*
- * TXBNS (RW)
+ * TXBNS (R)
  *
- * tx buffer number of message whose transmission was started last
+ * Tx Buffer Number Started
+ * Tx Buffer number of message whose transmission was started last. Valid when SVAL is set. Valid values are 0 to 31.
  */
 #define MCAN_TEST_TXBNS_MASK (0x1F0000UL)
 #define MCAN_TEST_TXBNS_SHIFT (16U)
-#define MCAN_TEST_TXBNS_SET(x) (((uint32_t)(x) << MCAN_TEST_TXBNS_SHIFT) & MCAN_TEST_TXBNS_MASK)
 #define MCAN_TEST_TXBNS_GET(x) (((uint32_t)(x) & MCAN_TEST_TXBNS_MASK) >> MCAN_TEST_TXBNS_SHIFT)
 
 /*
- * PVAL (RW)
+ * PVAL (R)
  *
- * value of TXBNP valid
+ * Prepared Valid
+ * 0= Value of TXBNP not valid
+ * 1= Value of TXBNP valid
  */
 #define MCAN_TEST_PVAL_MASK (0x2000U)
 #define MCAN_TEST_PVAL_SHIFT (13U)
-#define MCAN_TEST_PVAL_SET(x) (((uint32_t)(x) << MCAN_TEST_PVAL_SHIFT) & MCAN_TEST_PVAL_MASK)
 #define MCAN_TEST_PVAL_GET(x) (((uint32_t)(x) & MCAN_TEST_PVAL_MASK) >> MCAN_TEST_PVAL_SHIFT)
 
 /*
- * TXBNP (RW)
+ * TXBNP (R)
  *
- * tx buffer number of message that is ready for transmission
+ * Tx Buffer Number Prepared
+ * Tx Buffer number of message that is ready for transmission. Valid when PVAL is set.Valid values are 0 to 31.
  */
 #define MCAN_TEST_TXBNP_MASK (0x1F00U)
 #define MCAN_TEST_TXBNP_SHIFT (8U)
-#define MCAN_TEST_TXBNP_SET(x) (((uint32_t)(x) << MCAN_TEST_TXBNP_SHIFT) & MCAN_TEST_TXBNP_MASK)
 #define MCAN_TEST_TXBNP_GET(x) (((uint32_t)(x) & MCAN_TEST_TXBNP_MASK) >> MCAN_TEST_TXBNP_SHIFT)
 
 /*
- * RX (RW)
+ * RX (R)
  *
- * the actual value of pin m_can_rx, 0= dominant  1=recessive
+ * Receive Pin
+ * Monitors the actual value of pin m_can_rx
+ * 0= The CAN bus is dominant (m_can_rx = ‘0’)
+ * 1= The CAN bus is recessive (m_can_rx = ‘1’)
  */
 #define MCAN_TEST_RX_MASK (0x80U)
 #define MCAN_TEST_RX_SHIFT (7U)
-#define MCAN_TEST_RX_SET(x) (((uint32_t)(x) << MCAN_TEST_RX_SHIFT) & MCAN_TEST_RX_MASK)
 #define MCAN_TEST_RX_GET(x) (((uint32_t)(x) & MCAN_TEST_RX_MASK) >> MCAN_TEST_RX_SHIFT)
 
 /*
  * TX (RW)
  *
- * control of transmit pin, 00- m_can_tx controlled by can core, 01- sample point can be monitored  at m_can_tx, 10- dominant level at pin m_can_tx, 11- recessive at pin m_can_tx
+ * Control of Transmit Pin
+ * 00 Reset value, m_can_tx controlled by the CAN Core, updated at the end of the CAN bit time
+ * 01 Sample Point can be monitored at pin m_can_tx
+ * 10 Dominant (‘0’) level at pin m_can_tx
+ * 11 Recessive (‘1’) at pin m_can_tx
  */
 #define MCAN_TEST_TX_MASK (0x60U)
 #define MCAN_TEST_TX_SHIFT (5U)
@@ -204,7 +218,9 @@ typedef struct {
 /*
  * LBCK (RW)
  *
- * loopback mode enable
+ * Loop Back Mode
+ * 0= Reset value, Loop Back Mode is disabled
+ * 1= Loop Back Mode is enabled
  */
 #define MCAN_TEST_LBCK_MASK (0x10U)
 #define MCAN_TEST_LBCK_SHIFT (4U)
@@ -215,7 +231,8 @@ typedef struct {
 /*
  * WDV (R)
  *
- * actual message counter value
+ * Watchdog Value
+ * Actual Message RAM Watchdog Counter Value.
  */
 #define MCAN_RWD_WDV_MASK (0xFF00U)
 #define MCAN_RWD_WDV_SHIFT (8U)
@@ -224,7 +241,8 @@ typedef struct {
 /*
  * WDC (RW)
  *
- * start value of counter, the counter is disabled when 0 is configured
+ * Watchdog Configuration
+ * Start value of the Message RAM Watchdog Counter. With the reset value of “00” the counter is disabled.
  */
 #define MCAN_RWD_WDC_MASK (0xFFU)
 #define MCAN_RWD_WDC_SHIFT (0U)
@@ -235,7 +253,12 @@ typedef struct {
 /*
  * NISO (RW)
  *
- * non iso operation, 0-ISO 11898-1:2015 frame formate, 1-Bosch can fd specification v1.0
+ * Non ISO Operation
+ * If this bit is set, the M_CAN uses the CAN FD frame format as specified by the Bosch CAN FD
+ * Specification V1.0.
+ * 0= CAN FD frame format according to ISO 11898-1:2015
+ * 1= CAN FD frame format according to Bosch CAN FD Specification V1.0
+ * Note: When the generic parameter iso_only_g is set to ‘1’ in hardware synthesis, this bit becomes reserved and is read as ‘0’. The M_CAN always operates with the CAN FD frame format according to ISO 11898-1:2015.
  */
 #define MCAN_CCCR_NISO_MASK (0x8000U)
 #define MCAN_CCCR_NISO_SHIFT (15U)
@@ -245,7 +268,11 @@ typedef struct {
 /*
  * TXP (RW)
  *
- * transmit pause, pause two bit times between frame
+ * Transmit Pause
+ * If this bit is set, the M_CAN pauses for two CAN bit times before starting the next transmission after
+ * itself has successfully transmitted a frame (see Section 3.5).
+ * 0= Transmit pause disabled
+ * 1= Transmit pause enabled
  */
 #define MCAN_CCCR_TXP_MASK (0x4000U)
 #define MCAN_CCCR_TXP_SHIFT (14U)
@@ -255,7 +282,9 @@ typedef struct {
 /*
  * EFBI (RW)
  *
- * edge filtering during bus integration, 1- two consecutive dominant tq required to detect an edge for hard synchronization
+ * Edge Filtering during Bus Integration
+ * 0= Edge filtering disabled
+ * 1= Two consecutive dominant tq required to detect an edge for hard synchronization
  */
 #define MCAN_CCCR_EFBI_MASK (0x2000U)
 #define MCAN_CCCR_EFBI_SHIFT (13U)
@@ -265,7 +294,10 @@ typedef struct {
 /*
  * PXHD (RW)
  *
- * protocal exception handing disable
+ * Protocol Exception Handling Disable
+ * 0= Protocol exception handling enabled
+ * 1= Protocol exception handling disabled
+ * Note: When protocol exception handling is disabled, the M_CAN will transmit an error frame when it detects a protocol exception condition.
  */
 #define MCAN_CCCR_PXHD_MASK (0x1000U)
 #define MCAN_CCCR_PXHD_SHIFT (12U)
@@ -275,7 +307,10 @@ typedef struct {
 /*
  * WMM (RW)
  *
- * wide message marker, 1-16bit message marker
+ * Wide Message Marker
+ * Enables the use of 16-bit Wide Message Markers. When 16-bit Wide Message Markers are used (WMM = ‘1’), 16-bit internal timestamping is disabled for the Tx Event FIFO.
+ * 0= 8-bit Message Marker used
+ * 1= 16-bit Message Marker used, replacing 16-bit timestamps in Tx Event FIFO
  */
 #define MCAN_CCCR_WMM_MASK (0x800U)
 #define MCAN_CCCR_WMM_SHIFT (11U)
@@ -285,7 +320,12 @@ typedef struct {
 /*
  * UTSU (RW)
  *
- * use timestamping unit, 0-internal time stamping, 1-external time stamping by TSU
+ * Use Timestamping Unit
+ * When UTSU is set, 16-bit Wide Message Markers are also enabled regardless of the value of WMM.
+ * 0= Internal time stamping
+ * 1= External time stamping by TSU
+ * Note: When generic parameter connected_tsu_g = ‘0’, there is no TSU connected to the M_CAN.
+ * In this case bit UTSU is fixed to zero by synthesis.
  */
 #define MCAN_CCCR_UTSU_MASK (0x400U)
 #define MCAN_CCCR_UTSU_SHIFT (10U)
@@ -295,7 +335,10 @@ typedef struct {
 /*
  * BRSE (RW)
  *
- * bit rate switch enable, different bit-rate can be supply to data segement
+ * Bit Rate Switch Enable
+ * 0= Bit rate switching for transmissions disabled
+ * 1= Bit rate switching for transmissions enabled
+ * Note: When CAN FD operation is disabled FDOE = ‘0’, BRSE is not evaluated.
  */
 #define MCAN_CCCR_BRSE_MASK (0x200U)
 #define MCAN_CCCR_BRSE_SHIFT (9U)
@@ -305,7 +348,9 @@ typedef struct {
 /*
  * FDOE (RW)
  *
- * 1-FD operation enable
+ * FD Operation Enable
+ * 0= FD operation disabled
+ * 1= FD operation enabled
  */
 #define MCAN_CCCR_FDOE_MASK (0x100U)
 #define MCAN_CCCR_FDOE_SHIFT (8U)
@@ -315,7 +360,9 @@ typedef struct {
 /*
  * TEST (RW)
  *
- * 1- test mode, wirte access to register TEST enable
+ * Test Mode Enable
+ * 0= Normal operation, register TEST holds reset values
+ * 1= Test Mode, write access to register TEST enabled
  */
 #define MCAN_CCCR_TEST_MASK (0x80U)
 #define MCAN_CCCR_TEST_SHIFT (7U)
@@ -325,7 +372,9 @@ typedef struct {
 /*
  * DAR (RW)
  *
- * 1- automatic retransmission disabled
+ * Disable Automatic Retransmission
+ * 0= Automatic retransmission of messages not transmitted successfully enabled
+ * 1= Automatic retransmission disabled
  */
 #define MCAN_CCCR_DAR_MASK (0x40U)
 #define MCAN_CCCR_DAR_SHIFT (6U)
@@ -335,7 +384,10 @@ typedef struct {
 /*
  * MON (RW)
  *
- * 1- bus monitoring mode enable
+ * Bus Monitoring Mode
+ * Bit MON can only be set by the Host when both CCE and INIT are set to ‘1’. The bit can be reset by the Host at any time.
+ * 0= Bus Monitoring Mode is disabled
+ * 1= Bus Monitoring Mode is enabled
  */
 #define MCAN_CCCR_MON_MASK (0x20U)
 #define MCAN_CCCR_MON_SHIFT (5U)
@@ -345,7 +397,9 @@ typedef struct {
 /*
  * CSR (RW)
  *
- * 1- clock stop request
+ * Clock Stop Request
+ * 0= No clock stop is requested
+ * 1= Clock stop requested. When clock stop is requested, first INIT and then CSA will be set after all pending transfer requests have been completed and the CAN bus reached idle.
  */
 #define MCAN_CCCR_CSR_MASK (0x10U)
 #define MCAN_CCCR_CSR_SHIFT (4U)
@@ -355,7 +409,9 @@ typedef struct {
 /*
  * CSA (R)
  *
- * 1- M_CAN may be set in power down by stopping m_can_hclk and m_can_cclk
+ * Clock Stop Acknowledge
+ * 0= No clock stop acknowledged
+ * 1= M_CAN may be set in power down by stopping m_can_hclk and m_can_cclk
  */
 #define MCAN_CCCR_CSA_MASK (0x8U)
 #define MCAN_CCCR_CSA_SHIFT (3U)
@@ -364,7 +420,10 @@ typedef struct {
 /*
  * ASM (RW)
  *
- * 1- restricted operation mode active, able to receive frames and give acknoledge, but can not send data frames remote frames active error frames and overload frames.
+ * Restricted Operation Mode
+ * Bit ASM can only be set by the Host when both CCE and INIT are set to ‘1’. The bit can be reset by the Host at any time. For a description of the Restricted Operation Mode see Section 3.1.5.
+ * 0= Normal CAN operation
+ * 1= Restricted Operation Mode active
  */
 #define MCAN_CCCR_ASM_MASK (0x4U)
 #define MCAN_CCCR_ASM_SHIFT (2U)
@@ -374,7 +433,9 @@ typedef struct {
 /*
  * CCE (RW)
  *
- * 1- The CPU has write access to the protected configuration registers
+ * Configuration Change Enable
+ * 0= The CPU has no write access to the protected configuration registers
+ * 1= The CPU has write access to the protected configuration registers (while CCCR.INIT = ‘1’)
  */
 #define MCAN_CCCR_CCE_MASK (0x2U)
 #define MCAN_CCCR_CCE_SHIFT (1U)
@@ -384,7 +445,9 @@ typedef struct {
 /*
  * INIT (RW)
  *
- * 1- initialization is started
+ * Initialization
+ * 0= Normal Operation
+ * 1= Initialization is started
  */
 #define MCAN_CCCR_INIT_MASK (0x1U)
 #define MCAN_CCCR_INIT_SHIFT (0U)
@@ -395,7 +458,8 @@ typedef struct {
 /*
  * NSJW (RW)
  *
- * Nnominal synchronization jump width
+ * Nominal (Re)Synchronization Jump Width
+ * Valid values are 0 to 127. The actual interpretation by the hardware of this value is such that one more than the value programmed here is used.
  */
 #define MCAN_NBTP_NSJW_MASK (0xFE000000UL)
 #define MCAN_NBTP_NSJW_SHIFT (25U)
@@ -405,7 +469,9 @@ typedef struct {
 /*
  * NBRP (RW)
  *
- * nominal bit rate prescaler
+ * Nominal Bit Rate Prescaler
+ * The value by which the oscillator frequency is divided for generating the bit time quanta. The bit time is built up from a multiple of this quanta. Valid values for the Bit Rate Prescaler are 0 to 511. The actual interpretation by the hardware of this value is
+ * such that one more than the value programmed here is used.
  */
 #define MCAN_NBTP_NBRP_MASK (0x1FF0000UL)
 #define MCAN_NBTP_NBRP_SHIFT (16U)
@@ -415,7 +481,8 @@ typedef struct {
 /*
  * NTSEG1 (RW)
  *
- * nominal time segement before sample point
+ * Nominal Time segment before sample point
+ * Valid values are 1 to 255. The actual interpretation by the hardware of this value is such that one more than the programmed value is used.
  */
 #define MCAN_NBTP_NTSEG1_MASK (0xFF00U)
 #define MCAN_NBTP_NTSEG1_SHIFT (8U)
@@ -425,7 +492,8 @@ typedef struct {
 /*
  * NTSEG2 (RW)
  *
- * nominal time segement after sample point
+ * Nominal Time segment after sample point
+ * Valid values are 1 to 127. The actual interpretation by the hardware of this value is such that one more than the programmed value is used.
  */
 #define MCAN_NBTP_NTSEG2_MASK (0x7FU)
 #define MCAN_NBTP_NTSEG2_SHIFT (0U)
@@ -436,7 +504,8 @@ typedef struct {
 /*
  * TCP (RW)
  *
- * timestamp counter configuration
+ * Timestamp Counter Prescaler
+ * Configures the timestamp and timeout counters time unit in multiples of CAN bit times [1…16]. The actual interpretation by the hardware of this value is such that one more than the value programmed here is used.
  */
 #define MCAN_TSCC_TCP_MASK (0xF0000UL)
 #define MCAN_TSCC_TCP_SHIFT (16U)
@@ -446,7 +515,11 @@ typedef struct {
 /*
  * TSS (RW)
  *
- * timestamp select
+ * timestamp Select
+ * 00= Timestamp counter value always 0x0000
+ * 01= Timestamp counter value incremented according to TCP
+ * 10= External timestamp counter value used
+ * 11= Same as “00”
  */
 #define MCAN_TSCC_TSS_MASK (0x3U)
 #define MCAN_TSCC_TSS_SHIFT (0U)
@@ -457,7 +530,8 @@ typedef struct {
 /*
  * TSC (RC)
  *
- * timestamp counter
+ * Timestamp Counter
+ * The internal/external Timestamp Counter value is captured on start of frame (both Rx and Tx).When TSCC.TSS = “01”, the Timestamp Counter is incremented in multiples of CAN bit times [1…16] depending on the configuration of TSCC.TCP. A wrap around sets interrupt flag IR.TSW. Write access resets the counter to zero. When TSCC.TSS = “10”, TSC reflects the external Timestamp Counter value. A write access has no impact.
  */
 #define MCAN_TSCV_TSC_MASK (0xFFFFU)
 #define MCAN_TSCV_TSC_SHIFT (0U)
@@ -467,7 +541,8 @@ typedef struct {
 /*
  * TOP (RW)
  *
- * timeout period
+ * Timeout Period
+ * Start value of the Timeout Counter (down-counter). Configures the Timeout Period.
  */
 #define MCAN_TOCC_TOP_MASK (0xFFFF0000UL)
 #define MCAN_TOCC_TOP_SHIFT (16U)
@@ -477,7 +552,12 @@ typedef struct {
 /*
  * TOS (RW)
  *
- * timeout select
+ * Timeout Select
+ * When operating in Continuous mode, a write to TOCV presets the counter to the value configured by TOCC.TOP and continues down-counting. When the Timeout Counter is controlled by one of the FIFOs, an empty FIFO presets the counter to the value configured by TOCC.TOP. Down-counting is started when the first FIFO element is stored.
+ * 00= Continuous operation
+ * 01= Timeout controlled by Tx Event FIFO
+ * 10= Timeout controlled by Rx FIFO 0
+ * 11= Timeout controlled by Rx FIFO 1
  */
 #define MCAN_TOCC_TOS_MASK (0x6U)
 #define MCAN_TOCC_TOS_SHIFT (1U)
@@ -487,7 +567,9 @@ typedef struct {
 /*
  * RP (RW)
  *
- * enable timeout counter
+ * Enable Timeout Counter
+ * 0= Timeout Counter disabled
+ * 1= Timeout Counter enabled
  */
 #define MCAN_TOCC_RP_MASK (0x1U)
 #define MCAN_TOCC_RP_SHIFT (0U)
@@ -498,7 +580,9 @@ typedef struct {
 /*
  * TOC (RC)
  *
- * timeout counter value
+ * Timeout Counter
+ * The Timeout Counter is decremented in multiples of CAN bit times [1…16] depending on the configuration of TSCC.TCP. When decremented to zero, interrupt flag IR.TOO is set and the Timeout Counter is stopped. Start and reset/restart conditions are configured via TOCC.TOS.
+ * Note: Byte access: when TOCC.TOS = “00，writing one of the register bytes 3/2/1/0 will preset the Timeout Counter.
  */
 #define MCAN_TOCV_TOC_MASK (0xFFFFU)
 #define MCAN_TOCV_TOC_SHIFT (0U)
@@ -506,9 +590,12 @@ typedef struct {
 
 /* Bitfield definition for register: ECR */
 /*
- * CEL (R)
+ * CEL (X)
  *
- * can error logging
+ * CAN Error Logging
+ * The counter is incremented each time when a CAN protocol error causes the 8-bit Transmit Error Counter TEC or the 7-bit Receive Error Counter REC to be incremented. The counter is also incremented when the Bus_Off limit is reached. It is not incremented when only RP is set without changing REC. The increment of CEL follows after the increment of REC or TEC.
+ * The counter is reset by read access to CEL. The counter stops at 0xFF; the next increment of TEC or REC sets interrupt flag IR.ELO.
+ * Note: Byte access: Reading byte 2 will reset CEL to zero, reading bytes 3/1/0 has no impact.
  */
 #define MCAN_ECR_CEL_MASK (0xFF0000UL)
 #define MCAN_ECR_CEL_SHIFT (16U)
@@ -517,7 +604,9 @@ typedef struct {
 /*
  * RP (R)
  *
- * receive error passive
+ * Receive Error Passive
+ * 0= The Receive Error Counter is below the error passive level of 128
+ * 1= The Receive Error Counter has reached the error passive level of 128
  */
 #define MCAN_ECR_RP_MASK (0x8000U)
 #define MCAN_ECR_RP_SHIFT (15U)
@@ -526,7 +615,8 @@ typedef struct {
 /*
  * REC (R)
  *
- * receive error counter
+ * Receive Error Counter
+ * Actual state of the Receive Error Counter, values between 0 and 127
  */
 #define MCAN_ECR_REC_MASK (0x7F00U)
 #define MCAN_ECR_REC_SHIFT (8U)
@@ -535,7 +625,9 @@ typedef struct {
 /*
  * TEC (R)
  *
- * transmit error counter
+ * Transmit Error Counter
+ * Actual state of the Transmit Error Counter, values between 0 and 255
+ * Note: When CCCR.ASM is set, the CAN protocol controller does not increment TEC and REC when a CAN protocol error is detected, but CEL is still incremented.
  */
 #define MCAN_ECR_TEC_MASK (0xFFU)
 #define MCAN_ECR_TEC_SHIFT (0U)
@@ -545,52 +637,71 @@ typedef struct {
 /*
  * TDCV (R)
  *
- * transmitter delay compensation value
+ * Transmitter Delay Compensation Value
+ * Position of the secondary sample point, defined by the sum of the measured delay from m_can_tx to m_can_rx and TDCR.TDCO. The SSP position is, in the data phase, the number of mtq between the start of the transmitted bit and the secondary sample point. Valid values are 0 to 127 mtq.
  */
 #define MCAN_PSR_TDCV_MASK (0x7F0000UL)
 #define MCAN_PSR_TDCV_SHIFT (16U)
 #define MCAN_PSR_TDCV_GET(x) (((uint32_t)(x) & MCAN_PSR_TDCV_MASK) >> MCAN_PSR_TDCV_SHIFT)
 
 /*
- * PXE (R)
+ * PXE (X)
  *
- * protocol exception event
+ * Protocol Exception Event
+ * 0= No protocol exception event occurred since last read access
+ * 1= Protocol exception event occurred
+ * Note: Byte access: Reading byte 0 will reset PXE, reading bytes 3/2/1 has no impact.
  */
 #define MCAN_PSR_PXE_MASK (0x4000U)
 #define MCAN_PSR_PXE_SHIFT (14U)
 #define MCAN_PSR_PXE_GET(x) (((uint32_t)(x) & MCAN_PSR_PXE_MASK) >> MCAN_PSR_PXE_SHIFT)
 
 /*
- * RFDF (R)
+ * RFDF (X)
  *
- * received a can fd message
+ * Received a CAN FD Message
+ * This bit is set independent of acceptance filtering.
+ * 0= Since this bit was reset by the CPU, no CAN FD message has been received
+ * 1= Message in CAN FD format with FDF flag set has been received
+ * Note: Byte access: Reading byte 0 will reset RFDF, reading bytes 3/2/1 has no impact.
  */
 #define MCAN_PSR_RFDF_MASK (0x2000U)
 #define MCAN_PSR_RFDF_SHIFT (13U)
 #define MCAN_PSR_RFDF_GET(x) (((uint32_t)(x) & MCAN_PSR_RFDF_MASK) >> MCAN_PSR_RFDF_SHIFT)
 
 /*
- * RBRS (R)
+ * RBRS (X)
  *
- * brs flag of last received can fd message
+ * BRS flag of last received CAN FD Message
+ * This bit is set together with RFDF, independent of acceptance filtering.
+ * 0= Last received CAN FD message did not have its BRS flag set
+ * 1= Last received CAN FD message had its BRS flag set
+ * Note: Byte access: Reading byte 0 will reset RBRS, reading bytes 3/2/1 has no impact.
  */
 #define MCAN_PSR_RBRS_MASK (0x1000U)
 #define MCAN_PSR_RBRS_SHIFT (12U)
 #define MCAN_PSR_RBRS_GET(x) (((uint32_t)(x) & MCAN_PSR_RBRS_MASK) >> MCAN_PSR_RBRS_SHIFT)
 
 /*
- * RESI (R)
+ * RESI (X)
  *
- * ESI flag of last received can fd message
+ * ESI flag of last received CAN FD Message
+ * This bit is set together with RFDF, independent of acceptance filtering.
+ * 0= Last received CAN FD message did not have its ESI flag set
+ * 1= Last received CAN FD message had its ESI flag set
+ * Note: Byte access: Reading byte 0 will reset RESI, reading bytes 3/2/1 has no impact.
  */
 #define MCAN_PSR_RESI_MASK (0x800U)
 #define MCAN_PSR_RESI_SHIFT (11U)
 #define MCAN_PSR_RESI_GET(x) (((uint32_t)(x) & MCAN_PSR_RESI_MASK) >> MCAN_PSR_RESI_SHIFT)
 
 /*
- * DLEC (R)
+ * DLEC (S)
  *
- * data phase last error code
+ * Data Phase Last Error Code
+ * Type of last error that occurred in the data phase of a CAN FD format frame with its BRS flag set.Coding is the same as for LEC. This field will be cleared to zero when a CAN FD format frame with
+ * its BRS flag set has been transferred (reception or transmission) without error.
+ * Note: Byte access: Reading byte 0 will set DLEC to “111”, reading bytes 3/2/1 has no impact.
  */
 #define MCAN_PSR_DLEC_MASK (0x700U)
 #define MCAN_PSR_DLEC_SHIFT (8U)
@@ -599,7 +710,9 @@ typedef struct {
 /*
  * BO (R)
  *
- * bus_off state
+ * Bus_Off Status
+ * 0= The M_CAN is not Bus_Off
+ * 1= The M_CAN is in Bus_Off state
  */
 #define MCAN_PSR_BO_MASK (0x80U)
 #define MCAN_PSR_BO_SHIFT (7U)
@@ -608,7 +721,9 @@ typedef struct {
 /*
  * EW (R)
  *
- * warning status
+ * Warning Status
+ * 0= Both error counters are below the Error_Warning limit of 96
+ * 1= At least one of error counter has reached the Error_Warning limit of 96
  */
 #define MCAN_PSR_EW_MASK (0x40U)
 #define MCAN_PSR_EW_SHIFT (6U)
@@ -617,7 +732,9 @@ typedef struct {
 /*
  * EP (R)
  *
- * error passive
+ * Error Passive
+ * 0= The M_CAN is in the Error_Active state. It normally takes part in bus communication and sends an active error flag when an error has been detected
+ * 1= The M_CAN is in the Error_Passive state
  */
 #define MCAN_PSR_EP_MASK (0x20U)
 #define MCAN_PSR_EP_SHIFT (5U)
@@ -626,16 +743,37 @@ typedef struct {
 /*
  * ACT (R)
  *
- * activity
+ * Activity
+ * Monitors the module’s CAN communication state.
+ * 00= Synchronizing - node is synchronizing on CAN communication
+ * 01= Idle - node is neither receiver nor transmitter
+ * 10= Receiver - node is operating as receiver
+ * 11= Transmitter - node is operating as transmitter
+ * Note: ACT is set to “00” by a Protocol Exception Event.
  */
 #define MCAN_PSR_ACT_MASK (0x18U)
 #define MCAN_PSR_ACT_SHIFT (3U)
 #define MCAN_PSR_ACT_GET(x) (((uint32_t)(x) & MCAN_PSR_ACT_MASK) >> MCAN_PSR_ACT_SHIFT)
 
 /*
- * LEC (R)
+ * LEC (S)
  *
- * last error code
+ * Last Error Code
+ * The LEC indicates the type of the last error to occur on the CAN bus. This field will be cleared to ‘0’when a message has been transferred (reception or transmission) without error.
+ * 0= No Error: No error occurred since LEC has been reset by successful reception or transmission.
+ * 1= Stuff Error: More than 5 equal bits in a sequence have occurred in a part of a received message where this is not allowed.
+ * 2= Form Error: A fixed format part of a received frame has the wrong format.
+ * 3= AckError: The message transmitted by the M_CAN was not acknowledged by another node.
+ * 4= Bit1Error: During the transmission of a message (with the exception of the arbitration field),
+ * the device wanted to send a recessive level (bit of logical value ‘1’), but the monitored bus
+ * value was dominant.
+ * 5= Bit0Error: During the transmission of a message (or acknowledge bit, or active error flag, or overload flag), the device wanted to send a dominant level (data or identifier bit logical value‘0’), but the monitored bus value was recessive. During Bus_Off recovery this status is set each time a sequence of 11 recessive bits has been monitored. This enables the CPU to monitor the proceeding of the Bus_Off recovery sequence (indicating the bus is not stuck at
+ * dominant or continuously disturbed).
+ * 6= CRCError: The CRC check sum of a received message was incorrect. The CRC of an incoming message does not match with the CRC calculated from the received data.
+ * 7= NoChange: Any read access to the Protocol Status Register re-initializes the LEC to ‘7’. When the LEC shows the value ‘7’, no CAN bus event was detected since the last CPU read access to the Protocol Status Register.
+ * Note: When a frame in CAN FD format has reached the data phase with BRS flag set, the next CAN event (error or valid frame) will be shown in DLEC instead of LEC. An error in a fixed stuff bit of a CAN FD CRC sequence will be shown as a Form Error, not Stuff Error.
+ * Note: The Bus_Off recovery sequence (see ISO 11898-1:2015) cannot be shortened by setting or resetting CCCR.INIT. If the device goes Bus_Off, it will set CCCR.INIT of its own accord,stopping all bus activities. Once CCCR.INIT has been cleared by the CPU, the device will then wait for 129 occurrences of Bus Idle (129 * 11 consecutive recessive bits) before resuming normal operation. At the end of the Bus_Off recovery sequence, the Error Management Counters will be reset. During the waiting time after the resetting of CCCR.INIT, each time a sequence of 11 recessive bits has been monitored, a Bit0Error code is written to PSR.LEC, enabling the CPU to readily check up whether the CAN bus is stuck at dominant or continuously disturbed and to monitor the Bus_Off recovery sequence. ECR.REC is used to count these sequences.
+ * Note: Byte access: Reading byte 0 will set LEC to “111”, reading bytes 3/2/1 has no impact.
  */
 #define MCAN_PSR_LEC_MASK (0x7U)
 #define MCAN_PSR_LEC_SHIFT (0U)
@@ -645,7 +783,8 @@ typedef struct {
 /*
  * TDCO (RW)
  *
- * transmitter delay compensation ssp offset
+ * Transmitter Delay Compensation SSP Offset
+ * Offset value defining the distance between the measured delay from m_can_tx to m_can_rx and the secondary sample point. Valid values are 0 to 127 mtq.
  */
 #define MCAN_TDCR_TDCO_MASK (0x7F00U)
 #define MCAN_TDCR_TDCO_SHIFT (8U)
@@ -655,7 +794,8 @@ typedef struct {
 /*
  * TDCF (RW)
  *
- * transmitter delay compensation filter window length
+ * Transmitter Delay Compensation Filter Window Length
+ * Defines the minimum value for the SSP position, dominant edges on m_can_rx that would result in an earlier SSP position are ignored for transmitter delay measurement. The feature is enabled when TDCF is configured to a value greater than TDCO. Valid values are 0 to 127 mtq.
  */
 #define MCAN_TDCR_TDCF_MASK (0x7FU)
 #define MCAN_TDCR_TDCF_SHIFT (0U)
@@ -666,7 +806,9 @@ typedef struct {
 /*
  * ARA (RW)
  *
- * access to reserved address
+ * Access to Reserved Address
+ * 0= No access to reserved address occurred
+ * 1= Access to reserved address occurred
  */
 #define MCAN_IR_ARA_MASK (0x20000000UL)
 #define MCAN_IR_ARA_SHIFT (29U)
@@ -676,7 +818,9 @@ typedef struct {
 /*
  * PED (RW)
  *
- * protocol error in data phase
+ * Protocol Error in Data Phase (Data Bit Time is used)
+ * 0= No protocol error in data phase
+ * 1= Protocol error in data phase detected (PSR.DLEC ≠ 0,7)
  */
 #define MCAN_IR_PED_MASK (0x10000000UL)
 #define MCAN_IR_PED_SHIFT (28U)
@@ -686,7 +830,9 @@ typedef struct {
 /*
  * PEA (RW)
  *
- * protocol error in arbitration phase
+ * Protocol Error in Arbitration Phase (Nominal Bit Time is used)
+ * 0= No protocol error in arbitration phase
+ * 1= Protocol error in arbitration phase detected (PSR.LEC ≠ 0,7)
  */
 #define MCAN_IR_PEA_MASK (0x8000000UL)
 #define MCAN_IR_PEA_SHIFT (27U)
@@ -696,7 +842,9 @@ typedef struct {
 /*
  * WDI (RW)
  *
- * watchdog interrupt
+ * Watchdog Interrupt
+ * 0= No Message RAM Watchdog event occurred
+ * 1= Message RAM Watchdog event due to missing READY
  */
 #define MCAN_IR_WDI_MASK (0x4000000UL)
 #define MCAN_IR_WDI_SHIFT (26U)
@@ -706,7 +854,9 @@ typedef struct {
 /*
  * BO (RW)
  *
- * bus_off status
+ * Bus_Off Status
+ * 0= Bus_Off status unchanged
+ * 1= Bus_Off status changed
  */
 #define MCAN_IR_BO_MASK (0x2000000UL)
 #define MCAN_IR_BO_SHIFT (25U)
@@ -716,7 +866,9 @@ typedef struct {
 /*
  * EW (RW)
  *
- * warning status
+ * Warning Status
+ * 0= Error_Warning status unchanged
+ * 1= Error_Warning status changed
  */
 #define MCAN_IR_EW_MASK (0x1000000UL)
 #define MCAN_IR_EW_SHIFT (24U)
@@ -726,7 +878,9 @@ typedef struct {
 /*
  * EP (RW)
  *
- * error passive
+ * Error Passive
+ * 0= Error_Passive status unchanged
+ * 1= Error_Passive status changed
  */
 #define MCAN_IR_EP_MASK (0x800000UL)
 #define MCAN_IR_EP_SHIFT (23U)
@@ -736,7 +890,9 @@ typedef struct {
 /*
  * ELO (RW)
  *
- * error logging overflow
+ * Error Logging Overflow
+ * 0= CAN Error Logging Counter did not overflow
+ * 1= Overflow of CAN Error Logging Counter occurred
  */
 #define MCAN_IR_ELO_MASK (0x400000UL)
 #define MCAN_IR_ELO_SHIFT (22U)
@@ -746,7 +902,10 @@ typedef struct {
 /*
  * BEU (RW)
  *
- * bit error uncorrected
+ * Bit Error Uncorrected
+ * Message RAM bit error detected, uncorrected. Controlled by input signal m_can_aeim_berr[1] generated by an optional external parity / ECC logic attached to the Message RAM. An uncorrected Message RAM bit error sets CCCR.INIT to ‘1’. This is done to avoid transmission of corrupted data.
+ * 0= No bit error detected when reading from Message RAM
+ * 1= Bit error detected, uncorrected (e.g. parity logic)
  */
 #define MCAN_IR_BEU_MASK (0x200000UL)
 #define MCAN_IR_BEU_SHIFT (21U)
@@ -756,7 +915,10 @@ typedef struct {
 /*
  * BEC (RW)
  *
- * bit error corrected
+ * Bit Error Corrected
+ * Message RAM bit error detected and corrected. Controlled by input signal m_can_aeim_berr[0] generated by an optional external parity / ECC logic attached to the Message RAM.
+ * 0= No bit error detected when reading from Message RAM
+ * 1= Bit error detected and corrected (e.g. ECC)
  */
 #define MCAN_IR_BEC_MASK (0x100000UL)
 #define MCAN_IR_BEC_SHIFT (20U)
@@ -766,7 +928,10 @@ typedef struct {
 /*
  * DRX (RW)
  *
- * message stored to dedicated rx buffer
+ * Message stored to Dedicated Rx Buffer
+ * The flag is set whenever a received message has been stored into a dedicated Rx Buffer.
+ * 0= No Rx Buffer updated
+ * 1= At least one received message stored into an Rx Buffer
  */
 #define MCAN_IR_DRX_MASK (0x80000UL)
 #define MCAN_IR_DRX_SHIFT (19U)
@@ -776,7 +941,9 @@ typedef struct {
 /*
  * TOO (RW)
  *
- * timeout occurred
+ * Timeout Occurred
+ * 0= No timeout
+ * 1= Timeout reached
  */
 #define MCAN_IR_TOO_MASK (0x40000UL)
 #define MCAN_IR_TOO_SHIFT (18U)
@@ -786,7 +953,16 @@ typedef struct {
 /*
  * MRAF (RW)
  *
- * message RAM access failure
+ * Message RAM Access Failure
+ * The flag is set, when the Rx Handler
+ * .has not completed acceptance filtering or storage of an accepted message until the arbitration field of the following message has been received. In this case acceptance filtering or message
+ * storage is aborted and the Rx Handler starts processing of the following message.
+ * .was not able to write a message to the Message RAM. In this case message storage is aborted.
+ * In both cases the FIFO put index is not updated resp. the New Data flag for a dedicated Rx Buffer is not set, a partly stored message is overwritten when the next message is stored to this location.
+ * The flag is also set when the Tx Handler was not able to read a message from the Message RAM in time. In this case message transmission is aborted. In case of a Tx Handler access failure the
+ * M_CAN is switched into Restricted Operation Mode (see Section 3.1.5). To leave Restricted Operation Mode, the Host CPU has to reset CCCR.ASM.
+ * 0= No Message RAM access failure occurred
+ * 1= Message RAM access failure occurred
  */
 #define MCAN_IR_MRAF_MASK (0x20000UL)
 #define MCAN_IR_MRAF_SHIFT (17U)
@@ -796,7 +972,9 @@ typedef struct {
 /*
  * TSW (RW)
  *
- * timestap wraparound
+ * Timestamp Wraparound
+ * 0= No timestamp counter wrap-around
+ * 1= Timestamp counter wrapped around
  */
 #define MCAN_IR_TSW_MASK (0x10000UL)
 #define MCAN_IR_TSW_SHIFT (16U)
@@ -806,7 +984,9 @@ typedef struct {
 /*
  * TEFL (RW)
  *
- * tx event fifo element lost
+ * Tx Event FIFO Element Lost
+ * 0= No Tx Event FIFO element lost
+ * 1= Tx Event FIFO element lost, also set after write attempt to Tx Event FIFO of size zero
  */
 #define MCAN_IR_TEFL_MASK (0x8000U)
 #define MCAN_IR_TEFL_SHIFT (15U)
@@ -816,7 +996,9 @@ typedef struct {
 /*
  * TEFF (RW)
  *
- * tx event fifo full
+ * Tx Event FIFO Full
+ * 0= Tx Event FIFO not full
+ * 1= Tx Event FIFO full
  */
 #define MCAN_IR_TEFF_MASK (0x4000U)
 #define MCAN_IR_TEFF_SHIFT (14U)
@@ -826,7 +1008,9 @@ typedef struct {
 /*
  * TEFW (RW)
  *
- * tx event fifo watermark reached
+ * Tx Event FIFO Watermark Reached
+ * 0= Tx Event FIFO fill level below watermark
+ * 1= Tx Event FIFO fill level reached watermark
  */
 #define MCAN_IR_TEFW_MASK (0x2000U)
 #define MCAN_IR_TEFW_SHIFT (13U)
@@ -836,7 +1020,9 @@ typedef struct {
 /*
  * TEFN (RW)
  *
- * tx event fifo new entry
+ * Tx Event FIFO New Entry
+ * 0= Tx Event FIFO unchanged
+ * 1= Tx Handler wrote Tx Event FIFO element
  */
 #define MCAN_IR_TEFN_MASK (0x1000U)
 #define MCAN_IR_TEFN_SHIFT (12U)
@@ -846,7 +1032,9 @@ typedef struct {
 /*
  * TFE (RW)
  *
- * tx fifo empty
+ * Tx FIFO Empty
+ * 0= Tx FIFO non-empty
+ * 1= Tx FIFO empty
  */
 #define MCAN_IR_TFE_MASK (0x800U)
 #define MCAN_IR_TFE_SHIFT (11U)
@@ -856,7 +1044,9 @@ typedef struct {
 /*
  * TCF (RW)
  *
- * transmission cancellation finished
+ * Transmission Cancellation Finished
+ * 0= No transmission cancellation finished
+ * 1= Transmission cancellation finished
  */
 #define MCAN_IR_TCF_MASK (0x400U)
 #define MCAN_IR_TCF_SHIFT (10U)
@@ -866,7 +1056,9 @@ typedef struct {
 /*
  * TC (RW)
  *
- * transmission completed
+ * Transmission Completed
+ * 0= No transmission completed
+ * 1= Transmission completed
  */
 #define MCAN_IR_TC_MASK (0x200U)
 #define MCAN_IR_TC_SHIFT (9U)
@@ -876,7 +1068,9 @@ typedef struct {
 /*
  * HPM (RW)
  *
- * high priority message
+ * High Priority Message
+ * 0= No high priority message received
+ * 1= High priority message received
  */
 #define MCAN_IR_HPM_MASK (0x100U)
 #define MCAN_IR_HPM_SHIFT (8U)
@@ -886,7 +1080,9 @@ typedef struct {
 /*
  * RF1L (RW)
  *
- * rx fifo 1 message lost
+ * Rx FIFO 1 Message Lost
+ * 0= No Rx FIFO 1 message lost
+ * 1= Rx FIFO 1 message lost, also set after write attempt to Rx FIFO 1 of size zero
  */
 #define MCAN_IR_RF1L_MASK (0x80U)
 #define MCAN_IR_RF1L_SHIFT (7U)
@@ -896,7 +1092,9 @@ typedef struct {
 /*
  * RF1F (RW)
  *
- * rx fifo 1 full
+ * Rx FIFO 1 Full
+ * 0= Rx FIFO 1 not full
+ * 1= Rx FIFO 1 full
  */
 #define MCAN_IR_RF1F_MASK (0x40U)
 #define MCAN_IR_RF1F_SHIFT (6U)
@@ -906,7 +1104,9 @@ typedef struct {
 /*
  * RF1W (RW)
  *
- * rx fifo 1 watermark reached
+ * Rx FIFO 1 Watermark Reached
+ * 0= Rx FIFO 1 fill level below watermark
+ * 1= Rx FIFO 1 fill level reached watermark
  */
 #define MCAN_IR_RF1W_MASK (0x20U)
 #define MCAN_IR_RF1W_SHIFT (5U)
@@ -916,7 +1116,9 @@ typedef struct {
 /*
  * RF1N (RW)
  *
- * rx fifo 1 new message
+ * Rx FIFO 1 New Message
+ * 0= No new message written to Rx FIFO 1
+ * 1= New message written to Rx FIFO 1
  */
 #define MCAN_IR_RF1N_MASK (0x10U)
 #define MCAN_IR_RF1N_SHIFT (4U)
@@ -926,7 +1128,9 @@ typedef struct {
 /*
  * RF0L (RW)
  *
- * rx fifo 0 message lost
+ * Rx FIFO 0 Message Lost
+ * 0= No Rx FIFO 0 message lost
+ * 1= Rx FIFO 0 message lost, also set after write attempt to Rx FIFO 0 of size zero
  */
 #define MCAN_IR_RF0L_MASK (0x8U)
 #define MCAN_IR_RF0L_SHIFT (3U)
@@ -936,7 +1140,9 @@ typedef struct {
 /*
  * RF0F (RW)
  *
- * rx fifo 0 full
+ * Rx FIFO 0 Full
+ * 0= Rx FIFO 0 not full
+ * 1= Rx FIFO 0 full
  */
 #define MCAN_IR_RF0F_MASK (0x4U)
 #define MCAN_IR_RF0F_SHIFT (2U)
@@ -946,7 +1152,9 @@ typedef struct {
 /*
  * RF0W (RW)
  *
- * rx fifo 0 watermark reched
+ * Rx FIFO 0 Watermark Reached
+ * 0= Rx FIFO 0 fill level below watermark
+ * 1= Rx FIFO 0 fill level reached watermark
  */
 #define MCAN_IR_RF0W_MASK (0x2U)
 #define MCAN_IR_RF0W_SHIFT (1U)
@@ -956,7 +1164,9 @@ typedef struct {
 /*
  * RF0N (RW)
  *
- * rx fifo 0 new message
+ * Rx FIFO 0 New Message
+ * 0= No new message written to Rx FIFO 0
+ * 1= New message written to Rx FIFO 0
  */
 #define MCAN_IR_RF0N_MASK (0x1U)
 #define MCAN_IR_RF0N_SHIFT (0U)
@@ -967,7 +1177,7 @@ typedef struct {
 /*
  * ARAE (RW)
  *
- * access to reserved address enable
+ * Access to Reserved Address Enable
  */
 #define MCAN_IE_ARAE_MASK (0x20000000UL)
 #define MCAN_IE_ARAE_SHIFT (29U)
@@ -977,7 +1187,7 @@ typedef struct {
 /*
  * PEDE (RW)
  *
- * protocol error in data phase enable
+ * Protocol Error in Data Phase Enable
  */
 #define MCAN_IE_PEDE_MASK (0x10000000UL)
 #define MCAN_IE_PEDE_SHIFT (28U)
@@ -987,7 +1197,7 @@ typedef struct {
 /*
  * PEAE (RW)
  *
- * protocol error in arbitration phase enable
+ * Protocol Error in Arbitration Phase Enable
  */
 #define MCAN_IE_PEAE_MASK (0x8000000UL)
 #define MCAN_IE_PEAE_SHIFT (27U)
@@ -997,7 +1207,7 @@ typedef struct {
 /*
  * WDIE (RW)
  *
- * watchdog interrupt enable
+ * Watchdog Interrupt Enable
  */
 #define MCAN_IE_WDIE_MASK (0x4000000UL)
 #define MCAN_IE_WDIE_SHIFT (26U)
@@ -1007,7 +1217,7 @@ typedef struct {
 /*
  * BOE (RW)
  *
- * bus off status interrupt enable
+ * Bus_Off Status Interrupt Enable
  */
 #define MCAN_IE_BOE_MASK (0x2000000UL)
 #define MCAN_IE_BOE_SHIFT (25U)
@@ -1017,7 +1227,7 @@ typedef struct {
 /*
  * EWE (RW)
  *
- * warning status interrupt enable
+ * Warning Status Interrupt Enable
  */
 #define MCAN_IE_EWE_MASK (0x1000000UL)
 #define MCAN_IE_EWE_SHIFT (24U)
@@ -1027,7 +1237,7 @@ typedef struct {
 /*
  * EPE (RW)
  *
- * error passive interrupt enable
+ * Error Passive Interrupt Enable
  */
 #define MCAN_IE_EPE_MASK (0x800000UL)
 #define MCAN_IE_EPE_SHIFT (23U)
@@ -1037,7 +1247,7 @@ typedef struct {
 /*
  * ELOE (RW)
  *
- * error logging overflow interrupt enable
+ * Error Logging Overflow Interrupt Enable
  */
 #define MCAN_IE_ELOE_MASK (0x400000UL)
 #define MCAN_IE_ELOE_SHIFT (22U)
@@ -1047,7 +1257,7 @@ typedef struct {
 /*
  * BEUE (RW)
  *
- * bit error uncorrected interrupt enable
+ * Bit Error Uncorrected Interrupt Enable
  */
 #define MCAN_IE_BEUE_MASK (0x200000UL)
 #define MCAN_IE_BEUE_SHIFT (21U)
@@ -1057,7 +1267,7 @@ typedef struct {
 /*
  * BECE (RW)
  *
- * bit error corrected interrupt enable
+ * Bit Error Corrected Interrupt Enable
  */
 #define MCAN_IE_BECE_MASK (0x100000UL)
 #define MCAN_IE_BECE_SHIFT (20U)
@@ -1067,7 +1277,7 @@ typedef struct {
 /*
  * DRXE (RW)
  *
- * message stored to dedicated rx buffer interrupt enable
+ * Message stored to Dedicated Rx Buffer Interrupt Enable
  */
 #define MCAN_IE_DRXE_MASK (0x80000UL)
 #define MCAN_IE_DRXE_SHIFT (19U)
@@ -1077,7 +1287,7 @@ typedef struct {
 /*
  * TOOE (RW)
  *
- * timeout occurred interrupt enable
+ * Timeout Occurred Interrupt Enable
  */
 #define MCAN_IE_TOOE_MASK (0x40000UL)
 #define MCAN_IE_TOOE_SHIFT (18U)
@@ -1087,7 +1297,7 @@ typedef struct {
 /*
  * MRAFE (RW)
  *
- * message ram access failure interrupt enable
+ * Message RAM Access Failure Interrupt Enable
  */
 #define MCAN_IE_MRAFE_MASK (0x20000UL)
 #define MCAN_IE_MRAFE_SHIFT (17U)
@@ -1097,7 +1307,7 @@ typedef struct {
 /*
  * TSWE (RW)
  *
- * timestamp wraparound interrupt enable
+ * Timestamp Wraparound Interrupt Enable
  */
 #define MCAN_IE_TSWE_MASK (0x10000UL)
 #define MCAN_IE_TSWE_SHIFT (16U)
@@ -1107,7 +1317,7 @@ typedef struct {
 /*
  * TEFLE (RW)
  *
- * tx event fifo event lost interrupt enable
+ * Tx Event FIFO Event Lost Interrupt Enable
  */
 #define MCAN_IE_TEFLE_MASK (0x8000U)
 #define MCAN_IE_TEFLE_SHIFT (15U)
@@ -1117,7 +1327,7 @@ typedef struct {
 /*
  * TEFFE (RW)
  *
- * tx event fifo full interrupt enable
+ * Tx Event FIFO Full Interrupt Enable
  */
 #define MCAN_IE_TEFFE_MASK (0x4000U)
 #define MCAN_IE_TEFFE_SHIFT (14U)
@@ -1127,7 +1337,7 @@ typedef struct {
 /*
  * TEFWE (RW)
  *
- * tx event fifo watermark reached interrupt enable
+ * Tx Event FIFO Watermark Reached Interrupt Enable
  */
 #define MCAN_IE_TEFWE_MASK (0x2000U)
 #define MCAN_IE_TEFWE_SHIFT (13U)
@@ -1137,7 +1347,7 @@ typedef struct {
 /*
  * TEFNE (RW)
  *
- * tx event fifo new entry interrupt enable
+ * Tx Event FIFO New Entry Interrupt Enable
  */
 #define MCAN_IE_TEFNE_MASK (0x1000U)
 #define MCAN_IE_TEFNE_SHIFT (12U)
@@ -1147,7 +1357,7 @@ typedef struct {
 /*
  * TFEE (RW)
  *
- * tx fifo empty interrupt enable
+ * Tx FIFO Empty Interrupt Enable
  */
 #define MCAN_IE_TFEE_MASK (0x800U)
 #define MCAN_IE_TFEE_SHIFT (11U)
@@ -1157,7 +1367,7 @@ typedef struct {
 /*
  * TCFE (RW)
  *
- * transmission cancellation finished interrupt enable
+ * Transmission Cancellation Finished Interrupt Enable
  */
 #define MCAN_IE_TCFE_MASK (0x400U)
 #define MCAN_IE_TCFE_SHIFT (10U)
@@ -1167,7 +1377,7 @@ typedef struct {
 /*
  * TCE (RW)
  *
- * transmission completed interrupt enable
+ * Transmission Completed Interrupt Enable
  */
 #define MCAN_IE_TCE_MASK (0x200U)
 #define MCAN_IE_TCE_SHIFT (9U)
@@ -1177,7 +1387,7 @@ typedef struct {
 /*
  * HPME (RW)
  *
- * high priority message interrupt enable
+ * High Priority Message Interrupt Enable
  */
 #define MCAN_IE_HPME_MASK (0x100U)
 #define MCAN_IE_HPME_SHIFT (8U)
@@ -1187,7 +1397,7 @@ typedef struct {
 /*
  * RF1LE (RW)
  *
- * rx fifo 1 message lost interrupt enable
+ * Rx FIFO 1 Message Lost Interrupt Enable
  */
 #define MCAN_IE_RF1LE_MASK (0x80U)
 #define MCAN_IE_RF1LE_SHIFT (7U)
@@ -1197,7 +1407,7 @@ typedef struct {
 /*
  * RF1FE (RW)
  *
- * rx fifo 1 full interrupt enable
+ * Rx FIFO 1 Full Interrupt Enable
  */
 #define MCAN_IE_RF1FE_MASK (0x40U)
 #define MCAN_IE_RF1FE_SHIFT (6U)
@@ -1207,7 +1417,7 @@ typedef struct {
 /*
  * RF1WE (RW)
  *
- * rx fifo 1 watermark reached interrupt enable
+ * Rx FIFO 1 Watermark Reached Interrupt Enable
  */
 #define MCAN_IE_RF1WE_MASK (0x20U)
 #define MCAN_IE_RF1WE_SHIFT (5U)
@@ -1217,7 +1427,7 @@ typedef struct {
 /*
  * RF1NE (RW)
  *
- * rx fifo 1 new message interrupt enable
+ * Rx FIFO 1 New Message Interrupt Enable
  */
 #define MCAN_IE_RF1NE_MASK (0x10U)
 #define MCAN_IE_RF1NE_SHIFT (4U)
@@ -1227,7 +1437,7 @@ typedef struct {
 /*
  * RF0LE (RW)
  *
- * rx fifo 0 message lost interrupt enable
+ * Rx FIFO 0 Message Lost Interrupt Enable
  */
 #define MCAN_IE_RF0LE_MASK (0x8U)
 #define MCAN_IE_RF0LE_SHIFT (3U)
@@ -1237,7 +1447,7 @@ typedef struct {
 /*
  * RF0FE (RW)
  *
- * rx fifo 0 full interrupt enable
+ * Rx FIFO 0 Full Interrupt Enable
  */
 #define MCAN_IE_RF0FE_MASK (0x4U)
 #define MCAN_IE_RF0FE_SHIFT (2U)
@@ -1247,7 +1457,7 @@ typedef struct {
 /*
  * RF0WE (RW)
  *
- * rx fifo 0 watermark reached interrupt enable
+ * Rx FIFO 0 Watermark Reached Interrupt Enable
  */
 #define MCAN_IE_RF0WE_MASK (0x2U)
 #define MCAN_IE_RF0WE_SHIFT (1U)
@@ -1257,7 +1467,7 @@ typedef struct {
 /*
  * RF0NE (RW)
  *
- * rx fifo 0 new message interrupt enable
+ * Rx FIFO 0 New Message Interrupt Enable
  */
 #define MCAN_IE_RF0NE_MASK (0x1U)
 #define MCAN_IE_RF0NE_SHIFT (0U)
@@ -1268,7 +1478,7 @@ typedef struct {
 /*
  * ARAL (RW)
  *
- * access to reserved address line
+ * Access to Reserved Address Line
  */
 #define MCAN_ILS_ARAL_MASK (0x20000000UL)
 #define MCAN_ILS_ARAL_SHIFT (29U)
@@ -1278,7 +1488,7 @@ typedef struct {
 /*
  * PEDL (RW)
  *
- * protocol error in data phase line
+ * Protocol Error in Data Phase Line
  */
 #define MCAN_ILS_PEDL_MASK (0x10000000UL)
 #define MCAN_ILS_PEDL_SHIFT (28U)
@@ -1288,7 +1498,7 @@ typedef struct {
 /*
  * PEAL (RW)
  *
- * protocol error in arbitration phase line
+ * Protocol Error in Arbitration Phase Line
  */
 #define MCAN_ILS_PEAL_MASK (0x8000000UL)
 #define MCAN_ILS_PEAL_SHIFT (27U)
@@ -1298,7 +1508,7 @@ typedef struct {
 /*
  * WDIL (RW)
  *
- * watchdog interrupt line
+ * Watchdog Interrupt Line
  */
 #define MCAN_ILS_WDIL_MASK (0x4000000UL)
 #define MCAN_ILS_WDIL_SHIFT (26U)
@@ -1308,7 +1518,7 @@ typedef struct {
 /*
  * BOL (RW)
  *
- * bus off status interrupt line
+ * Bus_Off Status Interrupt Line
  */
 #define MCAN_ILS_BOL_MASK (0x2000000UL)
 #define MCAN_ILS_BOL_SHIFT (25U)
@@ -1318,7 +1528,7 @@ typedef struct {
 /*
  * EWL (RW)
  *
- * warning status interrupt line
+ * Warning Status Interrupt Line
  */
 #define MCAN_ILS_EWL_MASK (0x1000000UL)
 #define MCAN_ILS_EWL_SHIFT (24U)
@@ -1328,7 +1538,7 @@ typedef struct {
 /*
  * EPL (RW)
  *
- * error passive interrupt line
+ * Error Passive Interrupt Line
  */
 #define MCAN_ILS_EPL_MASK (0x800000UL)
 #define MCAN_ILS_EPL_SHIFT (23U)
@@ -1338,7 +1548,7 @@ typedef struct {
 /*
  * ELOL (RW)
  *
- * error logging overflow interrupt line
+ * Error Logging Overflow Interrupt Line
  */
 #define MCAN_ILS_ELOL_MASK (0x400000UL)
 #define MCAN_ILS_ELOL_SHIFT (22U)
@@ -1348,7 +1558,7 @@ typedef struct {
 /*
  * BEUL (RW)
  *
- * bit error uncorrected interrupt line
+ * Bit Error Uncorrected Interrupt Line
  */
 #define MCAN_ILS_BEUL_MASK (0x200000UL)
 #define MCAN_ILS_BEUL_SHIFT (21U)
@@ -1358,7 +1568,7 @@ typedef struct {
 /*
  * BECL (RW)
  *
- * bit error corrected interrupt line
+ * Bit Error Corrected Interrupt Line
  */
 #define MCAN_ILS_BECL_MASK (0x100000UL)
 #define MCAN_ILS_BECL_SHIFT (20U)
@@ -1368,7 +1578,7 @@ typedef struct {
 /*
  * DRXL (RW)
  *
- * message stored to dedicated rx buffer interrupt line
+ * Message stored to Dedicated Rx Buffer Interrupt Line
  */
 #define MCAN_ILS_DRXL_MASK (0x80000UL)
 #define MCAN_ILS_DRXL_SHIFT (19U)
@@ -1378,7 +1588,7 @@ typedef struct {
 /*
  * TOOL (RW)
  *
- * timeout occurred interrupt line
+ * Timeout Occurred Interrupt Line
  */
 #define MCAN_ILS_TOOL_MASK (0x40000UL)
 #define MCAN_ILS_TOOL_SHIFT (18U)
@@ -1388,7 +1598,7 @@ typedef struct {
 /*
  * MRAFL (RW)
  *
- * message ram access failure interrupt line
+ * Message RAM Access Failure Interrupt Line
  */
 #define MCAN_ILS_MRAFL_MASK (0x20000UL)
 #define MCAN_ILS_MRAFL_SHIFT (17U)
@@ -1398,7 +1608,7 @@ typedef struct {
 /*
  * TSWL (RW)
  *
- * timestamp wraparound interrupt line
+ * Timestamp Wraparound Interrupt Line
  */
 #define MCAN_ILS_TSWL_MASK (0x10000UL)
 #define MCAN_ILS_TSWL_SHIFT (16U)
@@ -1408,7 +1618,7 @@ typedef struct {
 /*
  * TEFLL (RW)
  *
- * tx event fifo event lost interrupt line
+ * Tx Event FIFO Event Lost Interrupt Line
  */
 #define MCAN_ILS_TEFLL_MASK (0x8000U)
 #define MCAN_ILS_TEFLL_SHIFT (15U)
@@ -1418,7 +1628,7 @@ typedef struct {
 /*
  * TEFFL (RW)
  *
- * tx event fifo full interrupt line
+ * Tx Event FIFO Full Interrupt Line
  */
 #define MCAN_ILS_TEFFL_MASK (0x4000U)
 #define MCAN_ILS_TEFFL_SHIFT (14U)
@@ -1428,7 +1638,7 @@ typedef struct {
 /*
  * TEFWL (RW)
  *
- * tx event fifo watermark reached interrupt line
+ * Tx Event FIFO Watermark Reached Interrupt Line
  */
 #define MCAN_ILS_TEFWL_MASK (0x2000U)
 #define MCAN_ILS_TEFWL_SHIFT (13U)
@@ -1438,7 +1648,7 @@ typedef struct {
 /*
  * TEFNL (RW)
  *
- * tx event fifo new entry interrupt line
+ * Tx Event FIFO New Entry Interrupt Line
  */
 #define MCAN_ILS_TEFNL_MASK (0x1000U)
 #define MCAN_ILS_TEFNL_SHIFT (12U)
@@ -1448,7 +1658,7 @@ typedef struct {
 /*
  * TFEL (RW)
  *
- * tx fifo empty interrupt line
+ * Tx FIFO Empty Interrupt Line
  */
 #define MCAN_ILS_TFEL_MASK (0x800U)
 #define MCAN_ILS_TFEL_SHIFT (11U)
@@ -1458,7 +1668,7 @@ typedef struct {
 /*
  * TCFL (RW)
  *
- * transmission cancellation finished interrupt line
+ * Transmission Cancellation Finished Interrupt Line
  */
 #define MCAN_ILS_TCFL_MASK (0x400U)
 #define MCAN_ILS_TCFL_SHIFT (10U)
@@ -1468,7 +1678,7 @@ typedef struct {
 /*
  * TCL (RW)
  *
- * transmission completed interrupt line
+ * Transmission Completed Interrupt Line
  */
 #define MCAN_ILS_TCL_MASK (0x200U)
 #define MCAN_ILS_TCL_SHIFT (9U)
@@ -1478,7 +1688,7 @@ typedef struct {
 /*
  * HPML (RW)
  *
- * high priority message interrupt line
+ * High Priority Message Interrupt Line
  */
 #define MCAN_ILS_HPML_MASK (0x100U)
 #define MCAN_ILS_HPML_SHIFT (8U)
@@ -1488,7 +1698,7 @@ typedef struct {
 /*
  * RF1LL (RW)
  *
- * rx fifo 1 message lost interrupt line
+ * Rx FIFO 1 Message Lost Interrupt Line
  */
 #define MCAN_ILS_RF1LL_MASK (0x80U)
 #define MCAN_ILS_RF1LL_SHIFT (7U)
@@ -1498,7 +1708,7 @@ typedef struct {
 /*
  * RF1FL (RW)
  *
- * rx fifo 1 full interrupt line
+ * Rx FIFO 1 Full Interrupt Line
  */
 #define MCAN_ILS_RF1FL_MASK (0x40U)
 #define MCAN_ILS_RF1FL_SHIFT (6U)
@@ -1508,7 +1718,7 @@ typedef struct {
 /*
  * RF1WL (RW)
  *
- * rx fifo 1 watermark reached interrupt line
+ * Rx FIFO 1 Watermark Reached Interrupt Line
  */
 #define MCAN_ILS_RF1WL_MASK (0x20U)
 #define MCAN_ILS_RF1WL_SHIFT (5U)
@@ -1518,7 +1728,7 @@ typedef struct {
 /*
  * RF1NL (RW)
  *
- * rx fifo 1 new message interrupt line
+ * Rx FIFO 1 New Message Interrupt Line
  */
 #define MCAN_ILS_RF1NL_MASK (0x10U)
 #define MCAN_ILS_RF1NL_SHIFT (4U)
@@ -1528,7 +1738,7 @@ typedef struct {
 /*
  * RF0LL (RW)
  *
- * rx fifo 0 message lost interrupt line
+ * Rx FIFO 0 Message Lost Interrupt Line
  */
 #define MCAN_ILS_RF0LL_MASK (0x8U)
 #define MCAN_ILS_RF0LL_SHIFT (3U)
@@ -1538,7 +1748,7 @@ typedef struct {
 /*
  * RF0FL (RW)
  *
- * rx fifo 0 full interrupt line
+ * Rx FIFO 0 Full Interrupt Line
  */
 #define MCAN_ILS_RF0FL_MASK (0x4U)
 #define MCAN_ILS_RF0FL_SHIFT (2U)
@@ -1548,7 +1758,7 @@ typedef struct {
 /*
  * RF0WL (RW)
  *
- * rx fifo 0 watermark reached interrupt line
+ * Rx FIFO 0 Watermark Reached Interrupt Line
  */
 #define MCAN_ILS_RF0WL_MASK (0x2U)
 #define MCAN_ILS_RF0WL_SHIFT (1U)
@@ -1558,7 +1768,7 @@ typedef struct {
 /*
  * RF0NL (RW)
  *
- * rx fifo 0 new message interrupt line
+ * Rx FIFO 0 New Message Interrupt Line
  */
 #define MCAN_ILS_RF0NL_MASK (0x1U)
 #define MCAN_ILS_RF0NL_SHIFT (0U)
@@ -1569,7 +1779,9 @@ typedef struct {
 /*
  * EINT1 (RW)
  *
- * enable interrupt line 1
+ * Enable Interrupt Line 1
+ * 0= Interrupt line m_can_int1 disabled
+ * 1= Interrupt line m_can_int1 enabled
  */
 #define MCAN_ILE_EINT1_MASK (0x2U)
 #define MCAN_ILE_EINT1_SHIFT (1U)
@@ -1579,7 +1791,9 @@ typedef struct {
 /*
  * EINT0 (RW)
  *
- * enable interrupt line 0
+ * Enable Interrupt Line 0
+ * 0= Interrupt line m_can_int0 disabled
+ * 1= Interrupt line m_can_int0 enabled
  */
 #define MCAN_ILE_EINT0_MASK (0x1U)
 #define MCAN_ILE_EINT0_SHIFT (0U)
@@ -1590,7 +1804,12 @@ typedef struct {
 /*
  * ANFS (RW)
  *
- * accept non-matching frames standard
+ * Accept Non-matching Frames Standard
+ * Defines how received messages with 11-bit IDs that do not match any element of the filter list are treated.
+ * 00= Accept in Rx FIFO 0
+ * 01= Accept in Rx FIFO 1
+ * 10= Reject
+ * 11= Reject
  */
 #define MCAN_GFC_ANFS_MASK (0x30U)
 #define MCAN_GFC_ANFS_SHIFT (4U)
@@ -1600,7 +1819,12 @@ typedef struct {
 /*
  * ANFE (RW)
  *
- * accept non-matching frames extended
+ * Accept Non-matching Frames Extended
+ * Defines how received messages with 29-bit IDs that do not match any element of the filter list are treated.
+ * 00= Accept in Rx FIFO 0
+ * 01= Accept in Rx FIFO 1
+ * 10= Reject
+ * 11= Reject
  */
 #define MCAN_GFC_ANFE_MASK (0xCU)
 #define MCAN_GFC_ANFE_SHIFT (2U)
@@ -1610,7 +1834,9 @@ typedef struct {
 /*
  * RRFS (RW)
  *
- * reject remote frames standards
+ * Reject Remote Frames Standard
+ * 0= Filter remote frames with 11-bit standard IDs
+ * 1= Reject all remote frames with 11-bit standard IDs
  */
 #define MCAN_GFC_RRFS_MASK (0x2U)
 #define MCAN_GFC_RRFS_SHIFT (1U)
@@ -1620,7 +1846,9 @@ typedef struct {
 /*
  * RRFE (RW)
  *
- * reject remote frames extended
+ * Reject Remote Frames Extended
+ * 0= Filter remote frames with 29-bit extended IDs
+ * 1= Reject all remote frames with 29-bit extended IDs
  */
 #define MCAN_GFC_RRFE_MASK (0x1U)
 #define MCAN_GFC_RRFE_SHIFT (0U)
@@ -1631,7 +1859,10 @@ typedef struct {
 /*
  * LSS (RW)
  *
- * list size standard
+ * List Size Standard
+ * 0= No standard Message ID filter
+ * 1-128= Number of standard Message ID filter elements
+ * >128= Values greater than 128 are interpreted as 128
  */
 #define MCAN_SIDFC_LSS_MASK (0xFF0000UL)
 #define MCAN_SIDFC_LSS_SHIFT (16U)
@@ -1641,7 +1872,8 @@ typedef struct {
 /*
  * FLSSA (RW)
  *
- * filter list standard start address
+ * Filter List Standard Start Address
+ * Start address of standard Message ID filter list (32-bit word address)
  */
 #define MCAN_SIDFC_FLSSA_MASK (0xFFFCU)
 #define MCAN_SIDFC_FLSSA_SHIFT (2U)
@@ -1652,7 +1884,10 @@ typedef struct {
 /*
  * LSE (RW)
  *
- * list size extended
+ * List Size Extended
+ * 0= No extended Message ID filter
+ * 1-64= Number of extended Message ID filter elements
+ * >64= Values greater than 64 are interpreted as 64
  */
 #define MCAN_XIDFC_LSE_MASK (0x7F0000UL)
 #define MCAN_XIDFC_LSE_SHIFT (16U)
@@ -1662,7 +1897,8 @@ typedef struct {
 /*
  * FLESA (RW)
  *
- * filter list extended start address
+ * Filter List Extended Start Address
+ * Start address of extended Message ID filter list (32-bit word address).
  */
 #define MCAN_XIDFC_FLESA_MASK (0xFFFCU)
 #define MCAN_XIDFC_FLESA_SHIFT (2U)
@@ -1673,7 +1909,8 @@ typedef struct {
 /*
  * EIDM (RW)
  *
- * extended ID mask
+ * Extended ID Mask
+ * For acceptance filtering of extended frames the Extended ID AND Mask is ANDed with the Message ID of a received frame. Intended for masking of 29-bit IDs in SAE J1939. With the reset value of all bits set to one the mask is not active.
  */
 #define MCAN_XIDAM_EIDM_MASK (0x1FFFFFFFUL)
 #define MCAN_XIDAM_EIDM_SHIFT (0U)
@@ -1684,7 +1921,10 @@ typedef struct {
 /*
  * FLST (R)
  *
- * filter list
+ * Filter List
+ * Indicates the filter list of the matching filter element.
+ * 0= Standard Filter List
+ * 1= Extended Filter List
  */
 #define MCAN_HPMS_FLST_MASK (0x8000U)
 #define MCAN_HPMS_FLST_SHIFT (15U)
@@ -1693,7 +1933,8 @@ typedef struct {
 /*
  * FIDX (R)
  *
- * filter index
+ * Filter Index
+ * Index of matching filter element. Range is 0 to SIDFC.LSS - 1 resp. XIDFC.LSE - 1.
  */
 #define MCAN_HPMS_FIDX_MASK (0x7F00U)
 #define MCAN_HPMS_FIDX_SHIFT (8U)
@@ -1702,7 +1943,11 @@ typedef struct {
 /*
  * MSI (R)
  *
- * message storage indicator
+ * Message Storage Indicator
+ * 00= No FIFO selected
+ * 01= FIFO message lost
+ * 10= Message stored in FIFO 0
+ * 11= Message stored in FIFO 1
  */
 #define MCAN_HPMS_MSI_MASK (0xC0U)
 #define MCAN_HPMS_MSI_SHIFT (6U)
@@ -1711,7 +1956,8 @@ typedef struct {
 /*
  * BIDX (R)
  *
- * buffer index
+ * Buffer Index
+ * Index of Rx FIFO element to which the message was stored. Only valid when MSI[1] = ‘1’.
  */
 #define MCAN_HPMS_BIDX_MASK (0x3FU)
 #define MCAN_HPMS_BIDX_SHIFT (0U)
@@ -1721,7 +1967,10 @@ typedef struct {
 /*
  * ND1 (RW)
  *
- * new data 31-0
+ * New Data[31:0]
+ * The register holds the New Data flags of Rx Buffers 0 to 31. The flags are set when the respective Rx Buffer has been updated from a received frame. The flags remain set until the Host clears them.A flag is cleared by writing a ’1’ to the corresponding bit position. Writing a ’0’ has no effect. A hard reset will clear the register.
+ * 0= Rx Buffer not updated
+ * 1= Rx Buffer updated from new message
  */
 #define MCAN_NDAT1_ND1_MASK (0xFFFFFFFFUL)
 #define MCAN_NDAT1_ND1_SHIFT (0U)
@@ -1732,7 +1981,10 @@ typedef struct {
 /*
  * ND2 (RW)
  *
- * new data 63-32
+ * New Data[63:32]
+ * The register holds the New Data flags of Rx Buffers 32 to 63. The flags are set when the respective Rx Buffer has been updated from a received frame. The flags remain set until the Host clears them. A flag is cleared by writing a ’1’ to the corresponding bit position. Writing a ’0’ has no effect. A hard reset will clear the register.
+ * 0= Rx Buffer not updated
+ * 1= Rx Buffer updated from new message
  */
 #define MCAN_NDAT2_ND2_MASK (0xFFFFFFFFUL)
 #define MCAN_NDAT2_ND2_SHIFT (0U)
@@ -1743,7 +1995,10 @@ typedef struct {
 /*
  * F0OM (RW)
  *
- * fifo 0 operation mode
+ * FIFO 0 Operation Mode
+ * FIFO 0 can be operated in blocking or in overwrite mode (see Section 3.4.2).
+ * 0= FIFO 0 blocking mode
+ * 1= FIFO 0 overwrite mode
  */
 #define MCAN_RXF0C_F0OM_MASK (0x80000000UL)
 #define MCAN_RXF0C_F0OM_SHIFT (31U)
@@ -1753,7 +2008,10 @@ typedef struct {
 /*
  * F0WM (RW)
  *
- * rx fifo 0 watermark
+ * Rx FIFO 0 Watermark
+ * 0= Watermark interrupt disabled
+ * 1-64= Level for Rx FIFO 0 watermark interrupt (IR.RF0W)
+ * >64= Watermark interrupt disabled
  */
 #define MCAN_RXF0C_F0WM_MASK (0x7F000000UL)
 #define MCAN_RXF0C_F0WM_SHIFT (24U)
@@ -1763,7 +2021,11 @@ typedef struct {
 /*
  * F0S (RW)
  *
- * rx fifo 0 size
+ * Rx FIFO 0 Size
+ * 0= No Rx FIFO 0
+ * 1-64= Number of Rx FIFO 0 elements
+ * >64= Values greater than 64 are interpreted as 64
+ * The Rx FIFO 0 elements are indexed from 0 to F0S-1
  */
 #define MCAN_RXF0C_F0S_MASK (0x7F0000UL)
 #define MCAN_RXF0C_F0S_SHIFT (16U)
@@ -1773,7 +2035,8 @@ typedef struct {
 /*
  * F0SA (RW)
  *
- * rx fifo 0 start address
+ * Rx FIFO 0 Start Address
+ * Start address of Rx FIFO 0 in Message RAM (32-bit word address)
  */
 #define MCAN_RXF0C_F0SA_MASK (0xFFFCU)
 #define MCAN_RXF0C_F0SA_SHIFT (2U)
@@ -1784,7 +2047,11 @@ typedef struct {
 /*
  * RF0L (R)
  *
- * rx fifo 0 message lost
+ * Rx FIFO 0 Message Lost
+ * This bit is a copy of interrupt flag IR.RF0L. When IR.RF0L is reset, this bit is also reset.
+ * 0= No Rx FIFO 0 message lost
+ * 1= Rx FIFO 0 message lost, also set after write attempt to Rx FIFO 0 of size zero
+ * Note: Overwriting the oldest message when RXF0C.F0OM = ‘1’ will not set this flag.
  */
 #define MCAN_RXF0S_RF0L_MASK (0x2000000UL)
 #define MCAN_RXF0S_RF0L_SHIFT (25U)
@@ -1793,7 +2060,9 @@ typedef struct {
 /*
  * F0F (R)
  *
- * rx fifo 0 full
+ * Rx FIFO 0 Full
+ * 0= Rx FIFO 0 not full
+ * 1= Rx FIFO 0 full
  */
 #define MCAN_RXF0S_F0F_MASK (0x1000000UL)
 #define MCAN_RXF0S_F0F_SHIFT (24U)
@@ -1802,7 +2071,8 @@ typedef struct {
 /*
  * F0PI (R)
  *
- * rx fifo 0 put index
+ * Rx FIFO 0 Put Index
+ * Rx FIFO 0 write index pointer, range 0 to 63.
  */
 #define MCAN_RXF0S_F0PI_MASK (0x3F0000UL)
 #define MCAN_RXF0S_F0PI_SHIFT (16U)
@@ -1811,7 +2081,8 @@ typedef struct {
 /*
  * F0GI (R)
  *
- * rx fifo 0 get index
+ * Rx FIFO 0 Get Index
+ * Rx FIFO 0 read index pointer, range 0 to 63.
  */
 #define MCAN_RXF0S_F0GI_MASK (0x3F00U)
 #define MCAN_RXF0S_F0GI_SHIFT (8U)
@@ -1820,7 +2091,8 @@ typedef struct {
 /*
  * F0FL (R)
  *
- * rx fifo 0 fill level
+ * Rx FIFO 0 Fill Level
+ * Number of elements stored in Rx FIFO 0, range 0 to 64.
  */
 #define MCAN_RXF0S_F0FL_MASK (0x7FU)
 #define MCAN_RXF0S_F0FL_SHIFT (0U)
@@ -1830,7 +2102,8 @@ typedef struct {
 /*
  * F0AI (RW)
  *
- * rx fifo0 ackowledge index
+ * Rx FIFO 0 Acknowledge Index
+ * After the Host has read a message or a sequence of messages from Rx FIFO 0 it has to write the buffer index of the last element read from Rx FIFO 0 to F0AI. This will set the Rx FIFO 0 Get Index RXF0S.F0GI to F0AI + 1 and update the FIFO 0 Fill Level RXF0S.F0FL.
  */
 #define MCAN_RXF0A_F0AI_MASK (0x3FU)
 #define MCAN_RXF0A_F0AI_SHIFT (0U)
@@ -1841,7 +2114,8 @@ typedef struct {
 /*
  * RBSA (RW)
  *
- * rx buffer start address
+ * Rx Buffer Start Address
+ * Configures the start address of the Rx Buffers section in the Message RAM (32-bit word address).Also used to reference debug messages A,B,C.
  */
 #define MCAN_RXBC_RBSA_MASK (0xFFFCU)
 #define MCAN_RXBC_RBSA_SHIFT (2U)
@@ -1852,7 +2126,10 @@ typedef struct {
 /*
  * F1OM (RW)
  *
- * fifo 1 operation mode
+ * FIFO 1 Operation Mode
+ * FIFO 1 can be operated in blocking or in overwrite mode (see Section 3.4.2).
+ * 0= FIFO 1 blocking mode
+ * 1= FIFO 1 overwrite mode
  */
 #define MCAN_RXF1C_F1OM_MASK (0x80000000UL)
 #define MCAN_RXF1C_F1OM_SHIFT (31U)
@@ -1862,7 +2139,10 @@ typedef struct {
 /*
  * F1WM (RW)
  *
- * rx fifo 1 watermark
+ * Rx FIFO 1 Watermark
+ * 0= Watermark interrupt disabled
+ * 1-64= Level for Rx FIFO 1 watermark interrupt (IR.RF1W)
+ * >64= Watermark interrupt disabled
  */
 #define MCAN_RXF1C_F1WM_MASK (0x7F000000UL)
 #define MCAN_RXF1C_F1WM_SHIFT (24U)
@@ -1872,7 +2152,11 @@ typedef struct {
 /*
  * F1S (RW)
  *
- * rx fifo1 size
+ * Rx FIFO 1 Size
+ * 0= No Rx FIFO 1
+ * 1-64= Number of Rx FIFO 1 elements
+ * >64= Values greater than 64 are interpreted as 64
+ * The Rx FIFO 1 elements are indexed from 0 to F1S - 1
  */
 #define MCAN_RXF1C_F1S_MASK (0x7F0000UL)
 #define MCAN_RXF1C_F1S_SHIFT (16U)
@@ -1882,7 +2166,8 @@ typedef struct {
 /*
  * F1SA (RW)
  *
- * rx fifo1 start address
+ * Rx FIFO 1 Start Address
+ * Start address of Rx FIFO 1 in Message RAM (32-bit word address)
  */
 #define MCAN_RXF1C_F1SA_MASK (0xFFFCU)
 #define MCAN_RXF1C_F1SA_SHIFT (2U)
@@ -1893,7 +2178,11 @@ typedef struct {
 /*
  * DMS (R)
  *
- * debug message status
+ * Debug Message Status
+ * 00= Idle state, wait for reception of debug messages, DMA request is cleared
+ * 01= Debug message A received
+ * 10= Debug messages A, B received
+ * 11= Debug messages A, B, C received, DMA request is set
  */
 #define MCAN_RXF1S_DMS_MASK (0xC0000000UL)
 #define MCAN_RXF1S_DMS_SHIFT (30U)
@@ -1902,7 +2191,11 @@ typedef struct {
 /*
  * RF1L (R)
  *
- * rx fifo1 message lost
+ * Rx FIFO 1 Message Lost
+ * This bit is a copy of interrupt flag IR.RF1L. When IR.RF1L is reset, this bit is also reset.
+ * 0= No Rx FIFO 1 message lost
+ * 1= Rx FIFO 1 message lost, also set after write attempt to Rx FIFO 1 of size zero
+ * Note: Overwriting the oldest message when RXF1C.F1OM = ‘1’ will not set this flag.
  */
 #define MCAN_RXF1S_RF1L_MASK (0x2000000UL)
 #define MCAN_RXF1S_RF1L_SHIFT (25U)
@@ -1911,7 +2204,9 @@ typedef struct {
 /*
  * F1F (R)
  *
- * rx fifo1 full
+ * Rx FIFO 1 Full
+ * 0= Rx FIFO 1 not full
+ * 1= Rx FIFO 1 full
  */
 #define MCAN_RXF1S_F1F_MASK (0x1000000UL)
 #define MCAN_RXF1S_F1F_SHIFT (24U)
@@ -1920,7 +2215,8 @@ typedef struct {
 /*
  * F1PI (R)
  *
- * rx fifo 1 put index
+ * Rx FIFO 1 Put Index
+ * Rx FIFO 1 write index pointer, range 0 to 63.
  */
 #define MCAN_RXF1S_F1PI_MASK (0x3F0000UL)
 #define MCAN_RXF1S_F1PI_SHIFT (16U)
@@ -1929,7 +2225,8 @@ typedef struct {
 /*
  * F1GI (R)
  *
- * rx fifo 1 get index
+ * Rx FIFO 1 Get Index
+ * Rx FIFO 1 read index pointer, range 0 to 63.
  */
 #define MCAN_RXF1S_F1GI_MASK (0x3F00U)
 #define MCAN_RXF1S_F1GI_SHIFT (8U)
@@ -1938,7 +2235,8 @@ typedef struct {
 /*
  * F1FL (R)
  *
- * rx fifo 1 fill level
+ * Rx FIFO 1 Fill Level
+ * Number of elements stored in Rx FIFO 1, range 0 to 64.
  */
 #define MCAN_RXF1S_F1FL_MASK (0x7FU)
 #define MCAN_RXF1S_F1FL_SHIFT (0U)
@@ -1948,7 +2246,8 @@ typedef struct {
 /*
  * F1AI (RW)
  *
- * rx fifo1 acknowledge index
+ * Rx FIFO 1 Acknowledge Index
+ * After the Host has read a message or a sequence of messages from Rx FIFO 1 it has to write the buffer index of the last element read from Rx FIFO 1 to F1AI. This will set the Rx FIFO 1 Get Index RXF1S.F1GI to F1AI + 1 and update the FIFO 1 Fill Level RXF1S.F1FL.
  */
 #define MCAN_RXF1A_F1AI_MASK (0x3FU)
 #define MCAN_RXF1A_F1AI_SHIFT (0U)
@@ -1959,7 +2258,15 @@ typedef struct {
 /*
  * RBDS (RW)
  *
- * rx buffer data field size
+ * Rx Buffer Data Field Size
+ * 000= 8 byte data field
+ * 001= 12 byte data field
+ * 010= 16 byte data field
+ * 011= 20 byte data field
+ * 100= 24 byte data field
+ * 101= 32 byte data field
+ * 110= 48 byte data field
+ * 111= 64 byte data field
  */
 #define MCAN_RXESC_RBDS_MASK (0x700U)
 #define MCAN_RXESC_RBDS_SHIFT (8U)
@@ -1969,7 +2276,15 @@ typedef struct {
 /*
  * F1DS (RW)
  *
- * rx fifo 1 data field size
+ * Rx FIFO 1 Data Field Size
+ * 000= 8 byte data field
+ * 001= 12 byte data field
+ * 010= 16 byte data field
+ * 011= 20 byte data field
+ * 100= 24 byte data field
+ * 101= 32 byte data field
+ * 110= 48 byte data field
+ * 111= 64 byte data field
  */
 #define MCAN_RXESC_F1DS_MASK (0x70U)
 #define MCAN_RXESC_F1DS_SHIFT (4U)
@@ -1979,7 +2294,16 @@ typedef struct {
 /*
  * F0DS (RW)
  *
- * rx fifo 0 data field size
+ * Rx FIFO 0 Data Field Size
+ * 000= 8 byte data field
+ * 001= 12 byte data field
+ * 010= 16 byte data field
+ * 011= 20 byte data field
+ * 100= 24 byte data field
+ * 101= 32 byte data field
+ * 110= 48 byte data field
+ * 111= 64 byte data field
+ * Note: In case the data field size of an accepted CAN frame exceeds the data field size configured for the matching Rx Buffer or Rx FIFO, only the number of bytes as configured by RXESC are stored to the Rx Buffer resp. Rx FIFO element. The rest of the frame’s data field is ignored.
  */
 #define MCAN_RXESC_F0DS_MASK (0x7U)
 #define MCAN_RXESC_F0DS_SHIFT (0U)
@@ -1990,7 +2314,9 @@ typedef struct {
 /*
  * TFQM (RW)
  *
- * tx fifo/queue mode
+ * Tx FIFO/Queue Mode
+ * 0= Tx FIFO operation
+ * 1= Tx Queue operation
  */
 #define MCAN_TXBC_TFQM_MASK (0x40000000UL)
 #define MCAN_TXBC_TFQM_SHIFT (30U)
@@ -2000,7 +2326,10 @@ typedef struct {
 /*
  * TFQS (RW)
  *
- * transmit FIFO/queue size
+ * Transmit FIFO/Queue Size
+ * 0= No Tx FIFO/Queue
+ * 1-32= Number of Tx Buffers used for Tx FIFO/Queue
+ * >32= Values greater than 32 are interpreted as 32
  */
 #define MCAN_TXBC_TFQS_MASK (0x3F000000UL)
 #define MCAN_TXBC_TFQS_SHIFT (24U)
@@ -2010,7 +2339,10 @@ typedef struct {
 /*
  * NDTB (RW)
  *
- * number of dedicated transmit buffers
+ * Number of Dedicated Transmit Buffers
+ * 0= No Dedicated Tx Buffers
+ * 1-32= Number of Dedicated Tx Buffers
+ * >32= Values greater than 32 are interpreted as 32
  */
 #define MCAN_TXBC_NDTB_MASK (0x3F0000UL)
 #define MCAN_TXBC_NDTB_SHIFT (16U)
@@ -2020,7 +2352,9 @@ typedef struct {
 /*
  * TBSA (RW)
  *
- * tx buffer start address
+ * Tx Buffers Start Address
+ * Start address of Tx Buffers section in Message RAM (32-bit word address, see Figure 2).
+ * Note: Be aware that the sum of TFQS and NDTB may be not greater than 32. There is no check for erroneous configurations. The Tx Buffers section in the Message RAM starts with the dedicated Tx Buffers.
  */
 #define MCAN_TXBC_TBSA_MASK (0xFFFCU)
 #define MCAN_TXBC_TBSA_SHIFT (2U)
@@ -2031,7 +2365,9 @@ typedef struct {
 /*
  * TFQF (R)
  *
- * tx fifo/queue full
+ * Tx FIFO/Queue Full
+ * 0= Tx FIFO/Queue not full
+ * 1= Tx FIFO/Queue full
  */
 #define MCAN_TXFQS_TFQF_MASK (0x200000UL)
 #define MCAN_TXFQS_TFQF_SHIFT (21U)
@@ -2040,7 +2376,8 @@ typedef struct {
 /*
  * TFQPI (R)
  *
- * tx fifo/queue put index
+ * Tx FIFO/Queue Put Index
+ * Tx FIFO/Queue write index pointer, range 0 to 31.
  */
 #define MCAN_TXFQS_TFQPI_MASK (0x1F0000UL)
 #define MCAN_TXFQS_TFQPI_SHIFT (16U)
@@ -2049,7 +2386,9 @@ typedef struct {
 /*
  * TFGI (R)
  *
- * tx fifo get index
+ * Tx FIFO Get Index
+ * Tx FIFO read index pointer, range 0 to 31. Read as zero when Tx Queue operation is configured
+ * (TXBC.TFQM = ‘1’).
  */
 #define MCAN_TXFQS_TFGI_MASK (0x1F00U)
 #define MCAN_TXFQS_TFGI_SHIFT (8U)
@@ -2058,7 +2397,11 @@ typedef struct {
 /*
  * TFFL (R)
  *
- * tx fifo free level
+ * Tx FIFO Free Level
+ * Number of consecutive free Tx FIFO elements starting from TFGI, range 0 to 32. Read as zero when Tx Queue operation is configured (TXBC.TFQM = ‘1’)
+ * Note: In case of mixed configurations where dedicated Tx Buffers are combined with a Tx FIFO or a Tx Queue, the Put and Get Indices indicate the number of the Tx Buffer starting with
+ * the first dedicated Tx Buffers.
+ * Example: For a configuration of 12 dedicated Tx Buffers and a Tx FIFO of 20 Buffers a Put Index of 15 points to the fourth buffer of the Tx FIFO.
  */
 #define MCAN_TXFQS_TFFL_MASK (0x3FU)
 #define MCAN_TXFQS_TFFL_SHIFT (0U)
@@ -2068,7 +2411,16 @@ typedef struct {
 /*
  * TBDS (RW)
  *
- * tx buffer data field size
+ * Tx Buffer Data Field Size
+ * 000= 8 byte data field
+ * 001= 12 byte data field
+ * 010= 16 byte data field
+ * 011= 20 byte data field
+ * 100= 24 byte data field
+ * 101= 32 byte data field
+ * 110= 48 byte data field
+ * 111= 64 byte data field
+ * Note: In case the data length code DLC of a Tx Buffer element is configured to a value higher than the Tx Buffer data field size TXESC.TBDS, the bytes not defined by the Tx Buffer are transmitted as “0xCC” (padding bytes).
  */
 #define MCAN_TXESC_TBDS_MASK (0x7U)
 #define MCAN_TXESC_TBDS_SHIFT (0U)
@@ -2079,7 +2431,21 @@ typedef struct {
 /*
  * TRP (R)
  *
- * transmission request pending
+ * Transmission Request Pending
+ * Each Tx Buffer has its own Transmission Request Pending bit. The bits are set via register TXBAR.The bits are reset after a requested transmission has completed or has been cancelled via register
+ * TXBCR.
+ * TXBRP bits are set only for those Tx Buffers configured via TXBC. After a TXBRP bit has been set, a Tx scan (see Section 3.5, Tx Handling) is started to check for the pending Tx request with the
+ * highest priority (Tx Buffer with lowest Message ID).
+ * A cancellation request resets the corresponding transmission request pending bit of register TXBRP. In case a transmission has already been started when a cancellation is requested, this is done at the end of the transmission, regardless whether the transmission was successful or not. The cancellation request bits are reset directly after the corresponding TXBRP bit has been reset.
+ * After a cancellation has been requested, a finished cancellation is signalled via TXBCF
+ * ? after successful transmission together with the corresponding TXBTO bit
+ * ? when the transmission has not yet been started at the point of cancellation
+ * ? when the transmission has been aborted due to lost arbitration
+ * ? when an error occurred during frame transmission
+ * In DAR mode all transmissions are automatically cancelled if they are not successful. The corresponding TXBCF bit is set for all unsuccessful transmissions.
+ * 0= No transmission request pending
+ * 1= Transmission request pending
+ * Note: TXBRP bits which are set while a Tx scan is in progress are not considered during this particular Tx scan. In case a cancellation is requested for such a Tx Buffer, this Add Request is cancelled immediately, the corresponding TXBRP bit is reset.
  */
 #define MCAN_TXBRP_TRP_MASK (0xFFFFFFFFUL)
 #define MCAN_TXBRP_TRP_SHIFT (0U)
@@ -2089,7 +2455,13 @@ typedef struct {
 /*
  * AR (RW)
  *
- * add request
+ * Add Request
+ * Each Tx Buffer has its own Add Request bit. Writing a ‘1’ will set the corresponding Add Request bit; writing a ‘0’ has no impact. This enables the Host to set transmission requests for multiple Tx
+ * Buffers with one write to TXBAR. TXBAR bits are set only for those Tx Buffers configured via TXBC.
+ * When no Tx scan is running, the bits are reset immediately, else the bits remain set until the Tx scan process has completed.
+ * 0= No transmission request added
+ * 1= Transmission requested added
+ * Note: If an add request is applied for a Tx Buffer with pending transmission request (corresponding TXBRP bit already set), this add request is ignored.
  */
 #define MCAN_TXBAR_AR_MASK (0xFFFFFFFFUL)
 #define MCAN_TXBAR_AR_SHIFT (0U)
@@ -2100,7 +2472,10 @@ typedef struct {
 /*
  * CR (RW)
  *
- * cancellation request
+ * Cancellation Request
+ * Each Tx Buffer has its own Cancellation Request bit. Writing a ‘1’ will set the corresponding Cancellation Request bit; writing a ‘0’ has no impact. This enables the Host to set cancellation requests for multiple Tx Buffers with one write to TXBCR. TXBCR bits are set only for those Tx Buffers configured via TXBC. The bits remain set until the corresponding bit of TXBRP is reset.
+ * 0= No cancellation pending
+ * 1= Cancellation pending
  */
 #define MCAN_TXBCR_CR_MASK (0xFFFFFFFFUL)
 #define MCAN_TXBCR_CR_SHIFT (0U)
@@ -2111,7 +2486,10 @@ typedef struct {
 /*
  * TO (R)
  *
- * transmission occurred
+ * Transmission Occurred
+ * Each Tx Buffer has its own Transmission Occurred bit. The bits are set when the corresponding TXBRP bit is cleared after a successful transmission. The bits are reset when a new transmission is requested by writing a ‘1’ to the corresponding bit of register TXBAR.
+ * 0= No transmission occurred
+ * 1= Transmission occurred
  */
 #define MCAN_TXBTO_TO_MASK (0xFFFFFFFFUL)
 #define MCAN_TXBTO_TO_SHIFT (0U)
@@ -2121,7 +2499,10 @@ typedef struct {
 /*
  * CF (R)
  *
- * cancellation finished
+ * Cancellation Finished
+ * Each Tx Buffer has its own Cancellation Finished bit. The bits are set when the corresponding TXBRP bit is cleared after a cancellation was requested via TXBCR. In case the corresponding TXBRP bit was not set at the point of cancellation, CF is set immediately. The bits are reset when a new transmission is requested by writing a ‘1’ to the corresponding bit of register TXBAR.
+ * 0= No transmit buffer cancellation
+ * 1= Transmit buffer cancellation finished
  */
 #define MCAN_TXBCF_CF_MASK (0xFFFFFFFFUL)
 #define MCAN_TXBCF_CF_SHIFT (0U)
@@ -2131,7 +2512,10 @@ typedef struct {
 /*
  * TIE (RW)
  *
- * transmission interrupt enable
+ * Transmission Interrupt Enable
+ * Each Tx Buffer has its own Transmission Interrupt Enable bit.
+ * 0= Transmission interrupt disabled
+ * 1= Transmission interrupt enable
  */
 #define MCAN_TXBTIE_TIE_MASK (0xFFFFFFFFUL)
 #define MCAN_TXBTIE_TIE_SHIFT (0U)
@@ -2142,7 +2526,10 @@ typedef struct {
 /*
  * CFIE (RW)
  *
- * cancellation finished interrupt enable
+ * Cancellation Finished Interrupt Enable
+ * Each Tx Buffer has its own Cancellation Finished Interrupt Enable bit.
+ * 0= Cancellation finished interrupt disabled
+ * 1= Cancellation finished interrupt enabled
  */
 #define MCAN_TXBCIE_CFIE_MASK (0xFFFFFFFFUL)
 #define MCAN_TXBCIE_CFIE_SHIFT (0U)
@@ -2153,7 +2540,10 @@ typedef struct {
 /*
  * EFWM (RW)
  *
- * event fifo watermark
+ * Event FIFO Watermark
+ * 0= Watermark interrupt disabled
+ * 1-32= Level for Tx Event FIFO watermark interrupt (IR.TEFW)
+ * >32= Watermark interrupt disabled
  */
 #define MCAN_TXEFC_EFWM_MASK (0x3F000000UL)
 #define MCAN_TXEFC_EFWM_SHIFT (24U)
@@ -2163,7 +2553,11 @@ typedef struct {
 /*
  * EFS (RW)
  *
- * event fifo size
+ * Event FIFO Size
+ * 0= Tx Event FIFO disabled
+ * 1-32= Number of Tx Event FIFO elements
+ * >32= Values greater than 32 are interpreted as 32
+ * The Tx Event FIFO elements are indexed from 0 to EFS - 1
  */
 #define MCAN_TXEFC_EFS_MASK (0x3F0000UL)
 #define MCAN_TXEFC_EFS_SHIFT (16U)
@@ -2173,7 +2567,8 @@ typedef struct {
 /*
  * EFSA (RW)
  *
- * event fifo start address
+ * Event FIFO Start Address
+ * Start address of Tx Event FIFO in Message RAM (32-bit word address)
  */
 #define MCAN_TXEFC_EFSA_MASK (0xFFFCU)
 #define MCAN_TXEFC_EFSA_SHIFT (2U)
@@ -2184,7 +2579,10 @@ typedef struct {
 /*
  * TEFL (R)
  *
- * tx event fifo element lost
+ * Tx Event FIFO Element Lost
+ * This bit is a copy of interrupt flag IR.TEFL. When IR.TEFL is reset, this bit is also reset.
+ * 0= No Tx Event FIFO element lost
+ * 1= Tx Event FIFO element lost, also set after write attempt to Tx Event FIFO of size zero.
  */
 #define MCAN_TXEFS_TEFL_MASK (0x2000000UL)
 #define MCAN_TXEFS_TEFL_SHIFT (25U)
@@ -2193,7 +2591,9 @@ typedef struct {
 /*
  * EFF (R)
  *
- * event fifo full
+ * Event FIFO Full
+ * 0= Tx Event FIFO not full
+ * 1= Tx Event FIFO full
  */
 #define MCAN_TXEFS_EFF_MASK (0x1000000UL)
 #define MCAN_TXEFS_EFF_SHIFT (24U)
@@ -2202,7 +2602,8 @@ typedef struct {
 /*
  * EFPI (R)
  *
- * event fifo put index
+ * Event FIFO Put Index
+ * Tx Event FIFO write index pointer, range 0 to 31.
  */
 #define MCAN_TXEFS_EFPI_MASK (0x1F0000UL)
 #define MCAN_TXEFS_EFPI_SHIFT (16U)
@@ -2211,7 +2612,8 @@ typedef struct {
 /*
  * EFGI (R)
  *
- * event fifo get index
+ * Event FIFO Get Index
+ * Tx Event FIFO read index pointer, range 0 to 31.
  */
 #define MCAN_TXEFS_EFGI_MASK (0x1F00U)
 #define MCAN_TXEFS_EFGI_SHIFT (8U)
@@ -2220,7 +2622,8 @@ typedef struct {
 /*
  * EFFL (R)
  *
- * event fifo fill level
+ * Event FIFO Fill Level
+ * Number of elements stored in Tx Event FIFO, range 0 to 32.
  */
 #define MCAN_TXEFS_EFFL_MASK (0x3FU)
 #define MCAN_TXEFS_EFFL_SHIFT (0U)
@@ -2230,7 +2633,9 @@ typedef struct {
 /*
  * EFAI (RW)
  *
- * event fifo acknowledge index
+ * Event FIFO Acknowledge Index
+ * After the Host has read an element or a sequence of elements from the Tx Event FIFO it has to write the index of the last element read from Tx Event FIFO to EFAI. This will set the Tx Event FIFO Get
+ * Index TXEFS.EFGI to EFAI + 1 and update the Event FIFO Fill Level TXEFS.EFFL.
  */
 #define MCAN_TXEFA_EFAI_MASK (0x1FU)
 #define MCAN_TXEFA_EFAI_SHIFT (0U)
@@ -2241,7 +2646,9 @@ typedef struct {
 /*
  * TS (R)
  *
- * timestamp word
+ * Timestamp Word TS
+ * default can save 16 timestamps with 32bit;
+ * if ts64_en is set, then work at 64bit mode, can save 8 timestamps with 01/23/45….
  */
 #define MCAN_TS_SEL_TS_MASK (0xFFFFFFFFUL)
 #define MCAN_TS_SEL_TS_SHIFT (0U)
@@ -2251,7 +2658,8 @@ typedef struct {
 /*
  * REL (R)
  *
- * core release
+ * Core Release
+ * One digit, BCD-coded
  */
 #define MCAN_CREL_REL_MASK (0xF0000000UL)
 #define MCAN_CREL_REL_SHIFT (28U)
@@ -2260,7 +2668,8 @@ typedef struct {
 /*
  * STEP (R)
  *
- * step of core release
+ * Step of Core Release
+ * One digit, BCD-coded.
  */
 #define MCAN_CREL_STEP_MASK (0xF000000UL)
 #define MCAN_CREL_STEP_SHIFT (24U)
@@ -2269,7 +2678,8 @@ typedef struct {
 /*
  * SUBSTEP (R)
  *
- * sub-step of core release
+ * Sub-step of Core Release
+ * One digit, BCD-coded
  */
 #define MCAN_CREL_SUBSTEP_MASK (0xF00000UL)
 #define MCAN_CREL_SUBSTEP_SHIFT (20U)
@@ -2278,7 +2688,9 @@ typedef struct {
 /*
  * YEAR (R)
  *
- * timestamp year
+ * Timestamp Year
+ * One digit, BCD-coded. This field is set by generic parameter on
+ * synthesis.
  */
 #define MCAN_CREL_YEAR_MASK (0xF0000UL)
 #define MCAN_CREL_YEAR_SHIFT (16U)
@@ -2287,7 +2699,9 @@ typedef struct {
 /*
  * MON (R)
  *
- * timestamp month
+ * Timestamp Month
+ * Two digits, BCD-coded. This field is set by generic parameter
+ * on synthesis.
  */
 #define MCAN_CREL_MON_MASK (0xFF00U)
 #define MCAN_CREL_MON_SHIFT (8U)
@@ -2296,7 +2710,9 @@ typedef struct {
 /*
  * DAY (R)
  *
- * timestamp day
+ * Timestamp Day
+ * Two digits, BCD-coded. This field is set by generic parameter
+ * on synthesis.
  */
 #define MCAN_CREL_DAY_MASK (0xFFU)
 #define MCAN_CREL_DAY_SHIFT (0U)
@@ -2306,7 +2722,16 @@ typedef struct {
 /*
  * TBPRE (RW)
  *
- * timebase prescaler, based on AHB clock
+ * Timebase Prescaler
+ * 0x00 to 0xFF
+ * The value by which the oscillator frequency is divided for
+ * generating the timebase counter clock. Valid values for the
+ * Timebase Prescaler are 0 to 255. The actual interpretation by
+ * the hardware of this value is such that one more than the value
+ * programmed here is used. Affects only the TSU internal
+ * timebase. When the internal timebase is excluded by synthesis,
+ * TBPRE[7:0] is fixed to 0x00, the Timestamp Prescaler is not
+ * used.
  */
 #define MCAN_TSCFG_TBPRE_MASK (0xFF00U)
 #define MCAN_TSCFG_TBPRE_SHIFT (8U)
@@ -2328,7 +2753,9 @@ typedef struct {
 /*
  * SCP (RW)
  *
- * select capturing position
+ * Select Capturing Position
+ * 0: Capture Timestamp at EOF
+ * 1: Capture Timestamp at SOF
  */
 #define MCAN_TSCFG_SCP_MASK (0x4U)
 #define MCAN_TSCFG_SCP_SHIFT (2U)
@@ -2338,7 +2765,12 @@ typedef struct {
 /*
  * TBCS (RW)
  *
- * timebase counter select
+ * Timebase Counter Select
+ * When the internal timebase is excluded by synthesis, TBCS is
+ * fixed to ‘1’.
+ * 0: Timestamp value captured from internal timebase counter,
+ *  ATB.TB[31:0] is the internal timbase counter
+ * 1: Timestamp value captured from input tsu_tbin[31:0],ATB.TB[31:0] is tsu_tbin[31:0]
  */
 #define MCAN_TSCFG_TBCS_MASK (0x2U)
 #define MCAN_TSCFG_TBCS_SHIFT (1U)
@@ -2348,7 +2780,9 @@ typedef struct {
 /*
  * TSUE (RW)
  *
- * timestamp unit enable
+ * Timestamp Unit Enable
+ * 0: TSU disabled
+ * 1: TSU enabled
  */
 #define MCAN_TSCFG_TSUE_MASK (0x1U)
 #define MCAN_TSCFG_TSUE_SHIFT (0U)
@@ -2359,7 +2793,9 @@ typedef struct {
 /*
  * TSL (R)
  *
- * timestamp lost
+ * Timestamp Lost
+ * Each Timestamp register (TS0-TS15) is assigned one bit. The bits are set when the timestamp stored in the related Timestamp register was overwritten before it was read.
+ * Reading a Timestamp register resets the related bit.
  */
 #define MCAN_TSS1_TSL_MASK (0xFFFF0000UL)
 #define MCAN_TSS1_TSL_SHIFT (16U)
@@ -2368,7 +2804,9 @@ typedef struct {
 /*
  * TSN (R)
  *
- * timestamp new
+ * Timestamp New
+ * Each Timestamp register (TS0-TS15) is assigned one bit. The bits are set when a timestamp was stored in the related
+ * Timestamp register. Reading a Timestamp register resets the related bit.
  */
 #define MCAN_TSS1_TSN_MASK (0xFFFFU)
 #define MCAN_TSS1_TSN_SHIFT (0U)
@@ -2376,27 +2814,12 @@ typedef struct {
 
 /* Bitfield definition for register: TSS2 */
 /*
- * ITBG (R)
- *
- * internal timebase and sof select generic
- */
-#define MCAN_TSS2_ITBG_MASK (0xC000U)
-#define MCAN_TSS2_ITBG_SHIFT (14U)
-#define MCAN_TSS2_ITBG_GET(x) (((uint32_t)(x) & MCAN_TSS2_ITBG_MASK) >> MCAN_TSS2_ITBG_SHIFT)
-
-/*
- * NTSG (R)
- *
- * number of timestamps generic
- */
-#define MCAN_TSS2_NTSG_MASK (0x3000U)
-#define MCAN_TSS2_NTSG_SHIFT (12U)
-#define MCAN_TSS2_NTSG_GET(x) (((uint32_t)(x) & MCAN_TSS2_NTSG_MASK) >> MCAN_TSS2_NTSG_SHIFT)
-
-/*
  * TSP (R)
  *
- * timestamp pointer
+ * Timestamp Pointer
+ * The Timestamp Pointer is incremented by one each time a timestamp is captured. From its maximum value (3, 7, or 15
+ * depending on number_ts_g), it is incremented to 0.
+ * Value also signalled on output m_can_tsp[3:0].
  */
 #define MCAN_TSS2_TSP_MASK (0xFU)
 #define MCAN_TSS2_TSP_SHIFT (0U)
@@ -2426,6 +2849,7 @@ typedef struct {
 /*
  * M_CAN_STBY (RW)
  *
+ * m_can standby control
  */
 #define MCAN_GLB_CTL_M_CAN_STBY_MASK (0x80000000UL)
 #define MCAN_GLB_CTL_M_CAN_STBY_SHIFT (31U)
@@ -2435,6 +2859,9 @@ typedef struct {
 /*
  * STBY_CLR_EN (RW)
  *
+ * m_can standby clear control
+ * 0:controlled by software by standby bit[bit31]
+ * 1:auto clear standby by hardware when rx data is  0
  */
 #define MCAN_GLB_CTL_STBY_CLR_EN_MASK (0x40000000UL)
 #define MCAN_GLB_CTL_STBY_CLR_EN_SHIFT (30U)
@@ -2444,20 +2871,12 @@ typedef struct {
 /*
  * STBY_POL (RW)
  *
+ * standby polarity selection
  */
 #define MCAN_GLB_CTL_STBY_POL_MASK (0x20000000UL)
 #define MCAN_GLB_CTL_STBY_POL_SHIFT (29U)
 #define MCAN_GLB_CTL_STBY_POL_SET(x) (((uint32_t)(x) << MCAN_GLB_CTL_STBY_POL_SHIFT) & MCAN_GLB_CTL_STBY_POL_MASK)
 #define MCAN_GLB_CTL_STBY_POL_GET(x) (((uint32_t)(x) & MCAN_GLB_CTL_STBY_POL_MASK) >> MCAN_GLB_CTL_STBY_POL_SHIFT)
-
-/*
- * M_CAN_DIS_MORD (RW)
- *
- */
-#define MCAN_GLB_CTL_M_CAN_DIS_MORD_MASK (0x8U)
-#define MCAN_GLB_CTL_M_CAN_DIS_MORD_SHIFT (3U)
-#define MCAN_GLB_CTL_M_CAN_DIS_MORD_SET(x) (((uint32_t)(x) << MCAN_GLB_CTL_M_CAN_DIS_MORD_SHIFT) & MCAN_GLB_CTL_M_CAN_DIS_MORD_MASK)
-#define MCAN_GLB_CTL_M_CAN_DIS_MORD_GET(x) (((uint32_t)(x) & MCAN_GLB_CTL_M_CAN_DIS_MORD_MASK) >> MCAN_GLB_CTL_M_CAN_DIS_MORD_SHIFT)
 
 /*
  * TSU_TBIN_SEL (RW)
@@ -2472,6 +2891,7 @@ typedef struct {
 /*
  * M_CAN_INT1 (R)
  *
+ * m_can interrupt status1
  */
 #define MCAN_GLB_STATUS_M_CAN_INT1_MASK (0x8U)
 #define MCAN_GLB_STATUS_M_CAN_INT1_SHIFT (3U)
@@ -2480,40 +2900,17 @@ typedef struct {
 /*
  * M_CAN_INT0 (R)
  *
+ * m_can interrupt status0
  */
 #define MCAN_GLB_STATUS_M_CAN_INT0_MASK (0x4U)
 #define MCAN_GLB_STATUS_M_CAN_INT0_SHIFT (2U)
 #define MCAN_GLB_STATUS_M_CAN_INT0_GET(x) (((uint32_t)(x) & MCAN_GLB_STATUS_M_CAN_INT0_MASK) >> MCAN_GLB_STATUS_M_CAN_INT0_SHIFT)
 
-/*
- * M_CAN_AEI_ARA (R)
- *
- */
-#define MCAN_GLB_STATUS_M_CAN_AEI_ARA_MASK (0x2U)
-#define MCAN_GLB_STATUS_M_CAN_AEI_ARA_SHIFT (1U)
-#define MCAN_GLB_STATUS_M_CAN_AEI_ARA_GET(x) (((uint32_t)(x) & MCAN_GLB_STATUS_M_CAN_AEI_ARA_MASK) >> MCAN_GLB_STATUS_M_CAN_AEI_ARA_SHIFT)
-
-/*
- * M_CAN_ACT_TX (R)
- *
- */
-#define MCAN_GLB_STATUS_M_CAN_ACT_TX_MASK (0x1U)
-#define MCAN_GLB_STATUS_M_CAN_ACT_TX_SHIFT (0U)
-#define MCAN_GLB_STATUS_M_CAN_ACT_TX_GET(x) (((uint32_t)(x) & MCAN_GLB_STATUS_M_CAN_ACT_TX_MASK) >> MCAN_GLB_STATUS_M_CAN_ACT_TX_SHIFT)
-
-/* Bitfield definition for register: GLB_CAN_IR */
-/*
- * M_CAN_IR (R)
- *
- */
-#define MCAN_GLB_CAN_IR_M_CAN_IR_MASK (0xFFFFFFFFUL)
-#define MCAN_GLB_CAN_IR_M_CAN_IR_SHIFT (0U)
-#define MCAN_GLB_CAN_IR_M_CAN_IR_GET(x) (((uint32_t)(x) & MCAN_GLB_CAN_IR_M_CAN_IR_MASK) >> MCAN_GLB_CAN_IR_M_CAN_IR_SHIFT)
-
 /* Bitfield definition for register array: MESSAGE_BUFF */
 /*
  * DATA (RW)
  *
+ * m_can message buffer
  */
 #define MCAN_MESSAGE_BUFF_DATA_MASK (0xFFFFFFFFUL)
 #define MCAN_MESSAGE_BUFF_DATA_SHIFT (0U)

@@ -31,6 +31,7 @@
  */
 #define I2S_SOC_MAX_CHANNEL_NUM (16U)
 #define I2S_SOC_MAX_TX_CHANNEL_NUM (8U)
+#define I2S_SOC_MAX_TX_FIFO_DEPTH (8U)
 #define PDM_I2S HPM_I2S0
 #define DAO_I2S HPM_I2S1
 #define PDM_SOC_SAMPLE_RATE_IN_HZ (16000U)
@@ -111,6 +112,13 @@
 #define ENET_SOC_ALT_EHD_DES_MIN_LEN               (4U)
 #define ENET_SOC_ALT_EHD_DES_MAX_LEN               (8U)
 #define ENET_SOC_ALT_EHD_DES_LEN                   (8U)
+#define ENET_SOC_PPS_MAX_COUNT                     (4L)
+#define ENET_SOC_PPS1_EN                           (0U)
+
+/*
+ * ACMP Section
+ */
+#define ACMP_SOC_BANDGAP                           (1U)
 
 /*
  * ADC Section
@@ -157,6 +165,7 @@
  * CAN Section
  */
 #define CAN_SOC_MAX_COUNT       (4U)
+#define CAN_SOC_CANFD_TDC_REQUIRE_STUFF_EXCEPTION_WORKAROUND (1)    /* Refer to E00016 in HPM6700/6400 Errata */
 
 /*
  * UART Section
@@ -185,5 +194,15 @@
  * OTP Section
  */
 #define OTP_SOC_UUID_IDX   (88U)
+#define OTP_SOC_UUID_LEN   (16U) /* in bytes */
+
+/**
+ * PWM Section
+ *
+ */
+#define PWM_SOC_HRPWM_SUPPORT  (0U)
+#define PWM_SOC_SHADOW_TRIG_SUPPORT (0U)
+#define PWM_SOC_TIMER_RESET_SUPPORT (0U)
+
 
 #endif /* HPM_SOC_FEATURE_H */

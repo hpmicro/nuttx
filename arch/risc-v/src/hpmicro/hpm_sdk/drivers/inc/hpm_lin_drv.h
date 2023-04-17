@@ -198,6 +198,40 @@ static inline uint8_t lin_get_data_byte(LIN_Type *ptr, uint8_t index)
 }
 
 /**
+ * @brief lin write data value in byte
+ *
+ * @param ptr lin base address
+ * @param index byte index
+ * @param data byte value
+ */
+static inline void lin_write_data_byte(LIN_Type *ptr, uint8_t index, uint8_t data)
+{
+    ptr->DATABYTE[index] = data;
+}
+
+/**
+ * @brief lin active status
+ *
+ * @param ptr lin base address
+ * @return bool true for active, false for inactive
+ */
+static inline bool lin_is_active(LIN_Type *ptr)
+{
+    return ((ptr->STATE & LIN_STATE_LIN_ACTIVE_MASK) == LIN_STATE_LIN_ACTIVE_MASK) ? true : false;
+}
+
+/**
+ * @brief lin complete status
+ *
+ * @param ptr lin base address
+ * @return bool true for complete, false for incomplete
+ */
+static inline bool lin_is_complete(LIN_Type *ptr)
+{
+    return ((ptr->STATE & LIN_STATE_COMPLETE_MASK) == LIN_STATE_COMPLETE_MASK) ? true : false;
+}
+
+/**
  * @brief lin get ID
  *
  * @param ptr lin base address

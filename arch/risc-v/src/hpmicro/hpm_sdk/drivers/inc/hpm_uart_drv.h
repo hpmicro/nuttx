@@ -306,7 +306,7 @@ static inline uint8_t uart_read_byte(UART_Type *ptr)
  */
 static inline bool uart_check_modem_status(UART_Type *ptr, uart_modem_stat_t mask)
 {
-    return (ptr->MSR & mask);
+    return ((ptr->MSR & mask) != 0U) ? true : false;
 }
 
 /**
@@ -360,7 +360,7 @@ static inline uint8_t uart_get_irq_id(UART_Type *ptr)
  */
 static inline bool uart_is_rxline_idle(UART_Type *ptr)
 {
-    return ((ptr->IIR & UART_IIR_RXIDLE_FLAG_MASK) != 0U);
+    return ((ptr->IIR & UART_IIR_RXIDLE_FLAG_MASK) != 0U) ? true : false;
 }
 
 /**
@@ -422,7 +422,7 @@ static inline uint8_t uart_get_status(UART_Type *ptr)
  */
 static inline bool uart_check_status(UART_Type *ptr, uart_stat_t mask)
 {
-    return (ptr->LSR & mask);
+    return ((ptr->LSR & mask) != 0U) ? true : false;
 }
 
 /**

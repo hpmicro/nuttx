@@ -17,7 +17,7 @@ void enable_plic_feature(void)
     /* enabled vector mode and preemptive priority interrupt */
     plic_feature |= HPM_PLIC_FEATURE_VECTORED_MODE;
 #endif
-#ifndef DISABLE_IRQ_PREEMPTIVE
+#if !defined(DISABLE_IRQ_PREEMPTIVE) || (DISABLE_IRQ_PREEMPTIVE == 0)
     /* enabled preemptive priority interrupt */
     plic_feature |= HPM_PLIC_FEATURE_PREEMPTIVE_PRIORITY_IRQ;
 #endif

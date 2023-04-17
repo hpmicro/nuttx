@@ -68,10 +68,10 @@ void crc_calc_block_words(CRC_Type *ptr, uint32_t ch_index, uint32_t *pbuffer, u
 
 void crc_calc_large_block_fast(CRC_Type *ptr, uint32_t ch_index, uint8_t *pbuffer, uint32_t length)
 {
-	if (length < 16) {
-		crc_calc_block_bytes(ptr, ch_index, pbuffer, length);
-		return;
-	}
+    if (length < 16) {
+        crc_calc_block_bytes(ptr, ch_index, pbuffer, length);
+        return;
+    }
 
     uint32_t addr = (uint32_t)&ptr->CHN[ch_index].DATA;
     uint32_t start_byte_addr = (uint32_t)pbuffer;

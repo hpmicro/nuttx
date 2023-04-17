@@ -296,7 +296,7 @@ void spi_format_init(SPI_Type *ptr, spi_format_config_t *config);
  * @param [in] rcount spi receive data count, not greater than SPI_SOC_TRANSFER_COUNT_MAX
  * @retval hpm_stat_t status_success if spi transfer without any error
  */
-hpm_stat_t hpm_spi_transfer(SPI_Type *ptr,
+hpm_stat_t spi_transfer(SPI_Type *ptr,
                         spi_control_config_t *config,
                         uint8_t *cmd, uint32_t *addr,
                         uint8_t *wbuff, uint32_t wcount,  uint8_t *rbuff, uint32_t rcount);
@@ -320,6 +320,9 @@ hpm_stat_t spi_setup_dma_transfer(SPI_Type *ptr,
 /**
  * @brief spi wait for idle status
  *
+ * @note on master mode, if software controls CS signal, this function does not really reflect the SPI state.
+ * on slave mode, if CS signal is asserted, take it as busy; if SPI CS signal is de-asserted, take it as idle.
+ *
  * @param [in] ptr SPI base address
  * @retval hpm_stat_t status_success if spi in idle status
  */
@@ -327,6 +330,9 @@ hpm_stat_t spi_wait_for_idle_status(SPI_Type *ptr);
 
 /**
  * @brief spi wait for busy status
+ *
+ * @note on master mode, if software controls CS signal, this function does not really reflect the SPI state.
+ * on slave mode, if CS signal is asserted, take it as busy; if SPI CS signal is de-asserted, take it as idle.
  *
  * @param [in] ptr SPI base address
  * @retval hpm_stat_t status_success if spi in busy status
@@ -553,6 +559,78 @@ static inline uint8_t spi_get_data_length_in_bytes(SPI_Type *ptr)
     return ((spi_get_data_length_in_bits(ptr) + 7U) / 8U);
 }
 
+/**
+ * @brief SPI get active status.
+ *
+ * @param ptr SPI base address.
+ * @retval bool true for active, false for inactive
+ */
+static inline bool spi_is_active(SPI_Type *ptr)
+{
+    return ((ptr->STATUS & SPI_STATUS_SPIACTIVE_MASK) == SPI_STATUS_SPIACTIVE_MASK) ? true : false;
+}
+
+/**
+ * @brief SPI enable tx dma
+ *
+ * @param ptr SPI base address
+ */
+static inline void spi_enable_tx_dma(SPI_Type *ptr)
+{
+    ptr->CTRL |= SPI_CTRL_TXDMAEN_MASK;
+}
+
+/**
+ * @brief SPI disable tx dma
+ *
+ * @param ptr SPI base address
+ */
+static inline void spi_disable_tx_dma(SPI_Type *ptr)
+{
+    ptr->CTRL &= ~SPI_CTRL_TXDMAEN_MASK;
+}
+
+/**
+ * @brief SPI enable rx dma
+ *
+ * @param ptr SPI base address
+ */
+static inline void spi_enable_rx_dma(SPI_Type *ptr)
+{
+    ptr->CTRL |= SPI_CTRL_RXDMAEN_MASK;
+}
+
+/**
+ * @brief SPI disable rx dma
+ *
+ * @param ptr SPI base address
+ */
+static inline void spi_disable_rx_dma(SPI_Type *ptr)
+{
+    ptr->CTRL &= ~SPI_CTRL_RXDMAEN_MASK;
+}
+
+/**
+ * @brief SPI slave get sent data count
+ *
+ * @param ptr SPI base address
+ * @retval uint32_t data count
+ */
+static inline uint32_t spi_slave_get_sent_data_count(SPI_Type *ptr)
+{
+    return SPI_SLVDATACNT_WCNT_GET(ptr->SLVDATACNT);
+}
+
+/**
+ * @brief SPI slave get received data count
+ *
+ * @param ptr SPI base address
+ * @retval uint32_t data count
+ */
+static inline uint32_t spi_slave_get_received_data_count(SPI_Type *ptr)
+{
+    return SPI_SLVDATACNT_RCNT_GET(ptr->SLVDATACNT);
+}
 
 /**
  * @}

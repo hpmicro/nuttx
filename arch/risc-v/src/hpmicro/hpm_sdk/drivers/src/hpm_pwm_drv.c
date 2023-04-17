@@ -40,8 +40,10 @@ void pwm_get_default_cmp_config(PWM_Type *pwm_x, pwm_cmp_config_t *config)
     config->mode = pwm_cmp_mode_output_compare;
     config->update_trigger = pwm_shadow_register_update_on_modify;
     config->enable_ex_cmp = false;
-    config->enable_hr_cmp = false;
-    config->hr_cmp = 0;
+#if PWM_SOC_HRPWM_SUPPORT
+    config->enable_hrcmp = false;
+    config->hrcmp = 0;
+#endif
     config->cmp = 0;
     config->ex_cmp = 0;
     config->half_clock_cmp = 0;
@@ -154,18 +156,19 @@ hpm_stat_t pwm_update_raw_cmp_central_aligned(PWM_Type *pwm_x, uint8_t cmp1_inde
     pwm_cmp_update_cmp_value(pwm_x, cmp2_index, target_cmp2, 0);
     return status_success;
 }
+#if PWM_SOC_HRPWM_SUPPORT
 
-hpm_stat_t pwm_update_raw_hr_cmp_edge_aligned(PWM_Type *pwm_x, uint8_t cmp_index, uint32_t target_cmp,
-            uint16_t target_hr_cmp)
+hpm_stat_t pwm_update_raw_hrcmp_edge_aligned(PWM_Type *pwm_x, uint8_t cmp_index, uint32_t target_cmp,
+            uint16_t target_hrcmp)
 {
     pwm_shadow_register_unlock(pwm_x);
-    pwm_cmp_update_hr_cmp_value(pwm_x, cmp_index, target_cmp, target_hr_cmp);
+    pwm_cmp_update_hrcmp_value(pwm_x, cmp_index, target_cmp, target_hrcmp);
     return status_success;
 }
 
-hpm_stat_t pwm_update_raw_hr_cmp_central_aligned(PWM_Type *pwm_x, uint8_t cmp1_index,
+hpm_stat_t pwm_update_raw_hrcmp_central_aligned(PWM_Type *pwm_x, uint8_t cmp1_index,
                                        uint8_t cmp2_index, uint32_t target_cmp1, uint32_t target_cmp2,
-                                        uint16_t target_hr_cmp1, uint16_t target_hr_cmp2)
+                                        uint16_t target_hrcmp1, uint16_t target_hrcmp2)
 {
     uint32_t reload = PWM_RLD_RLD_GET(pwm_x->RLD);
     if (!target_cmp1) {
@@ -175,7 +178,8 @@ hpm_stat_t pwm_update_raw_hr_cmp_central_aligned(PWM_Type *pwm_x, uint8_t cmp1_i
         target_cmp2 = reload + 1;
     }
     pwm_shadow_register_unlock(pwm_x);
-    pwm_cmp_update_hr_cmp_value(pwm_x, cmp1_index, target_cmp1, target_hr_cmp1);
-    pwm_cmp_update_hr_cmp_value(pwm_x, cmp2_index, target_cmp2, target_hr_cmp2);
+    pwm_cmp_update_hrcmp_value(pwm_x, cmp1_index, target_cmp1, target_hrcmp1);
+    pwm_cmp_update_hrcmp_value(pwm_x, cmp2_index, target_cmp2, target_hrcmp2);
     return status_success;
 }
+#endif
