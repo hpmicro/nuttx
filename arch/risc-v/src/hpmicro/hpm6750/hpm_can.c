@@ -144,7 +144,7 @@ static const struct can_ops_s g_can0ops       =
 static struct hpmcan_dev_s g_can0priv         =
 {
   .can_base                                   = HPM_CAN0,
-  .irq_num                                    = IRQn_CAN0 + HPM_IRQ_PERI_START,
+  .irq_num                                    = HPM_IRQn_CAN0,
   .clock_name                                 = clock_can0,
   .port                                       = 0,
   .fifo_index                                 = 0,
@@ -220,7 +220,7 @@ static const struct can_ops_s g_can1ops       =
 static struct hpmcan_dev_s g_can1priv         =
 {
   .can_base                                   = HPM_CAN1,
-  .irq_num                                    = IRQn_CAN1 + HPM_IRQ_PERI_START,
+  .irq_num                                    = HPM_IRQn_CAN1,
   .clock_name                                 = clock_can1,
   .port                                       = 1,
   .fifo_index                                 = 0,
@@ -298,7 +298,7 @@ static const struct can_ops_s g_can2ops       =
 static struct hpmcan_dev_s g_can2priv         =
 {
   .can_base                                   = HPM_CAN2,
-  .irq_num                                    = IRQn_CAN2 + HPM_IRQ_PERI_START,
+  .irq_num                                    = HPM_IRQn_CAN2,
   .clock_name                                 = clock_can0,
   .port                                       = 2,
   .fifo_index                                 = 0,
@@ -376,7 +376,7 @@ static const struct can_ops_s g_can3ops       =
 static struct hpmcan_dev_s g_can3priv         =
 {
   .can_base                                   = HPM_CAN3,
-  .irq_num                                    = IRQn_CAN3 + HPM_IRQ_PERI_START,
+  .irq_num                                    = HPM_IRQn_CAN3,
   .clock_name                                 = clock_can3,
   .port                                       = 3,
   .fifo_index                                 = 0,

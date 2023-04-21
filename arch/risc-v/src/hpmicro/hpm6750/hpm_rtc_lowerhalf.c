@@ -158,7 +158,7 @@ static hpm_lowerhalf_s  g_rtc_lowerhalf =
   .ops         = &g_rtc_ops,
   .devlock     = NXMUTEX_INITIALIZER,
   .is_time_set = false,
-  .irq_num     = IRQn_RTC + HPM_IRQ_PERI_START,
+  .irq_num     = HPM_IRQn_RTC,
 };
 
 /****************************************************************************

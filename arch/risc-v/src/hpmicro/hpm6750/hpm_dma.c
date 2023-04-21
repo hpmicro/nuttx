@@ -116,7 +116,7 @@ static int hpm_dmainterrupt(int irq, void *context, void *arg)
  *    arg: user point data
  *
  * Returned Value:
- *   0-15: DMA channel HPM_IRQ_PERI_START
+ *   0-15: DMA channel
  *   -1: Failed
  *
  ****************************************************************************/
@@ -433,13 +433,13 @@ void weak_function riscv_dma_initialize(void)
 
   /* Attach DMA interrupt vectors */
 
-  irq_attach(IRQn_HDMA + HPM_IRQ_PERI_START, hpm_dmainterrupt, NULL);
-  irq_attach(IRQn_XDMA + HPM_IRQ_PERI_START, hpm_dmainterrupt, NULL);
+  irq_attach(HPM_IRQn_HDMA, hpm_dmainterrupt, NULL);
+  irq_attach(HPM_IRQn_XDMA, hpm_dmainterrupt, NULL);
 
   /* Enable the IRQ at the NVIC (still disabled at the DMA controller) */
 
-  up_enable_irq(IRQn_HDMA + HPM_IRQ_PERI_START);
-  up_enable_irq(IRQn_XDMA + HPM_IRQ_PERI_START);
+  up_enable_irq(HPM_IRQn_HDMA);
+  up_enable_irq(HPM_IRQn_XDMA);
 
 }
 

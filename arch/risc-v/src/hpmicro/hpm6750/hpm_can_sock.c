@@ -1375,7 +1375,7 @@ int hpm_cansockinitialize(int port)
 
       priv                                         = &g_hpmcan0priv;     
       priv->can_base                               = HPM_CAN0;
-      priv->irq_num                                = IRQn_CAN0 + HPM_IRQ_PERI_START;
+      priv->irq_num                                = HPM_IRQn_CAN0;
       priv->clock_name                             = clock_can0;
       priv->port                                   = 0;
 #  ifdef CONFIG_HPM6750_CAN0_USER_SET_TINING
@@ -1421,7 +1421,7 @@ int hpm_cansockinitialize(int port)
 
       priv                                         = &g_hpmcan1priv;
       priv->can_base                               = HPM_CAN1;
-      priv->irq_num                                = IRQn_CAN1 + HPM_IRQ_PERI_START;
+      priv->irq_num                                = HPM_IRQn_CAN1;
       priv->clock_name                             = clock_can1;
       priv->port                                   = 1;
 #  ifdef CONFIG_HPM6750_CAN1_USER_SET_TINING
@@ -1466,7 +1466,7 @@ int hpm_cansockinitialize(int port)
 
       priv                                        = &g_hpmcan2priv;
       priv->can_base                              = HPM_CAN2;
-      priv->irq_num                               = IRQn_CAN2 + HPM_IRQ_PERI_START;
+      priv->irq_num                               = HPM_IRQn_CAN2;
       priv->clock_name                            = clock_can2;
       priv->port                                  = 2;
 #  ifdef CONFIG_HPM6750_CAN2_USER_SET_TINING
@@ -1512,7 +1512,7 @@ int hpm_cansockinitialize(int port)
 
       priv                                        = &g_hpmcan3priv;
       priv->can_base                              = HPM_CAN3;
-      priv->irq_num                               = IRQn_CAN3 + HPM_IRQ_PERI_START;
+      priv->irq_num                               = HPM_IRQn_CAN3;
       priv->clock_name                            = clock_can3;
       priv->port                                  = 3;
 #  ifdef CONFIG_HPM6750_CAN3_USER_SET_TINING

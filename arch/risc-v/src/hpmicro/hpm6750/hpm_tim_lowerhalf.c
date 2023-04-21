@@ -117,7 +117,7 @@ static const struct timer_ops_s g_timer_ops =
 static hpm_tim_lowerhalf_s g_tim0_lowerhalf =
 {
   .ops            = &g_timer_ops,
-  .irq_num        = IRQn_GPTMR0 + HPM_IRQ_PERI_START,
+  .irq_num        = HPM_IRQn_GPTMR0,
   .base           = HPM_GPTMR0,
   .clock_name     = clock_gptmr0,
   .channel        = TIMER_CHANNEL,
@@ -129,7 +129,7 @@ static hpm_tim_lowerhalf_s g_tim0_lowerhalf =
 static hpm_tim_lowerhalf_s g_tim1_lowerhalf =
 {
   .ops            = &g_timer_ops,
-  .irq_num        = IRQn_GPTMR1 + HPM_IRQ_PERI_START,
+  .irq_num        = HPM_IRQn_GPTMR1,
   .base           = HPM_GPTMR1,
   .clock_name     = clock_gptmr1,
   .channel        = TIMER_CHANNEL,
@@ -141,7 +141,7 @@ static hpm_tim_lowerhalf_s g_tim1_lowerhalf =
 static hpm_tim_lowerhalf_s g_tim2_lowerhalf =
 {
   .ops            = &g_timer_ops,
-  .irq_num        = IRQn_GPTMR2 + HPM_IRQ_PERI_START,
+  .irq_num        = HPM_IRQn_GPTMR2,
   .base           = HPM_GPTMR2,
   .clock_name     = clock_gptmr2,
   .channel        = TIMER_CHANNEL,
@@ -153,7 +153,7 @@ static hpm_tim_lowerhalf_s g_tim2_lowerhalf =
 static hpm_tim_lowerhalf_s g_tim3_lowerhalf =
 {
   .ops            = &g_timer_ops,
-  .irq_num        = IRQn_GPTMR3 + HPM_IRQ_PERI_START,
+  .irq_num        = HPM_IRQn_GPTMR3,
   .base           = HPM_GPTMR3,
   .clock_name     = clock_gptmr3,
   .channel        = TIMER_CHANNEL,
@@ -165,7 +165,7 @@ static hpm_tim_lowerhalf_s g_tim3_lowerhalf =
 static hpm_tim_lowerhalf_s g_tim4_lowerhalf =
 {
   .ops            = &g_timer_ops,
-  .irq_num        = IRQn_GPTMR4 + HPM_IRQ_PERI_START,
+  .irq_num        = HPM_IRQn_GPTMR4,
   .base           = HPM_GPTMR4,
   .clock_name     = clock_gptmr4,
   .channel        = TIMER_CHANNEL,
@@ -177,7 +177,7 @@ static hpm_tim_lowerhalf_s g_tim4_lowerhalf =
 static hpm_tim_lowerhalf_s g_tim5_lowerhalf =
 {
   .ops            = &g_timer_ops,
-  .irq_num        = IRQn_GPTMR5 + HPM_IRQ_PERI_START,
+  .irq_num        = HPM_IRQn_GPTMR5,
   .base           = HPM_GPTMR5,
   .clock_name     = clock_gptmr5,
   .channel        = TIMER_CHANNEL,
@@ -189,7 +189,7 @@ static hpm_tim_lowerhalf_s g_tim5_lowerhalf =
 static hpm_tim_lowerhalf_s g_tim6_lowerhalf =
 {
   .ops            = &g_timer_ops,
-  .irq_num        = IRQn_GPTMR6 + HPM_IRQ_PERI_START,
+  .irq_num        = HPM_IRQn_GPTMR6,
   .base           = HPM_GPTMR6,
   .clock_name     = clock_gptmr6,
   .channel        = TIMER_CHANNEL,
@@ -201,7 +201,7 @@ static hpm_tim_lowerhalf_s g_tim6_lowerhalf =
 static hpm_tim_lowerhalf_s g_tim7_lowerhalf =
 {
   .ops            = &g_timer_ops,
-  .irq_num        = IRQn_GPTMR7 + HPM_IRQ_PERI_START,
+  .irq_num        = HPM_IRQn_GPTMR7,
   .base           = HPM_GPTMR7,
   .clock_name     = clock_gptmr7,
   .channel        = TIMER_CHANNEL,

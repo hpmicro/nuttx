@@ -134,7 +134,7 @@ hpm6750_i2c_slave_t i2c0_slave_dev =
   .slave_address                   = CONFIG_HPM6750_I2C0_SLAVE_ADDR
   .config.i2c_mode                 = CONFIG_HPM6750_I2C0_SLAVE_MODE,
   .config.is_10bit_addressing      = CONFIG_HPM6750_I2C0_SLAVE_10BIT_ADDR,
-  .irqid                           = IRQn_I2C0 + HPM_IRQ_PERI_START,
+  .irqid                           = HPM_IRQn_I2C0,
 };
 
 #endif
@@ -150,7 +150,7 @@ hpm6750_i2c_slave_t i2c1_slave_dev =
   .slave_address                   = CONFIG_HPM6750_I2C1_SLAVE_ADDR
   .config.i2c_mode                 = CONFIG_HPM6750_I2C1_SLAVE_MODE,
   .config.is_10bit_addressing      = CONFIG_HPM6750_I2C1_SLAVE_10BIT_ADDR,
-  .irqid                           = IRQn_I2C1 + HPM_IRQ_PERI_START,
+  .irqid                           = HPM_IRQn_I2C1,
 };
 
 #endif
@@ -166,7 +166,7 @@ hpm6750_i2c_slave_t i2c2_slave_dev =
   .slave_address                   = CONFIG_HPM6750_I2C2_SLAVE_ADDR,
   .config.i2c_mode                 = CONFIG_HPM6750_I2C2_SLAVE_MODE,
   .config.is_10bit_addressing      = CONFIG_HPM6750_I2C2_SLAVE_10BIT_ADDR,
-  .irqid                           = IRQn_I2C2 + HPM_IRQ_PERI_START,
+  .irqid                           = HPM_IRQn_I2C2,
 };
 
 #endif
@@ -182,7 +182,7 @@ hpm6750_i2c_slave_t i2c3_slave_dev =
   .slave_address                   = CONFIG_HPM6750_I2C3_SLAVE_ADDR,
   .config.i2c_mode                 = CONFIG_HPM6750_I2C3_SLAVE_MODE,
   .config.is_10bit_addressing      = CONFIG_HPM6750_I2C3_SLAVE_10BIT_ADDR,
-  .irqid                           = IRQn_I2C3 + HPM_IRQ_PERI_START,
+  .irqid                           = HPM_IRQn_I2C3,
 };
 
 #endif
