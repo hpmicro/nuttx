@@ -17,6 +17,8 @@ config ARCH_CHIP_HPM6750
 	select ARCH_RV_ISA_C
 	select ONESHOT
 	select ALARM_ARCH
+	select ARCH_DCACHE
+	select ARCH_ICACHE
 
 config ARCH_CHIP_HPM6360
 	bool "HPM6360"
@@ -26,6 +28,8 @@ config ARCH_CHIP_HPM6360
 	select ARCH_RV_ISA_C
 	select ONESHOT
 	select ALARM_ARCH
+	select ARCH_DCACHE
+	select ARCH_ICACHE
 
 endchoice # HPMicro Chip Selection
 
