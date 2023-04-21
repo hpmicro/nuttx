@@ -214,6 +214,12 @@ static inline uint8_t usb_get_port_speed(USB_Type *ptr)
  * Device API
  *---------------------------------------------------------------------
  */
+/**
+ * @brief Initialize USB phy
+ *
+ * @param[in] ptr A USB peripheral base address
+ */
+void usb_phy_init(USB_Type *ptr);
 
 /**
  * @brief USB device bus reset
