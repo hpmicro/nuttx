@@ -53,17 +53,6 @@
 #define BOARD_APP_SEQ_START_POS                  (0U)
 #define BOARD_APP_PMT_START_POS                  CONFIG_HPM6750_ADC0_TRIG_SOURCE     
 
-#if defined(CONFIG_HPM_ADC0) && CONFIG_HPM_ADC0 
-#define HPM_IRQn_ADC0  (IRQn_ADC0 + HPM_IRQ_PERI_START)
-#endif
-
-#if defined(CONFIG_HPM_ADC1) && CONFIG_HPM_ADC1
-#define HPM_IRQn_ADC1  (IRQn_ADC1 + HPM_IRQ_PERI_START)
-#endif
-
-#if defined(CONFIG_HPM_ADC2) && CONFIG_HPM_ADC2
-#define HPM_IRQn_ADC2  (IRQn_ADC2 + HPM_IRQ_PERI_START)
-#endif
 
 /****************************************************************************
  * Private Types

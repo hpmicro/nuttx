@@ -154,7 +154,7 @@ static char g_uart0txbuffer[CONFIG_UART0_TXBUFSIZE];
 static struct hpm_uart_s g_uart0priv =
 {
   .base     = HPM_UART0_BASE,
-  .irq_num  = HPM_IRQ_PERI_START + IRQn_UART0,
+  .irq_num  = HPM_IRQn_UART0,
   .clock_name = clock_uart0,
   .config =
     {
@@ -203,7 +203,7 @@ static char g_uart1txbuffer[CONFIG_UART1_TXBUFSIZE];
 static struct hpm_uart_s g_uart1priv =
 {
   .base     = HPM_UART1_BASE,
-  .irq_num  = HPM_IRQ_PERI_START + IRQn_UART1,
+  .irq_num  = HPM_IRQn_UART1,
   .clock_name = clock_uart1,
   .config =
     {

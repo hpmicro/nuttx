@@ -52,12 +52,6 @@
 #define BOARD_APP_ADC_PMT_DMA_BUFF_LEN_IN_4BYTES (48U)
 #define BOARD_APP_SEQ_START_POS                  (0U)
 #define BOARD_APP_PMT_START_POS                  CONFIG_HPM6750_ADC3_TRIG_SOURCE     
- 
-#if defined(CONFIG_HPM_ADC3) && CONFIG_HPM_ADC3 
-#define HPM_IRQn_ADC3  (IRQn_ADC3 + HPM_IRQ_PERI_START)
-#endif
-
-
 
 /****************************************************************************
  * Private Types
