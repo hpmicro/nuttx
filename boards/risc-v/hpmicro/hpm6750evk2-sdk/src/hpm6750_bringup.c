@@ -74,7 +74,11 @@
 #endif
 
 #ifdef CONFIG_PWM
-#  include"hpm_pwm_lowerhalf.h"
+#  include "hpm_pwm_lowerhalf.h"
+#endif
+
+#if defined(CONFIG_HPM_USBOTG) && defined(CONFIG_USBHOST)
+#  include "hpm6750_usbhost.h"
 #endif
 
 /****************************************************************************
@@ -307,7 +311,17 @@ int hpm6750_bringup(void)
     {
       syslog(LOG_ERR, "ERROR: hpm_adc16_setup failed: %d\n", ret);
     }
-#endif	
+#endif
+
+#if defined(CONFIG_HPM_USBOTG) && defined(CONFIG_USBHOST)
+  ret = hpm6750_usbhost_initialize();
+  if (ret != OK)
+    {
+      syslog(LOG_ERR, "ERROR: Failed to start USB host services: %d\n", ret);
+      return ret;
+    }
+#endif
+
   return ret;
 }
 
