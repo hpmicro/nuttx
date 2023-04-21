@@ -58,6 +58,7 @@ endif
 ifeq ($(CONFIG_HPM_BUILD_TYPE_FLASH_SDRAM_XIP),y)
   LDSCRIPT = flash_sdram_xip.ld
   CFLAGS += -DFLASH_XIP -DINIT_EXT_RAM_FOR_DATA
+  AFLAGS += -DINIT_EXT_RAM_FOR_DATA
   LDFLAGS += --defsym=_flash_size=$(CONFIG_XIP_FLASH_SIZE)
   LDFLAGS += --defsym=_extram_size=$(CONFIG_SDRAM_SIZE)
 endif
