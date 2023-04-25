@@ -49,7 +49,7 @@
 #include "hpm_common.h"
 #include "hpm_usb_drv.h"
 #include "hpm_l1c_drv.h"
-
+#include "board.h"
 
 #if defined(CONFIG_HPM_USBOTG) && defined(CONFIG_USBHOST)
 
@@ -5043,16 +5043,23 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
 #    endif
 #  endif /* CONFIG_USBHOST_INT_DISABLE */
 
-  /* Host Controller Operational Registers */
+  /* Init usb Pins */
+
+  board_init_usb_pins();
+
+  /* Usb Controller Operational Registers and Init PHY */
+
   if (controller == 0)
     {
       usb_instance = HPM_USB0;
       irq_num = HPM_IRQn_USB0;
+      usb_phy_init(HPM_USB0);
     }
   else if (controller == 1)
     {
       usb_instance = HPM_USB1;
       irq_num = HPM_IRQn_USB1;
+      usb_phy_init(HPM_USB1);
     }
   else
     {
