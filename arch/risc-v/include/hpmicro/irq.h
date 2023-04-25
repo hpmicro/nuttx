@@ -33,6 +33,8 @@
 #define HPM_IRQ_PERI_START   (RISCV_IRQ_ASYNC + 20)
 
 /* Machine Global External Interrupt */
+#ifdef CONFIG_ARCH_CHIP_HPM6750
+
 #define HPM_IRQn_GPIO0_A      (HPM_IRQ_PERI_START + IRQn_GPIO0_A)         /* GPIO0_A IRQ */
 #define HPM_IRQn_GPIO0_B      (HPM_IRQ_PERI_START + IRQn_GPIO0_B)         /* GPIO0_B IRQ */
 #define HPM_IRQn_GPIO0_C      (HPM_IRQ_PERI_START + IRQn_GPIO0_C)         /* GPIO0_C IRQ */
@@ -160,11 +162,15 @@
 #define HPM_IRQn_SYSCTL       (HPM_IRQ_PERI_START + IRQn_SYSCTL)          /* SYSCTL IRQ */
 #define HPM_IRQn_DEBUG_0      (HPM_IRQ_PERI_START + IRQn_DEBUG_0)         /* DEBUG[0] IRQ */
 #define HPM_IRQn_DEBUG_1      (HPM_IRQ_PERI_START + IRQn_DEBUG_1)         /* DEBUG[1] IRQ */
-/* Total number of IRQs */
-#define HPM6750_NR_IRQS      127
-#define NR_IRQS              (HPM_IRQ_PERI_START + HPM6750_NR_IRQS)
+#define HPM6750_NR_IRQS       127                                         /* Total number of IRQs */
+#define NR_IRQS               (HPM_IRQ_PERI_START + HPM6750_NR_IRQS)
 
+#endif
+
+#ifdef CONFIG_ARCH_CHIP_HPM6360
 
 #define HPM6360_NR_IRQS      78
+
+#endif
 
 #endif /* __ARCH_RISCV_INCLUDE_HPMICRO_IRQ_H */
