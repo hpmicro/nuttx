@@ -41,7 +41,6 @@
 
 #include "hpm_usb_drv.h"
 #include "hpm_ehci.h"
-#include "board.h"
 
 #include <arch/board/board.h>  /* Must always be included last */
 
@@ -130,19 +129,6 @@ int hpm6750_usbhost_initialize(void)
 {
   int ret;
 
-  /* Hardware Configuration ********************************************/
-
-  board_init_usb_pins();
-
-  if (CONFIG_HPM_USB_INSTANCE == 0)
-    {
-      usb_phy_init(HPM_USB0);
-    }
-  else
-    {
-      usb_phy_init(HPM_USB1);
-    }
-
   /* First, register all of the class drivers needed to support the drivers
    * that we care about
    */
@@ -201,7 +187,7 @@ int hpm6750_usbhost_initialize(void)
 
   /* Then get an instance of the USB EHCI interface. */
 
-  g_ehciconn = hpm_ehci_initialize(CONFIG_HPM_USB_INSTANCE);
+  g_ehciconn = hpm_ehci_initialize(CONFIG_HPM_USBHOST_INSTANCE);
 
   if (!g_ehciconn)
     {
