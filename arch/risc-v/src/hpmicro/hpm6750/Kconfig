@@ -1486,7 +1486,7 @@ config HPM_USBOTG
 	menu "USB host controller driver (HCD) options"
 		depends on HPM_USBOTG
 
-		config HPM_USB_INSTANCE
+		config HPM_USBHOST_INSTANCE
 			int "HPM usb instance"
 			default 0
 			---help---
@@ -1524,4 +1524,30 @@ config HPM_USBOTG
 
 	endmenu # USB host controller driver (HCD) options
 
+#####################################################################
+#  USB Device Configuration
+#####################################################################
+
+config HPM_USBDEV
+	bool "USB Device"
+	default n
+	select HPM_USB_DRV
+	select USBDEV_DMA
+	select USBDEV_DUALSPEED
+
+	menu "USB device controller driver (DCD) options"
+	depends on HPM_USBDEV
+
+	config HPM_USBDEV_INSTANCE
+		int "HPM usb instance"
+		default 1
+		---help---
+			0 - use USB0;  1 - use USB1
+			
+	endmenu # USB host controller driver (HCD) options
+
+
 endmenu # HPM6750 Peripheral Support
+
+
+	
