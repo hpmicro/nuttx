@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/src/hpm6750_pwm.c
+ * arch/risc-v/src/hpmicro/common/hpm_irq_dispatch.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -25,48 +25,69 @@
 #include <nuttx/config.h>
 
 #include <stdint.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <debug.h>
+#include <assert.h>
 
+#include <nuttx/irq.h>
 #include <nuttx/arch.h>
-#include <nuttx/spi/spi.h>
-#include <arch/board/board.h>
 
+#include "riscv_internal.h"
 #include "board.h"
-#include "chip.h"
-#include "hpm.h"
+#include "hpm_interrupt.h"
 
-#if defined(CONFIG_PWM) && defined(CONFIG_HPM_PWM_DRV)
+/****************************************************************************
+ * Pre-processor Definitions
+ ****************************************************************************/
+
+#define RV_IRQ_MASK 27
+
+int g_irq;
+int g_vector;
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: hpm_init_pwm_pins
- *
- * Description:
- *   Initialize the selected PWM channel pins.
- *
- * Input Parameters:
- *
- * Returned Value:
- *   Valid SPI device structure reference on success; a NULL on failure
- *
+ * riscv_dispatch_irq
  ****************************************************************************/
 
-int hpm_init_pwm_pins(int port)
+void *riscv_dispatch_irq(uintptr_t vector, uintptr_t *regs)
 {
-  int ret = -1;
-# ifdef CONFIG_HPM_PWM2
-  if(port == 2)
-    {
-      init_pwm_pins(HPM_PWM2);
-      ret = 0;
-    }
-#endif
-  return ret;
-}
+  int irq = (vector >> RV_IRQ_MASK) | (vector & 0xf);
 
-#endif
+  g_vector = vector;
+  g_irq = irq;
+
+  /* Firstly, check if the irq is machine external interrupt */
+
+  if (RISCV_IRQ_MEXT == irq)
+    {
+      uint32_t val = intc_m_claim_irq();
+
+      /* Add the value to nuttx irq which is offset to the mext */
+
+      irq = val + HPM_IRQ_PERI_START;
+    }
+
+  /* Acknowledge the interrupt */
+
+  riscv_ack_irq(irq);
+
+  /* claim_irq was zero means no interrupt */
+
+  if (HPM_IRQ_PERI_START != irq)
+    {
+      /* Deliver the IRQ */
+
+      regs = riscv_doirq(irq, regs);
+    }
+
+  if (HPM_IRQ_PERI_START <= irq)
+    {
+      /* Then write PLIC_CLAIM to clear pending in PLIC */
+
+      intc_m_complete_irq(irq - HPM_IRQ_PERI_START);
+    }
+
+  return regs;
+}

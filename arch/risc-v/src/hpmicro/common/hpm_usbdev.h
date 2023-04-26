@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/include/board.h
+ * arch/risc-v/src/hpmicro/common/hpm_usbdev.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,50 +18,16 @@
  *
  ****************************************************************************/
 
-#ifndef __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
-#define __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_USBDEV_H
+#define __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_USBDEV_H
 
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
-#include <nuttx/config.h>
-
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-
-/* LED definitions **********************************************************/
-
-/* Define how many LEDs this board has (needed by userleds) */
-
-#define BOARD_LED1        0
-#define BOARD_LED2        1
-#define BOARD_LED3        2
-#define BOARD_NLEDS       3
-
-/* The board has only one controllable LED */
-
-#define LED_STARTED       0  /* No LEDs */
-#define LED_HEAPALLOCATE  1  /* LED1 on */
-#define LED_IRQSENABLED   2  /* LED2 on */
-#define LED_STACKCREATED  3  /* LED1 on */
-#define LED_INIRQ         4  /* LED1 off */
-#define LED_SIGNAL        5  /* LED2 on */
-#define LED_ASSERTION     6  /* LED1 + LED2 */
-#define LED_PANIC         7  /* LED1 / LED2 blinking */
-
-/* GPIO Configuration */
-
-#define BOARD_NGPIOIN     1 /* Amount of GPIO Input pins */
-#define BOARD_NGPIOOUT    2 /* Amount of GPIO Output pins */
-#define BOARD_NGPIOINT    1 /* Amount of GPIO Input w/ Interruption pins */
-
-#define BOARD_GPIO_IN1    (IOC_PAD_PZ02)
-#define BOARD_GPIO_OUT1   (IOC_PAD_PZ04)
-#define BOARD_GPIO_OUT2   (IOC_PAD_PZ05)
-#define BOARD_GPIO_INT1   (IOC_PAD_PZ03)
-
 
 /****************************************************************************
  * Public Types
@@ -73,8 +39,7 @@
  * Public Data
  ****************************************************************************/
 
-#undef EXTERN
-#if defined(__cplusplus)
+#ifdef __cplusplus
 #define EXTERN extern "C"
 extern "C"
 {
@@ -82,13 +47,14 @@ extern "C"
 #define EXTERN extern
 #endif
 
+EXTERN void hpm_usbdev_initialize(int controller);
 /****************************************************************************
  * Public Function Prototypes
  ****************************************************************************/
-
-#undef EXTERN
 #if defined(__cplusplus)
 }
 #endif
+#undef EXTERN
+
 #endif /* __ASSEMBLY__ */
-#endif /* __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H */
+#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_USBDEV_H */

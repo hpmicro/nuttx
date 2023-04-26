@@ -53,6 +53,7 @@
 #ifdef CONFIG_SPI_DRIVER
 #  include <nuttx/spi/spi.h>
 #  include <nuttx/spi/spi_transfer.h>
+#  include "hpm6750_spi.h"
 #endif
 
 #ifdef CONFIG_TIMER
@@ -99,12 +100,6 @@
 #endif
 
 /****************************************************************************
- * Public Functions
- ****************************************************************************/
-#ifdef CONFIG_HPM6750_SPI2
-extern struct spi_dev_s *hpm6750_spi2initialize(void);
-#endif
-/****************************************************************************
  * Name: hpm6750_bringup
  ****************************************************************************/
 
@@ -112,7 +107,6 @@ int hpm6750_bringup(void)
 {
   int ret = OK;
 
-  board_init();
   board_ungate_mchtmr_at_lp_mode();
   
 #ifdef CONFIG_FS_BINFS
@@ -148,7 +142,7 @@ int hpm6750_bringup(void)
     }
 #endif
 
-#if defined(CONFIG_HPM6750_I2C0_MASTER)
+#if defined(CONFIG_HPM_I2C0_MASTER)
 
   /* Initialize I2C buses */
 
@@ -183,7 +177,7 @@ int hpm6750_bringup(void)
 
 
 #ifdef CONFIG_SPI_DRIVER
-#  ifdef CONFIG_HPM6750_SPI2
+#  ifdef CONFIG_HPM_SPI2
   struct spi_dev_s *spi;
   spi = hpm6750_spi2initialize();
   if (spi == NULL)
@@ -211,12 +205,12 @@ int hpm6750_bringup(void)
 #endif
 
 #ifdef CONFIG_PWM
-#  ifdef CONFIG_HPM6750_PWM2
+#  ifdef CONFIG_HPM_PWM2
   struct pwm_lowerhalf_s *pwm;
 
   /* Initialize PWM and register the PWM driver */
 
-  pwm = hpm6750_pwminitialize(2);
+  pwm = hpm_pwminitialize(2);
   if (pwm == NULL)
     {
       syslog(LOG_DEBUG, "ERROR: hpm6750_pwminitialize failed\n");
@@ -233,7 +227,7 @@ int hpm6750_bringup(void)
 #endif
 
 #if defined(CONFIG_TIMER)
-#  if defined(CONFIG_HPM6750_TIMER0)
+#  if defined(CONFIG_HPM_TIMER0)
   ret = hpm_timer_initialize("/dev/timer0", 0);
   if (ret < 0)
     {
@@ -242,7 +236,7 @@ int hpm6750_bringup(void)
       return ret;
     }
 #  endif
-#  if defined(CONFIG_HPM6750_TIMER1)
+#  if defined(CONFIG_HPM_TIMER1)
   ret = hpm_timer_initialize("/dev/timer1", 1);
   if (ret < 0)
     {
@@ -251,7 +245,7 @@ int hpm6750_bringup(void)
       return ret;
     }
 #  endif
-#  if defined(CONFIG_HPM6750_TIMER2)
+#  if defined(CONFIG_HPM_TIMER2)
   ret = hpm_timer_initialize("/dev/timer2", 2);
   if (ret < 0)
     {
@@ -260,7 +254,7 @@ int hpm6750_bringup(void)
       return ret;
     }
 #  endif
-#  if defined(CONFIG_HPM6750_TIMER3)
+#  if defined(CONFIG_HPM_TIMER3)
   ret = hpm_timer_initialize("/dev/timer3", 3);
   if (ret < 0)
     {
@@ -269,7 +263,7 @@ int hpm6750_bringup(void)
       return ret;
     }
 #  endif
-#  if defined(CONFIG_HPM6750_TIMER4)
+#  if defined(CONFIG_HPM_TIMER4)
   ret = hpm_timer_initialize("/dev/timer4", 4);
   if (ret < 0)
     {
@@ -278,7 +272,7 @@ int hpm6750_bringup(void)
       return ret;
     }
 #  endif
-#  if defined(CONFIG_HPM6750_TIMER5)
+#  if defined(CONFIG_HPM_TIMER5)
   ret = hpm_timer_initialize("/dev/timer5", 5);
   if (ret < 0)
     {
@@ -287,7 +281,7 @@ int hpm6750_bringup(void)
       return ret;
     }
 #  endif
-#  if defined(CONFIG_HPM6750_TIMER6)
+#  if defined(CONFIG_HPM_TIMER6)
   ret = hpm_timer_initialize("/dev/timer6", 6);
   if (ret < 0)
     {
@@ -296,7 +290,7 @@ int hpm6750_bringup(void)
       return ret;
     }
 #  endif
-#  if defined(CONFIG_HPM6750_TIMER7)
+#  if defined(CONFIG_HPM_TIMER7)
   ret = hpm_timer_initialize("/dev/timer7", 7);
   if (ret < 0)
     {
@@ -309,7 +303,7 @@ int hpm6750_bringup(void)
 
 #ifdef CONFIG_RTC_DRIVER
   struct rtc_lowerhalf_s *lower;
-  lower = hpm6750_rtc_lowerhalf();
+  lower = hpm_rtc_lowerhalf();
   rtc_initialize(0, lower);
 #endif
 

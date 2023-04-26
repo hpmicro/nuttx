@@ -20,7 +20,7 @@
 
 include $(TOPDIR)/Make.defs
 
-CSRCS  = hpm6750_bringup.c hpm6750_boot.c
+CSRCS  = hpm6750_bringup.c
 
 ifeq ($(CONFIG_BOARDCTL),y)
 CSRCS += hpm6750_appinit.c

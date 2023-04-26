@@ -35,8 +35,7 @@
  *   Called to configure I2C
  *
  ****************************************************************************/
-#if defined(CONFIG_HPM6750_I2C0_MASTER) || defined(CONFIG_HPM6750_I2C1_MASTER) || \
-    defined(CONFIG_HPM6750_I2C2_MASTER) || defined(CONFIG_HPM6750_I2C3_MASTER)
+#ifdef CONFIG_HPM_I2C_MASTER
 int hpm6750evk2_i2cdev_initialize(uint8_t port);
 #endif
 

@@ -162,8 +162,8 @@
 #define HPM_IRQn_SYSCTL       (HPM_IRQ_PERI_START + IRQn_SYSCTL)          /* SYSCTL IRQ */
 #define HPM_IRQn_DEBUG_0      (HPM_IRQ_PERI_START + IRQn_DEBUG_0)         /* DEBUG[0] IRQ */
 #define HPM_IRQn_DEBUG_1      (HPM_IRQ_PERI_START + IRQn_DEBUG_1)         /* DEBUG[1] IRQ */
-#define HPM6750_NR_IRQS       127                                         /* Total number of IRQs */
-#define NR_IRQS               (HPM_IRQ_PERI_START + HPM6750_NR_IRQS)
+#define HPM_NR_IRQS           127                                         /* Total number of IRQs */
+#define NR_IRQS               (HPM_IRQ_PERI_START + HPM_NR_IRQS)
 
 #endif
 

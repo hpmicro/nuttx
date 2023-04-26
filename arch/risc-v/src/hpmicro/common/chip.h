@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/src/hpm6750_pwm.c
+ * arch/risc-v/src/hpmicro/common/chip.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,55 +18,13 @@
  *
  ****************************************************************************/
 
+#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_CHIP_H
+#define __ARCH_RISCV_SRC_HPMICRO_COMMON_CHIP_H
+
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <debug.h>
-
-#include <nuttx/arch.h>
-#include <nuttx/spi/spi.h>
-#include <arch/board/board.h>
-
-#include "board.h"
-#include "chip.h"
-#include "hpm.h"
-
-#if defined(CONFIG_PWM) && defined(CONFIG_HPM_PWM_DRV)
-
-/****************************************************************************
- * Public Functions
- ****************************************************************************/
-
-/****************************************************************************
- * Name: hpm_init_pwm_pins
- *
- * Description:
- *   Initialize the selected PWM channel pins.
- *
- * Input Parameters:
- *
- * Returned Value:
- *   Valid SPI device structure reference on success; a NULL on failure
- *
- ****************************************************************************/
-
-int hpm_init_pwm_pins(int port)
-{
-  int ret = -1;
-# ifdef CONFIG_HPM_PWM2
-  if(port == 2)
-    {
-      init_pwm_pins(HPM_PWM2);
-      ret = 0;
-    }
-#endif
-  return ret;
-}
-
-#endif
+#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_CHIP_H */

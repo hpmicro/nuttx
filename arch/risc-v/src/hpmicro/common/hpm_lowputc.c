@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/include/board.h
+ * arch/risc-v/src/hpmicro/common/hpm_lowputc.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,77 +18,62 @@
  *
  ****************************************************************************/
 
-#ifndef __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
-#define __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
-
 /****************************************************************************
  * Included Files
  ****************************************************************************/
-
-#include <nuttx/config.h>
+#include "hpm_config.h"
+#include "hpm.h"
+#include "board.h"
+#include "hpm_debug_console.h"
 
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
 
-/* LED definitions **********************************************************/
+/* Select UART parameters for the selected console */
 
-/* Define how many LEDs this board has (needed by userleds) */
-
-#define BOARD_LED1        0
-#define BOARD_LED2        1
-#define BOARD_LED3        2
-#define BOARD_NLEDS       3
-
-/* The board has only one controllable LED */
-
-#define LED_STARTED       0  /* No LEDs */
-#define LED_HEAPALLOCATE  1  /* LED1 on */
-#define LED_IRQSENABLED   2  /* LED2 on */
-#define LED_STACKCREATED  3  /* LED1 on */
-#define LED_INIRQ         4  /* LED1 off */
-#define LED_SIGNAL        5  /* LED2 on */
-#define LED_ASSERTION     6  /* LED1 + LED2 */
-#define LED_PANIC         7  /* LED1 / LED2 blinking */
-
-/* GPIO Configuration */
-
-#define BOARD_NGPIOIN     1 /* Amount of GPIO Input pins */
-#define BOARD_NGPIOOUT    2 /* Amount of GPIO Output pins */
-#define BOARD_NGPIOINT    1 /* Amount of GPIO Input w/ Interruption pins */
-
-#define BOARD_GPIO_IN1    (IOC_PAD_PZ02)
-#define BOARD_GPIO_OUT1   (IOC_PAD_PZ04)
-#define BOARD_GPIO_OUT2   (IOC_PAD_PZ05)
-#define BOARD_GPIO_INT1   (IOC_PAD_PZ03)
-
+#ifdef HAVE_SERIAL_CONSOLE
+#define HAVE_UART
+#endif /* HAVE_CONSOLE */
 
 /****************************************************************************
- * Public Types
+ * Public Functions
  ****************************************************************************/
-
-#ifndef __ASSEMBLY__
 
 /****************************************************************************
- * Public Data
+ * Name: riscv_lowputc
+ *
+ * Description:
+ *   Output one byte on the serial console
+ *
  ****************************************************************************/
 
-#undef EXTERN
-#if defined(__cplusplus)
-#define EXTERN extern "C"
-extern "C"
+void riscv_lowputc(char ch)
 {
-#else
-#define EXTERN extern
-#endif
+#ifdef HAVE_SERIAL_CONSOLE
+    console_send_byte(ch);
+#endif /* HAVE_CONSOLE */
+}
 
 /****************************************************************************
- * Public Function Prototypes
+ * Name: hpm_lowsetup
+ *
+ * Description:
+ *   This performs basic initialization of the UART used for the serial
+ *   console.  Its purpose is to get the console output available as soon
+ *   as possible.
+ *
  ****************************************************************************/
 
-#undef EXTERN
-#if defined(__cplusplus)
+void hpm_lowsetup(void)
+{
+#if defined(HAVE_UART)
+
+  /* Enable and configure the selected console device */
+
+#if defined(HAVE_SERIAL_CONSOLE) && !defined(CONFIG_SUPPRESS_UART_CONFIG)
+  board_init_console();
+
+#endif /* HAVE_SERIAL_CONSOLE && !CONFIG_SUPPRESS_UART_CONFIG */
+#endif /* HAVE_UART */
 }
-#endif
-#endif /* __ASSEMBLY__ */
-#endif /* __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H */
