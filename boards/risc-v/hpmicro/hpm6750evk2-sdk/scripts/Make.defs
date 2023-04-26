@@ -77,4 +77,4 @@ CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)boards$(DELIM)$(HPM_
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)debug_console
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)dma_manager
-CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm6750
+CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)common

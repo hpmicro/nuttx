@@ -37,8 +37,7 @@
 #include "hpm6750evk2.h"
 #include "hpm_can.h"
 
-#if defined(CONFIG_HPM6750_CAN0) || defined(CONFIG_HPM6750_CAN1) || \
-    defined(CONFIG_HPM6750_CAN2) || defined(CONFIG_HPM6750_CAN3)
+#ifdef CONFIG_HPM_CAN_DRV
 
 #endif
 
@@ -68,7 +67,7 @@
 
 int hpm_init_can_pins(int port)
 {
-#ifdef CONFIG_HPM6750_CAN0
+#ifdef CONFIG_HPM_CAN0
   if (port == 0)
     {
       board_init_can(HPM_CAN0);  
@@ -84,7 +83,7 @@ int hpm_init_can_pins(int port)
 }
 
 /****************************************************************************
- * Name: hpm6750_can_setup
+ * Name: hpm_can_setup
  *
  * Description:
  *  Initialize CAN and register the CAN device
@@ -94,13 +93,13 @@ int hpm_init_can_pins(int port)
 
 int hpm6750_can_setup(void)
 {
-#if defined(CONFIG_HPM6750_CAN0)
+#if defined(CONFIG_HPM_CAN0)
   struct can_dev_s *can;
   int ret;
 
-  /* Call hpm6750_caninitialize() to get an instance of the CAN interface */
+  /* Call hpm_caninitialize() to get an instance of the CAN interface */
 
-  can = hpm6750_caninitialize(HPM6750EVK2_CAN_PORT);
+  can = hpm_caninitialize(HPM6750EVK2_CAN_PORT);
   if (can == NULL)
     {
       canerr("ERROR:  Failed to get CAN interface\n");
@@ -138,7 +137,7 @@ int hpm6750_cansock_setup(void)
 {
   int ret = OK;
 
-#if defined(CONFIG_HPM6750_CAN0)
+#if defined(CONFIG_HPM_CAN0)
   ret =  hpm_cansockinitialize(HPM6750EVK2_CAN_PORT);
   if (ret < 0)
     {

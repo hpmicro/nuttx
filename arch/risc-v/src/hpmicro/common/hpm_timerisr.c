@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/src/hpm6750_pwm.c
+ * arch/risc-v/src/hpmicro/common/hpm_timerisr.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -24,49 +24,46 @@
 
 #include <nuttx/config.h>
 
+#include <assert.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <errno.h>
+#include <time.h>
 #include <debug.h>
 
 #include <nuttx/arch.h>
-#include <nuttx/spi/spi.h>
+#include <nuttx/clock.h>
+#include <nuttx/spinlock.h>
+#include <nuttx/timers/arch_alarm.h>
 #include <arch/board/board.h>
 
-#include "board.h"
-#include "chip.h"
-#include "hpm.h"
+#include "riscv_internal.h"
+#include "riscv_mtimer.h"
+#include "hpm_soc.h"
+#include "hpm_clock_drv.h"
 
-#if defined(CONFIG_PWM) && defined(CONFIG_HPM_PWM_DRV)
+/****************************************************************************
+ * Pre-processor Definitions
+ ****************************************************************************/
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: hpm_init_pwm_pins
+ * Name: up_timer_initialize
  *
  * Description:
- *   Initialize the selected PWM channel pins.
- *
- * Input Parameters:
- *
- * Returned Value:
- *   Valid SPI device structure reference on success; a NULL on failure
+ *   This function is called during start-up to initialize
+ *   the timer interrupt.
  *
  ****************************************************************************/
 
-int hpm_init_pwm_pins(int port)
+void up_timer_initialize(void)
 {
-  int ret = -1;
-# ifdef CONFIG_HPM_PWM2
-  if(port == 2)
-    {
-      init_pwm_pins(HPM_PWM2);
-      ret = 0;
-    }
-#endif
-  return ret;
-}
+  struct oneshot_lowerhalf_s *lower = riscv_mtimer_initialize(
+    (uintptr_t)&HPM_MCHTMR->MTIME, (uintptr_t)&HPM_MCHTMR->MTIMECMP,
+    RISCV_IRQ_MTIMER, clock_get_frequency(clock_mchtmr0));
 
-#endif
+  DEBUGASSERT(lower);
+
+  up_alarm_set_lowerhalf(lower);
+}

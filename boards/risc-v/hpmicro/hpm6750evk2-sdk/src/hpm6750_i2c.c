@@ -46,7 +46,7 @@
  * Public Data
  ****************************************************************************/
 
-#ifdef CONFIG_HPM6750_I2C0_MASTER
+#ifdef CONFIG_HPM_I2C0_MASTER
 struct i2c_master_s * g_i2c0_dev;
 #endif
 
@@ -71,10 +71,10 @@ struct i2c_master_s * g_i2c0_dev;
 int hpm6750_i2cbus_pins_initialize(int port)
 {
 
-#if (defined(CONFIG_HPM6750_I2C0_MASTER) || defined(CONFIG_HPM6750_I2C0_SLAVE))
+#if (defined(CONFIG_HPM_I2C0_MASTER) || defined(CONFIG_HPM_I2C0_SLAVE))
   if (port == 0)
     {
-      init_i2c_pins(HPM_I2C0);   
+      init_i2c_pins(HPM_I2C0);
     }
   else
 #endif
@@ -86,8 +86,7 @@ int hpm6750_i2cbus_pins_initialize(int port)
   return 0;
 }
 
-#if defined(CONFIG_HPM6750_I2C0_MASTER) || defined(CONFIG_HPM6750_I2C1_MASTER) || \
-    defined(CONFIG_HPM6750_I2C2_MASTER) || defined(CONFIG_HPM6750_I2C3_MASTER)
+#ifdef CONFIG_HPM_I2C_MASTER
 
 /****************************************************************************
  * Name: hpm6750evk2_i2cdev_initialize
@@ -101,8 +100,8 @@ int hpm6750evk2_i2cdev_initialize(uint8_t port)
 {
   int ret = ERROR;
 
-#ifdef CONFIG_HPM6750_I2C0_MASTER
-  g_i2c0_dev = hpm6750_i2cbus_initialize(0);
+#ifdef CONFIG_HPM_I2C0_MASTER
+  g_i2c0_dev = hpm_i2cbus_initialize(0);
   if (g_i2c0_dev == NULL)
     {
       syslog(LOG_ERR, "ERROR: hpm6750_i2cbus_initialize(0) failed: %d\n",

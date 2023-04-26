@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/src/hpm6750_pwm.c
+ * arch/risc-v/src/hpmicro/common/hpm_config.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,55 +18,37 @@
  *
  ****************************************************************************/
 
+#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_CONFIG_H
+#define __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_CONFIG_H
+
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <debug.h>
-
-#include <nuttx/arch.h>
-#include <nuttx/spi/spi.h>
+#include <arch/chip/chip.h>
 #include <arch/board/board.h>
 
-#include "board.h"
-#include "chip.h"
-#include "hpm.h"
-
-#if defined(CONFIG_PWM) && defined(CONFIG_HPM_PWM_DRV)
-
 /****************************************************************************
- * Public Functions
+ * Pre-processor Definitions
  ****************************************************************************/
 
-/****************************************************************************
- * Name: hpm_init_pwm_pins
- *
- * Description:
- *   Initialize the selected PWM channel pins.
- *
- * Input Parameters:
- *
- * Returned Value:
- *   Valid SPI device structure reference on success; a NULL on failure
- *
- ****************************************************************************/
-
-int hpm_init_pwm_pins(int port)
-{
-  int ret = -1;
-# ifdef CONFIG_HPM_PWM2
-  if(port == 2)
-    {
-      init_pwm_pins(HPM_PWM2);
-      ret = 0;
-    }
+#undef HAVE_UART_DEVICE
+#if defined(CONFIG_HPM_UART0) || defined(CONFIG_HPM_UART1)
+#  define HAVE_UART_DEVICE 1
 #endif
-  return ret;
-}
 
+#if defined(CONFIG_UART0_SERIAL_CONSOLE) && defined(CONFIG_HPM_UART0)
+#  undef CONFIG_UART1_SERIAL_CONSOLE
+#  define HAVE_SERIAL_CONSOLE 1
+#elif defined(CONFIG_UART1_SERIAL_CONSOLE) && defined(CONFIG_HPM_UART1)
+#  undef CONFIG_UART0_SERIAL_CONSOLE
+#  define HAVE_SERIAL_CONSOLE 1
+#else
+#  undef CONFIG_UART0_SERIAL_CONSOLE
+#  undef CONFIG_UART1_SERIAL_CONSOLE
+#  undef HAVE_SERIAL_CONSOLE
 #endif
+
+#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_CONFIG_H */

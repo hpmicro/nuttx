@@ -18,5 +18,5 @@
 #
 ############################################################################
 
-include chip/hpm6750/Make.defs
+include chip/common/Make.defs
 include chip/hpm_sdk/Make.defs

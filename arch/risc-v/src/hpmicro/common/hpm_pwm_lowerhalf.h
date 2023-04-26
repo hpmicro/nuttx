@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/include/board.h
+ * arch/risc-v/src/hpmicro/common/hpm_pwm_lowerhalf.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,8 +18,8 @@
  *
  ****************************************************************************/
 
-#ifndef __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
-#define __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_PWM_LOWERHALF_H
+#define __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_PWM_LOWERHALF_H
 
 /****************************************************************************
  * Included Files
@@ -27,51 +27,15 @@
 
 #include <nuttx/config.h>
 
-/****************************************************************************
- * Pre-processor Definitions
- ****************************************************************************/
+#include <nuttx/timers/pwm.h>
 
-/* LED definitions **********************************************************/
-
-/* Define how many LEDs this board has (needed by userleds) */
-
-#define BOARD_LED1        0
-#define BOARD_LED2        1
-#define BOARD_LED3        2
-#define BOARD_NLEDS       3
-
-/* The board has only one controllable LED */
-
-#define LED_STARTED       0  /* No LEDs */
-#define LED_HEAPALLOCATE  1  /* LED1 on */
-#define LED_IRQSENABLED   2  /* LED2 on */
-#define LED_STACKCREATED  3  /* LED1 on */
-#define LED_INIRQ         4  /* LED1 off */
-#define LED_SIGNAL        5  /* LED2 on */
-#define LED_ASSERTION     6  /* LED1 + LED2 */
-#define LED_PANIC         7  /* LED1 / LED2 blinking */
-
-/* GPIO Configuration */
-
-#define BOARD_NGPIOIN     1 /* Amount of GPIO Input pins */
-#define BOARD_NGPIOOUT    2 /* Amount of GPIO Output pins */
-#define BOARD_NGPIOINT    1 /* Amount of GPIO Input w/ Interruption pins */
-
-#define BOARD_GPIO_IN1    (IOC_PAD_PZ02)
-#define BOARD_GPIO_OUT1   (IOC_PAD_PZ04)
-#define BOARD_GPIO_OUT2   (IOC_PAD_PZ05)
-#define BOARD_GPIO_INT1   (IOC_PAD_PZ03)
-
+#include "chip.h"
 
 /****************************************************************************
- * Public Types
+ * Public Function Prototypes
  ****************************************************************************/
 
 #ifndef __ASSEMBLY__
-
-/****************************************************************************
- * Public Data
- ****************************************************************************/
 
 #undef EXTERN
 #if defined(__cplusplus)
@@ -82,13 +46,50 @@ extern "C"
 #define EXTERN extern
 #endif
 
+#if defined(CONFIG_PWM) && defined(CONFIG_HPM_PWM_DRV)
+
 /****************************************************************************
  * Public Function Prototypes
  ****************************************************************************/
+
+/****************************************************************************
+ * Name: hpm_init_pwm_pins
+ *
+ * Description:
+ *   Initialize the selected PWM channel pins.
+ *
+ * Input Parameters:
+ *
+ * Returned Value:
+ *   Valid SPI device structure reference on success; a NULL on failure
+ *
+ ****************************************************************************/
+
+int hpm_init_pwm_pins(int port);
+
+/****************************************************************************
+ * Name: hpm_pwminitialize
+ *
+ * Description:
+ *   Initialize one timer for use with the upper_level PWM driver.
+ *
+ * Input Parameters:
+ *   pwm - A number identifying the pwm instance.
+ *
+ * Returned Value:
+ *   On success, a pointer to the HPM lower half PWM driver is returned.
+ *   NULL is returned on any failure.
+ *
+ ****************************************************************************/
+
+struct pwm_lowerhalf_s *hpm_pwminitialize(int pwm);
+
+#endif
 
 #undef EXTERN
 #if defined(__cplusplus)
 }
 #endif
+
 #endif /* __ASSEMBLY__ */
-#endif /* __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H */
+#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_PWM_LOWERHALF_H */

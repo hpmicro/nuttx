@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/src/hpm6750_pwm.c
+ * arch/risc-v/src/hpmicro/common/hpm_start.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -25,48 +25,66 @@
 #include <nuttx/config.h>
 
 #include <stdint.h>
-#include <stdbool.h>
-#include <errno.h>
-#include <debug.h>
 
-#include <nuttx/arch.h>
-#include <nuttx/spi/spi.h>
+#include <nuttx/init.h>
 #include <arch/board/board.h>
 
-#include "board.h"
-#include "chip.h"
 #include "hpm.h"
+#include "chip.h"
+#include "board.h"
 
-#if defined(CONFIG_PWM) && defined(CONFIG_HPM_PWM_DRV)
+/****************************************************************************
+ * Public Data
+ ****************************************************************************/
+
+/* g_idle_topstack: _sbss is the start of the BSS region as defined by the
+ * linker script. _ebss lies at the end of the BSS region. The idle task
+ * stack starts at the end of BSS and is of size CONFIG_IDLETHREAD_STACKSIZE.
+ * The IDLE thread is the thread that the system boots on and, eventually,
+ * becomes the IDLE, do nothing task that runs only when there is nothing
+ * else to run.  The heap continues from there until the end of memory.
+ * g_idle_topstack is a read-only variable the provides this computed
+ * address.
+ */
+
+extern uint8_t _stack[];
+uintptr_t g_idle_topstack = (uintptr_t)_stack;
+
+/****************************************************************************
+ * Pre-processor Definitions
+ ****************************************************************************/
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: hpm_init_pwm_pins
- *
- * Description:
- *   Initialize the selected PWM channel pins.
- *
- * Input Parameters:
- *
- * Returned Value:
- *   Valid SPI device structure reference on success; a NULL on failure
- *
+ * Name: __hpm_start
  ****************************************************************************/
 
-int hpm_init_pwm_pins(int port)
+void __hpm_start(void)
 {
-  int ret = -1;
-# ifdef CONFIG_HPM_PWM2
-  if(port == 2)
-    {
-      init_pwm_pins(HPM_PWM2);
-      ret = 0;
-    }
-#endif
-  return ret;
-}
+  /* Setup Clock */
 
+  board_init_clock();
+
+  /* Configure the UART so we can get debug output */
+
+  hpm_lowsetup();
+
+#ifdef USE_EARLYSERIALINIT
+  riscv_earlyserialinit();
 #endif
+
+  /* PMP initialization */
+
+  board_init_pmp();
+
+  /* Call nx_start() */
+
+  nx_start();
+
+  /* Shouldn't get here */
+
+  for (; ; );
+}

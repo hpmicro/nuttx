@@ -43,20 +43,19 @@
 #include "hpm_gpio_drv.h"
 #include "hpm_gpiom_drv.h"
 
-#ifdef CONFIG_HPM6750_SPI2
+#ifdef CONFIG_HPM_SPI2
 #  include <nuttx/spi/spi.h>
 #  include <nuttx/lcd/lcd.h>
 #  include <nuttx/lcd/st7789.h>
 #endif 
 
-#if defined(CONFIG_HPM6750_SPI0) || defined(CONFIG_HPM6750_SPI1) || defined(CONFIG_HPM6750_SPI2) ||\
-    defined(CONFIG_HPM6750_SPI3) 
+#ifdef CONFIG_HPM_SPI_DRV
 
 /****************************************************************************
  * Private Data
  ****************************************************************************/
 
-#ifdef CONFIG_HPM6750_SPI2
+#ifdef CONFIG_HPM_SPI2
 struct spi_dev_s *g_spidev2 = NULL;
 static struct lcd_dev_s *g_lcd = NULL;
 #endif
@@ -124,8 +123,8 @@ void weak_function hpm6750_spidev_initialize(void)
  *
  ****************************************************************************/
 
-#ifdef CONFIG_HPM6750_SPI0
-void hpm6750_spi0select(struct spi_dev_s *dev,
+#ifdef CONFIG_HPM_SPI0
+void hpm_spi0select(struct spi_dev_s *dev,
                       uint32_t devid,
                       bool selected)
 {
@@ -133,14 +132,14 @@ void hpm6750_spi0select(struct spi_dev_s *dev,
           (int)devid, selected ? "assert" : "de-assert");
 }
 
-uint8_t hpm6750_spi0status(struct spi_dev_s *dev, uint32_t devid)
+uint8_t hpm_spi0status(struct spi_dev_s *dev, uint32_t devid)
 {
   return 0;
 }
 #endif
 
-#ifdef CONFIG_HPM6750_SPI1
-void hpm6750_spi1select(struct spi_dev_s *dev,
+#ifdef CONFIG_HPM_SPI1
+void hpm_spi1select(struct spi_dev_s *dev,
                       uint32_t devid,
                       bool selected)
 {
@@ -148,15 +147,15 @@ void hpm6750_spi1select(struct spi_dev_s *dev,
          (int)devid, selected ? "assert" : "de-assert");
 }
 
-uint8_t hpm6750_spi1status(struct spi_dev_s *dev, uint32_t devid)
+uint8_t hpm_spi1status(struct spi_dev_s *dev, uint32_t devid)
 {
   return 0;
 }
 #endif
 
 
-#ifdef CONFIG_HPM6750_SPI2
-void hpm6750_spi2select(struct spi_dev_s *dev,
+#ifdef CONFIG_HPM_SPI2
+void hpm_spi2select(struct spi_dev_s *dev,
                       uint32_t devid, bool selected)
 {
   spiinfo("devid: %d CS: %s\n",
@@ -170,21 +169,21 @@ void hpm6750_spi2select(struct spi_dev_s *dev,
 #endif
 }
 
-uint8_t hpm6750_spi2status(struct spi_dev_s *dev, uint32_t devid)
+uint8_t hpm_spi2status(struct spi_dev_s *dev, uint32_t devid)
 {
   return 0;
 }
 #endif
 
-#ifdef CONFIG_HPM6750_SPI3
-void hpm6750_spi3select(struct spi_dev_s *dev,
+#ifdef CONFIG_HPM_SPI3
+void hpm_spi3select(struct spi_dev_s *dev,
                       uint32_t devid, bool selected)
 {
   spiinfo("devid: %d CS: %s\n",
           (int)devid, selected ? "assert" : "de-assert");
 }
 
-uint8_t hpm6750_spi3status(struct spi_dev_s *dev, uint32_t devid)
+uint8_t hpm_spi3status(struct spi_dev_s *dev, uint32_t devid)
 {
   return 0;
 }
@@ -215,22 +214,22 @@ uint8_t hpm6750_spi3status(struct spi_dev_s *dev, uint32_t devid)
  ****************************************************************************/
 
 #ifdef CONFIG_SPI_CMDDATA
-#ifdef CONFIG_HPM6750_SPI0
+#ifdef CONFIG_HPM_SPI0
 int hpm6750_spi0cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd)
 {
   return -ENODEV;
 }
 #endif
 
-#ifdef CONFIG_HPM6750_SPI1
-int hpm6750_spi1cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd)
+#ifdef CONFIG_HPM_SPI1
+int hpm_spi1cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd)
 {
   return -ENODEV;
 }
 #endif
 
-#ifdef CONFIG_HPM6750_SPI2
-int hpm6750_spi2cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd)
+#ifdef CONFIG_HPM_SPI2
+int hpm_spi2cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd)
 {
   if (devid == SPIDEV_DISPLAY(0))
     {
@@ -284,7 +283,7 @@ struct spi_dev_s *hpm6750_spi2initialize(void)
   if (!g_spidev2)
     {
       hpm6750_spidev_initialize();
-      g_spidev2 = hpm6750_spibus_initialize(2);
+      g_spidev2 = hpm_spibus_initialize(2);
     }
 
   return g_spidev2;
