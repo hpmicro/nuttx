@@ -31,6 +31,10 @@
  * Pre-processor Definitions
  ****************************************************************************/
 
+#ifndef BOARD_APP_CORE
+#define BOARD_APP_CORE  HPM_CORE0  
+#endif
+
 /* LED definitions **********************************************************/
 
 /* Define how many LEDs this board has (needed by userleds) */
@@ -61,6 +65,12 @@
 #define BOARD_GPIO_OUT1   (IOC_PAD_PZ04)
 #define BOARD_GPIO_OUT2   (IOC_PAD_PZ05)
 #define BOARD_GPIO_INT1   (IOC_PAD_PZ03)
+
+/* ADC Configuration */
+
+#define BOARD_APP_ADC_SEQ_DMA_BUFF_LEN_IN_4BYTES (1024U)
+#define BOARD_APP_ADC_PMT_DMA_BUFF_LEN_IN_4BYTES (48U)
+#define BOARD_APP_SEQ_START_POS                  (0U)
 
 
 /****************************************************************************

@@ -34,6 +34,7 @@
 #include <nuttx/arch.h>
 #include <nuttx/analog/adc.h>
 #include <nuttx/analog/ioctl.h>
+#include <arch/board/board.h>
 
 #include "board.h"
 #include "hpm_adc12_drv.h"
@@ -43,16 +44,6 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-
-#ifndef BOARD_APP_CORE
-#define BOARD_APP_CORE  HPM_CORE0  
-#endif
-
-#define BOARD_APP_ADC_SEQ_DMA_BUFF_LEN_IN_4BYTES (1024U)
-#define BOARD_APP_ADC_PMT_DMA_BUFF_LEN_IN_4BYTES (48U)
-#define BOARD_APP_SEQ_START_POS                  (0U)
-#define BOARD_APP_PMT_START_POS                  CONFIG_HPM_ADC0_TRIG_SOURCE
-
 
 /****************************************************************************
  * Private Types
@@ -200,7 +191,7 @@ static struct up_dev_s g_adc0_priv =
     /* preemption mode */                             
     #elif CONFIG_HPM_ADC0_CONV_MODE == 3
     .pmt_cfg                = {                            
-                                .trig_ch = BOARD_APP_PMT_START_POS, 
+                                .trig_ch = CONFIG_HPM_ADC0_TRIG_SOURCE, 
                                 .trig_len = sizeof(adc0_trig_channel_list)
                                 },
     .pmt_buff               = adc0_pmt_buff,
@@ -271,7 +262,7 @@ static struct up_dev_s g_adc1_priv =
     /* preemption mode */                             
     #elif CONFIG_HPM_ADC1_CONV_MODE == 3
     .pmt_cfg                = {                            
-                                .trig_ch = BOARD_APP_PMT_START_POS, 
+                                .trig_ch = CONFIG_HPM_ADC1_TRIG_SOURCE, 
                                 .trig_len = sizeof(adc1_trig_channel_list)
                                 },
     .pmt_buff               = adc1_pmt_buff,
@@ -342,7 +333,7 @@ static struct up_dev_s g_adc2_priv =
     /* preemption mode */                             
     #elif CONFIG_HPM_ADC2_CONV_MODE == 3
     .pmt_cfg                = {                            
-                                .trig_ch = BOARD_APP_PMT_START_POS, 
+                                .trig_ch = CONFIG_HPM_ADC2_TRIG_SOURCE, 
                                 .trig_len = sizeof(adc2_trig_channel_list)
                                 },
     .pmt_buff               = adc2_pmt_buff,
