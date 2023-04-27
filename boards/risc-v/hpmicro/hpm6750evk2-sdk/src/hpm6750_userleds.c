@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/arm/stm32/stm32f103-minimum/src/stm32_userleds.c
+ * boards/riscv/hpmicro/hpm6750evk2-sdk/src/hpm6750_userleds.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -33,7 +33,6 @@
 #include "board.h"
 #include "chip.h"
 #include "hpm.h"
-#include "hpm6750evk2.h"
 #include "hpm_gpio_drv.h"
 
 #ifndef CONFIG_ARCH_LEDS

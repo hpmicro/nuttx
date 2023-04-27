@@ -18,6 +18,8 @@
  *
  ****************************************************************************/
 
+#ifndef __BOARDS_RISCV_HPMICRO_HPM6750EVK2_SRC_HPM6750_I2C_H
+#define __BOARDS_RISCV_HPMICRO_HPM6750EVK2_SRC_HPM6750_I2C_H
 /****************************************************************************
  * Included Files
  ****************************************************************************/
@@ -39,3 +41,4 @@
 int hpm6750evk2_i2cdev_initialize(uint8_t port);
 #endif
 
+#endif /* __BOARDS_RISCV_HPMICRO_HPM6750EVK2_SRC_HPM6750_I2C_H */
