@@ -50,6 +50,9 @@
   The openocd cfg files in the path: sdk_env/hpm_sdk/boards/openocd. If you use fireDAP debugger, in windows shell, start openocd command as follows.
     $ openocd -f probes/cmsis-dap.cfg -f soc/hpm6750-single-core.cfg -f boards/hpm6750evk2.cfg
 
+  In Linux shell, start picocom.
+    $ sudo picocom -b 115200 /dev/ttyUSB1
+
   In Linux shell, start debug command as follows.
     $ riscv32-unknown-elf-gdb ./nuttx
     (gdb) target remote [windows_ip_addr]:3333
