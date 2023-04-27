@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/include/board.h
+ * boards/risc-v/hpmicro/hpm6300evk/include/board.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,8 +18,8 @@
  *
  ****************************************************************************/
 
-#ifndef __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
-#define __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H
+#ifndef __BOARDS_RISCV_HPMICRO_HPM6300EVK_INCLUDE_BOARD_H
+#define __BOARDS_RISCV_HPMICRO_HPM6300EVK_INCLUDE_BOARD_H
 
 /****************************************************************************
  * Included Files
@@ -101,4 +101,4 @@ extern "C"
 }
 #endif
 #endif /* __ASSEMBLY__ */
-#endif /* __BOARDS_RISCV_HPMICRO_HPM6750EVK2_INCLUDE_BOARD_H */
+#endif /* __BOARDS_RISCV_HPMICRO_HPM6300EVK_INCLUDE_BOARD_H */

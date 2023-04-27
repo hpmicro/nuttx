@@ -16,6 +16,6 @@ config HAVE_LEDS
 
 config INCLUDE_BOOTHEADER
 	bool
-	default y
+	default n
 
 endif
