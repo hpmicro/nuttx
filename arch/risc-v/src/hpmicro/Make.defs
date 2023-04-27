@@ -18,5 +18,68 @@
 #
 ############################################################################
 
-include chip/common/Make.defs
+include common/Make.defs
 include chip/hpm_sdk/Make.defs
+
+# Specify our C code within this directory to be included
+CHIP_CSRCS += hpmicro$(DELIM)hpm_allocateheap.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_irq.c hpmicro$(DELIM)hpm_irq_dispatch.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_lowputc.c hpmicro$(DELIM)hpm_serial.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_start.c hpmicro$(DELIM)hpm_timerisr.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_printf.c hpmicro$(DELIM)hpm_cache.c
+
+ifeq ($(CONFIG_HPM_DMA_DRV),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_dma.c
+endif 
+
+ifeq ($(CONFIG_HPM_SPI_DRV),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_spi.c
+endif
+
+ifeq ($(CONFIG_HPM_RNG_DRV),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_rng.c
+endif
+
+ifeq ($(CONFIG_I2C_SLAVE),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_i2c_slave.c
+endif
+
+ifeq ($(CONFIG_HPM_I2C_MASTER),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_i2c_master.c
+endif
+
+ifeq ($(CONFIG_HPM_RTC_DRV),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_rtc_lowerhalf.c
+endif
+
+ifeq ($(CONFIG_HPM_GPTMR_DRV),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_tim_lowerhalf.c
+endif
+
+ifeq ($(CONFIG_HPM_PWM_DRV),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_pwm_lowerhalf.c
+endif
+
+ifeq ($(CONFIG_HPM_CAN_DRV),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_can.c
+endif 
+
+ifeq ($(CONFIG_HPM_CAN_SOCKET),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_can_sock.c 
+endif
+
+ifeq ($(CONFIG_HPM_ADC12_DRV),y)
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_adc12.c
+endif
+
+ifeq ($(CONFIG_HPM_ADC16_DRV),y)
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_adc16.c
+endif
+
+ifeq ($(CONFIG_HPM_USBOTG),y)
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_ehci.c
+endif
+
+ifeq ($(CONFIG_HPM_USBDEV),y)
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_usbdev.c
+endif
