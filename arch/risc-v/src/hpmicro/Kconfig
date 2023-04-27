@@ -37,6 +37,18 @@ config ARCH_CHIP_HPM6360
 	select ARCH_ICACHE
 	select HPM_PLLCTLV2_DRV
 
+config ARCH_CHIP_HPM6280
+	bool "HPM6280"
+	select ARCH_RV32
+	select ARCH_RV_ISA_M
+	select ARCH_RV_ISA_A
+	select ARCH_RV_ISA_C
+	select ONESHOT
+	select ALARM_ARCH
+	select ARCH_DCACHE
+	select ARCH_ICACHE
+	select HPM_PLLCTLV2_DRV
+
 endchoice # HPMicro Chip Selection
 
 #####################################################################
@@ -54,9 +66,11 @@ config HPM_BUILD_TYPE_FLASH_XIP
 	bool "flash_xip.ld"
 	select INCLUDE_BOOTHEADER
 
+if ARCH_CHIP_HPM6750 || ARCH_CHIP_HPM6360
 config HPM_BUILD_TYPE_FLASH_SDRAM_XIP
 	bool "flash_sdram_xip.ld"
 	select INCLUDE_BOOTHEADER
+endif
 
 endchoice # HPMicro Linker File Selection
 
