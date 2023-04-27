@@ -11,7 +11,7 @@
     gperf automake libtool pkg-config build-essential gperf genromfs \
     libgmp-dev libmpc-dev libmpfr-dev libisl-dev binutils-dev libelf-dev \
     libexpat-dev gcc-multilib g++-multilib picocom u-boot-tools util-linux \
-    kconfig-frontends
+    kconfig-frontends picocom curl
 
 3. Download and install toolchain
 
