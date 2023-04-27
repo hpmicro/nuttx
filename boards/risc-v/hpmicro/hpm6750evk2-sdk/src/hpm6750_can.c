@@ -34,7 +34,6 @@
 #include "board.h"
 #include "chip.h"
 #include "hpm.h"
-#include "hpm6750evk2.h"
 #include "hpm_can.h"
 
 #ifdef CONFIG_HPM_CAN_DRV

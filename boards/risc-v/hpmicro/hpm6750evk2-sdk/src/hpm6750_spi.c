@@ -36,7 +36,6 @@
 #include "board.h"
 #include "chip.h"
 #include "hpm.h"
-#include "hpm6750evk2.h"
 #include "hpm_spi.h"
 #include "hpm_spi_drv.h"
 
