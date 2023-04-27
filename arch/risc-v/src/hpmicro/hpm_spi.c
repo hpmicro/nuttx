@@ -68,7 +68,7 @@
 
 #include "board.h"
 #include "spi/hpm_spi.h"
-#include "common/hpm_spi.h"
+#include "hpm_spi.h"
 #include "hpm_dma.h"
 #include "hpm_clock_drv.h"
 #include "hpm_spi_drv.h"
