@@ -93,6 +93,10 @@
 #  include <nuttx/usb/usbmonitor.h>
 #endif
 
+#ifdef CONFIG_HPM_SDXC_DRV
+# include "hpm_sdmmc.h"
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -356,6 +360,15 @@ int hpm6750_bringup(void)
     {
       syslog(LOG_ERR, "ERROR: Failed to start USB monitor: %d\n", ret);
       return ret;
+#endif	
+
+
+#ifdef CONFIG_HPM_SDXC_DRV
+  /* Initialize SDXC and register the SD driver. */
+  ret = hpm_sdio_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: hpm_sdio_initialize failed: %d\n", ret);
     }
 #endif
 
