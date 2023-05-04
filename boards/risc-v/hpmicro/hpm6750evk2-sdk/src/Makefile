@@ -51,7 +51,11 @@ ifeq ($(CONFIG_PWM),y)
 endif
 
 ifeq ($(CONFIG_HPM_USBOTG),y)
-CSRCS += hpm6750_usbhost.c
+  CSRCS += hpm6750_usbhost.c
+endif
+
+ifeq ($(CONFIG_HPM_SDXC_DRV),y)
+  CSRCS += hpm6750_sdmmc.c
 endif
 
 include $(TOPDIR)/boards/Board.mk
