@@ -181,15 +181,9 @@ static struct hpm_i2cdev_s g_i2c3dev =
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
-static int  hpm_i2c_disable(struct hpm_i2cdev_s *priv);
 static int  hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_mode);
-static int  hpm_i2c_enable(struct hpm_i2cdev_s *priv);
 static void hpm_i2c_txinit(struct hpm_i2cdev_s *priv, bool enable);
 static void hpm_i2c_rxinit(struct hpm_i2cdev_s *priv, bool enable);
-static void hpm_i2c_master_configure_transfer(I2C_Type *i2c_ptr, const uint16_t device_address,\
-                                                 uint32_t size, bool read,bool transfer);
-static int  hpm_i2c_small_than_fifo_read(struct hpm_i2cdev_s *priv);
-static int  hpm_i2c_small_than_fifo_write(struct hpm_i2cdev_s *priv);
 static int  hpm_i2c_interrupt(int irq, void *context, void *arg);
 static int  hpm_i2c_transfer(struct i2c_master_s *dev,
                                 struct i2c_msg_s *msgs, int count);
@@ -208,36 +202,6 @@ struct i2c_ops_s hpm_i2c_ops =
   .reset = hpm_i2c_reset,
 #endif
 };
-
-/****************************************************************************
- * Name: hpm_i2c_disable
- *
- * Description:
- *   disable i2c by diable clock
- *
- ****************************************************************************/
-
-static int  hpm_i2c_disable(struct hpm_i2cdev_s *priv)
-{
-  clock_remove_from_group(priv->i2c_clock, BOARD_RUNNING_CORE);
-  clock_disable(priv->i2c_clock);
-  return OK;
-}
-
-/****************************************************************************
- * Name: hpm_i2c_disable
- *
- * Description:
- *   disable i2c by diable clock
- *
- ****************************************************************************/
-
-static int  hpm_i2c_enable(struct hpm_i2cdev_s *priv)
-{
-  clock_enable(priv->i2c_clock);
-  clock_add_to_group(priv->i2c_clock, BOARD_RUNNING_CORE);
-  return OK;
-}
 
 /****************************************************************************
  * Name: hpm_i2c_txinit
@@ -277,172 +241,6 @@ static void hpm_i2c_rxinit(struct hpm_i2cdev_s *priv, bool enable)
     {
       (i2c_disable_irq(priv->base, I2C_EVENT_TRANSACTION_COMPLETE | I2C_EVENT_FIFO_FULL));
     } 
-}
-
-/****************************************************************************
- * Name: hpm_i2c_master_configure_transfer
- *
- * Description:
- *   configure i2c transmission paramenters
- *
- ****************************************************************************/
-
-static void hpm_i2c_master_configure_transfer(I2C_Type *i2c_ptr, const uint16_t device_address,\
-                                                 uint32_t size, bool read, bool transfer)
-{
-    i2c_ptr->ADDR = I2C_ADDR_ADDR_SET(device_address);            
-    i2c_ptr->CMD  = I2C_CMD_CLEAR_FIFO;      
-    i2c_ptr->CTRL = I2C_CTRL_PHASE_START_MASK
-                | I2C_CTRL_PHASE_STOP_MASK
-                | I2C_CTRL_PHASE_ADDR_MASK
-                | I2C_CTRL_PHASE_DATA_MASK
-                | I2C_CTRL_DIR_SET(read)
-                | I2C_CTRL_DATACNT_SET(I2C_DATACNT_MAP(size));
-    if (transfer)
-      {
-        i2c_ptr->CMD = I2C_CMD_ISSUE_DATA_TRANSMISSION; 
-      }   
-}
-
-/****************************************************************************
- * Name: hpm_i2c_small_than_fifo_read
- *
- * Description:
- *   i2c read small than the i2c fifo
- *
- ****************************************************************************/
-
-static int hpm_i2c_small_than_fifo_read(struct hpm_i2cdev_s *priv)
-{
-    uint32_t retry = 0;
-    while (priv->rx_data_count) 
-      {
-          if (!(priv->base->STATUS & I2C_STATUS_FIFOEMPTY_MASK)) 
-            {
-                *(priv->msgs->buffer++) = priv->base->DATA;
-                priv->rx_data_count--;
-                retry = 0;             
-            } 
-          else 
-            {
-                if (retry > HPM_I2C_DRV_RETRY_COUNT) {
-                    break;
-                }
-                retry++;
-            }
-      }
-    if (retry > HPM_I2C_DRV_RETRY_COUNT) 
-      {
-          goto error;
-      }
-
-    retry = 0;
-
-    while (!(priv->base->STATUS & I2C_STATUS_CMPL_MASK)) 
-      {
-          if (retry > HPM_I2C_DRV_RETRY_COUNT) 
-            {
-                break;
-            }
-          retry++;
-      }
-
-    if (retry > HPM_I2C_DRV_RETRY_COUNT) 
-      {
-          goto error;
-      }
-
-    if (!(priv->base->STATUS & I2C_STATUS_ADDRHIT_MASK)) 
-      {
-
-          /* I2C slave did not receive this transaction correctly. */
-
-          goto error;
-      }
-
-    priv->base->STATUS |= I2C_STATUS_CMPL_MASK | I2C_STATUS_ADDRHIT_MASK;
-
-    priv->base->INTEN = 0;
-    if (i2c_get_data_count(priv->base)) 
-      {
-          goto error;
-      }
-    nxsem_post(&priv->wait);
-    return 0;
-error:nxsem_post(&priv->wait); return -1;
-}
-
-/****************************************************************************
- * Name: hpm_i2c_small_than_fifo_write
- *
- * Description:
- *   i2c write small than the i2c fifo
- *
- ****************************************************************************/
-
-static int hpm_i2c_small_than_fifo_write(struct hpm_i2cdev_s *priv)
-{
-    uint32_t retry;
-    retry = 0;
-    uint32_t count = priv->tx_data_count;
-    uint32_t tmp_count = 0;
-    while (priv->tx_data_count) 
-      {      
-        for (size_t i = 0; i < priv->msg_count; i++)
-          {
-            tmp_count = 0;
-            if (!(priv->base->STATUS & I2C_STATUS_FIFOFULL_MASK)) 
-              {         
-                  priv->base->DATA = *(priv->msgs[i].buffer++);  
-                  tmp_count ++;   
-                  retry = 0;
-                  priv->tx_data_count--;
-                  if (tmp_count == priv->msgs[i].length)
-                  {
-                    break;
-                  }              
-              } 
-            else 
-              {
-                  if (retry > HPM_I2C_DRV_RETRY_COUNT) {
-                      break;
-                  }
-                  retry++;
-              }
-          }
-      }
-    if (retry > HPM_I2C_DRV_RETRY_COUNT) 
-      {
-          goto error;
-      }
-
-    priv->base->CMD = I2C_CMD_ISSUE_DATA_TRANSMISSION;  
-
-    retry = 0;
-    while (!(priv->base->STATUS & I2C_STATUS_CMPL_MASK)) 
-      {
-        if (retry > HPM_I2C_DRV_RETRY_COUNT) 
-          {
-            goto error;
-          }
-        retry++;
-      }
-    if (retry > HPM_I2C_DRV_RETRY_COUNT) 
-      {
-        goto error;
-      }
-    priv->base->STATUS |= I2C_STATUS_CMPL_MASK;
-
-    priv->base->INTEN = 0;
-    if (i2c_get_data_count(priv->base)) 
-    {
-      goto error;
-    }
-
-    priv->base->CMD = I2C_CMD_RESET;
-    nxsem_post(&priv->wait);
-    return 0;
-error:nxsem_post(&priv->wait); return -1;
 }
 
 /****************************************************************************
@@ -513,6 +311,7 @@ static int hpm_i2c_interrupt(int irq, void *context, void *arg)
         priv->msgs->length = priv->rw_size;
         nxsem_post(&priv->wait);
     }
+    return 0;
 }
 
 /****************************************************************************
@@ -573,13 +372,8 @@ static int hpm_i2c_transfer(struct i2c_master_s *dev,
                                struct i2c_msg_s *msgs, int count)
 {
   struct hpm_i2cdev_s *priv = (struct hpm_i2cdev_s *)dev;
-  int  i;
-  bool stop  = false;
-  bool start = false;
   int ret = 0;
   int semval = 0;
-  uint32_t start_index  = 0;
-  uint32_t stop_index   = 0;
   hpm_stat_t sta;
   bool is_ten_addr = false;
 
