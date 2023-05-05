@@ -67,7 +67,7 @@ struct i2c_master_s * g_i2c0_dev;
  *
  ****************************************************************************/
 
-int hpm6750_i2cbus_pins_initialize(int port)
+int hpm_i2cbus_pins_initialize(int port)
 {
 
 #if (defined(CONFIG_HPM_I2C0_MASTER) || defined(CONFIG_HPM_I2C0_SLAVE))
