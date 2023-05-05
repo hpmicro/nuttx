@@ -73,9 +73,7 @@
 #include "hpm_clock_drv.h"
 #include "hpm_spi_drv.h"
 #include "hpm_spi_regs.h"
-#include "hpm_gpio_drv.h"
 #include "hpm_soc_feature.h"
-#include "pinmux.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -148,39 +146,12 @@ struct hpm_spidev_s
 #endif
 };
 
-/* DMA descriptor type */
-
-typedef struct gpio_cfg
-{
-  uint16_t ioc_pad;                    /* gpio ioc pad*/
-  uint16_t ico_func_ctl;              /* gpio function mux */
-}gpio_cfg_t;
-
-typedef struct spi_gpio_cfg
-{
-  gpio_cfg_t cs;
-  gpio_cfg_t miso;
-  gpio_cfg_t mosi;
-  gpio_cfg_t sclk;
-}spi_gpio_cfg_t;
-
-const spi_gpio_cfg_t spi_gpio_cfg_table[4] =
-{
-  {{IOC_PAD_PD22, IOC_PD22_FUNC_CTL_GPIO_D_22}, {IOC_PAD_PD26, IOC_PD26_FUNC_CTL_SPI0_MISO}, {IOC_PAD_PD21, IOC_PD21_FUNC_CTL_SPI0_MOSI}, {IOC_PAD_PD27, IOC_PD27_FUNC_CTL_SPI0_SCLK}},
-  {{IOC_PAD_PE03, IOC_PE03_FUNC_CTL_GPIO_E_03}, {IOC_PAD_PD30, IOC_PD30_FUNC_CTL_SPI1_MISO}, {IOC_PAD_PE04, IOC_PE04_FUNC_CTL_SPI1_MOSI}, {IOC_PAD_PD31, IOC_PD31_FUNC_CTL_SPI1_SCLK}},
-  {{IOC_PAD_PE31, IOC_PE31_FUNC_CTL_GPIO_E_31}, {IOC_PAD_PE28, IOC_PE28_FUNC_CTL_SPI2_MISO}, {IOC_PAD_PE30, IOC_PE30_FUNC_CTL_SPI2_MOSI}, {IOC_PAD_PE27, IOC_PE27_FUNC_CTL_SPI2_SCLK}},
-  {{IOC_PAD_PB29, IOC_PB29_FUNC_CTL_GPIO_B_29}, {IOC_PAD_PC03, IOC_PC03_FUNC_CTL_SPI3_MISO}, {IOC_PAD_PB30, IOC_PB30_FUNC_CTL_SPI3_MOSI}, {IOC_PAD_PC02, IOC_PC02_FUNC_CTL_SPI3_SCLK}},
-};
 /****************************************************************************
  * Private Function Prototypes
  ****************************************************************************/
 
 /* Helpers */
 
-static inline uint32_t spi_getreg(struct hpm_spidev_s *priv,
-                                  uint32_t offset);
-static inline void spi_putreg(struct hpm_spidev_s *priv,
-                              uint32_t offset, uint32_t value);
 static inline uint32_t spi_readword(struct hpm_spidev_s *priv);
 static inline void spi_writeword(struct hpm_spidev_s *priv,
                                  uint32_t byte);
@@ -581,73 +552,10 @@ static struct hpm_spidev_s g_spi3dev =
 
 #endif /* CONFIG_HPM_SPI3 */
 
-static void write_spi0_cs(uint32_t pin, uint8_t state)
-{
-  gpio_write_pin(HPM_GPIO0, GPIO_GET_PORT_INDEX(spi_gpio_cfg_table[0].cs.ioc_pad), GPIO_GET_PIN_INDEX(spi_gpio_cfg_table[0].cs.ioc_pad),state);
-}
-
-static void write_spi1_cs(uint32_t pin, uint8_t state)
-{
-  gpio_write_pin(HPM_GPIO0, GPIO_GET_PORT_INDEX(spi_gpio_cfg_table[1].cs.ioc_pad), GPIO_GET_PIN_INDEX(spi_gpio_cfg_table[1].cs.ioc_pad),state);
-}
-
-static void write_spi2_cs(uint32_t pin, uint8_t state)
-{
-  gpio_write_pin(HPM_GPIO0, GPIO_GET_PORT_INDEX(spi_gpio_cfg_table[2].cs.ioc_pad), GPIO_GET_PIN_INDEX(spi_gpio_cfg_table[2].cs.ioc_pad),state);
-}
-
-static void write_spi3_cs(uint32_t pin, uint8_t state)
-{
-  gpio_write_pin(HPM_GPIO0, GPIO_GET_PORT_INDEX(spi_gpio_cfg_table[3].cs.ioc_pad), GPIO_GET_PIN_INDEX(spi_gpio_cfg_table[3].cs.ioc_pad),state);
-}
-
 
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
-
-/****************************************************************************
- * Name: spi_getreg
- *
- * Description:
- *   Get the contents of the SPI register at offset
- *
- * Input Parameters:
- *   priv   - private SPI device structure
- *   offset - offset to the register of interest
- *
- * Returned Value:
- *   The contents of the 16-bit register
- *
- ****************************************************************************/
-
-static inline uint32_t spi_getreg(struct hpm_spidev_s *priv,
-                                  uint32_t offset)
-{
-  return getreg32(priv->spibase + offset);
-}
-
-/****************************************************************************
- * Name: spi_putreg
- *
- * Description:
- *   Write a 16-bit value to the SPI register at offset
- *
- * Input Parameters:
- *   priv   - private SPI device structure
- *   offset - offset to the register of interest
- *   value  - the 16-bit value to be written
- *
- * Returned Value:
- *   The contents of the 16-bit register
- *
- ****************************************************************************/
-
-static inline void spi_putreg(struct hpm_spidev_s *priv,
-                              uint32_t offset, uint32_t value)
-{
-  putreg32(value, priv->spibase + offset);
-}
 
 /****************************************************************************
  * Name: spi_readword
@@ -791,8 +699,6 @@ static int spi_interrupt(int irq, void *context, void *arg)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)arg;
   volatile uint32_t irq_status;
-  uint8_t data_len_in_bytes;
-  hpm_stat_t stat;
   irq_status = spi_get_interrupt_status((SPI_Type *)priv->spibase); /* get interrupt stat */
   if (irq_status & spi_end_int)
     {
@@ -807,7 +713,6 @@ static int spi_interrupt(int irq, void *context, void *arg)
 
       /* Set result and release wait semaphore */
 #ifdef CONFIG_HPM_SPI_DMA
-      priv->txresult = 0x80;
       nxsem_post(&priv->txsem);
 #endif
     }
@@ -881,7 +786,7 @@ static void  spi_rx_dma_channel_callback(DMA_Type *ptr, uint32_t channel, void *
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)user_data;
   UNUSED(channel);
-  spiinfo("RX interrupt fired with status %u\n", int_stat);
+  spiinfo("RX interrupt fired with status %lu\n", int_stat);
   if (int_stat == DMA_CHANNEL_STATUS_TC)
     {     
       nxsem_post(&priv->rxsem);
@@ -896,7 +801,7 @@ static void  spi_tx_dma_channel_callback(DMA_Type *ptr, uint32_t channel, void *
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)user_data;
   UNUSED(channel);
-  spiinfo("TX interrupt fired with status %u\n", int_stat);
+  spiinfo("TX interrupt fired with status %lu\n", int_stat);
   if (int_stat == DMA_CHANNEL_STATUS_TC)
     {
       nxsem_post(&priv->txsem);
@@ -987,7 +892,6 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
                                  uint32_t frequency)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
-  uint32_t setbits = 0;
   uint32_t actual  = 0;
   spi_timing_config_t timing_config = {0};
 
@@ -1068,7 +972,7 @@ static void spi_setmode(struct spi_dev_s *dev, enum spi_mode_e mode)
   spiinfo("mode=%" PRIx32 "\n", (uint32_t) mode);
 
   /* Has the mode changed? */
-  uint32_t transfmt = (SPI_Type *)priv->spibase->TRANSFMT;
+  uint32_t transfmt = priv->spibase->TRANSFMT;
   if (mode != priv->mode)
     {
       /* set SPI format config for master */
@@ -1132,15 +1036,13 @@ static void spi_setmode(struct spi_dev_s *dev, enum spi_mode_e mode)
 static void spi_setbits(struct spi_dev_s *dev, int nbits)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
-  uint32_t setbits = 0;
-  uint32_t clrbits = 0;
 
   spi_format_config_t format_config = {0};
 
   spiinfo("nbits=%d\n", nbits);
 
   /* Has the number of bits changed? */
-  uint32_t transfmt = (SPI_Type *)priv->spibase->TRANSFMT;
+  uint32_t transfmt = priv->spibase->TRANSFMT;
   if (nbits != priv->nbits)
     {
       /* set SPI format config for master */    
@@ -1250,7 +1152,7 @@ static uint32_t spi_send(struct spi_dev_s *dev, uint32_t wd)
   stat = hpm_spi_transfer((SPI_Type *)priv->spibase,
                 &control_config,
                 NULL, NULL,
-                (uint8_t *)&wd, ARRAY_SIZE(&wd), (uint8_t *)&regval, ARRAY_SIZE(&regval));
+                (uint8_t *)&wd, sizeof(uint32_t), (uint8_t *)&regval, sizeof(uint32_t));
   UNUSED(regval);
   return stat;
 }
@@ -1281,14 +1183,14 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
   spi_control_config_t control_config = {0};
-  hpm_stat_t stat;
   size_t len = nwords ;
   size_t inc_len = 0;
   size_t dummy_len = 0;
-  uint32_t regval = 0;
+  uint8_t *tx_buffer = (uint8_t *)txbuffer;
+  uint8_t *rx_buffer = (uint8_t *)rxbuffer;
   DEBUGASSERT(priv && priv->spibase);
 
-  spiinfo("txbuffer=%p rxbuffer=%p nwords=%d\n", txbuffer, rxbuffer, nwords);
+  spiinfo("txbuffer=%p rxbuffer=%p nwords=%d\n", tx_buffer, rx_buffer, nwords);
 
   /* set SPI control config for master */
 
@@ -1296,15 +1198,15 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
   control_config.master_config.cmd_enable = false;  /* cmd phase control for master */
   control_config.master_config.addr_enable = false; /* address phase control for master */
 
-  if(!txbuffer)
+  if(!tx_buffer)
     {
       control_config.common_config.trans_mode = spi_trans_read_only;
     }
-  else if(!rxbuffer)
+  else if(!rx_buffer)
     {
       control_config.common_config.trans_mode = spi_trans_write_only;
     }
-  else if(txbuffer && rxbuffer)
+  else if(tx_buffer && rx_buffer)
     {
       control_config.common_config.trans_mode = spi_trans_write_read_together;
     }
@@ -1319,7 +1221,7 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
       hpm_spi_transfer(priv->spibase,
             &control_config,
             NULL, NULL,
-            (uint8_t *)&txbuffer[inc_len], dummy_len,(uint8_t *)&rxbuffer[inc_len], dummy_len);
+            (uint8_t *)&tx_buffer[inc_len], dummy_len,(uint8_t *)&rx_buffer[inc_len], dummy_len);
       len      -= dummy_len;
       inc_len  += dummy_len;
     }
@@ -1667,15 +1569,12 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
         {
           /* Configure SPI0 pins: SCK, MISO, and MOSI */
 
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].cs.ioc_pad].FUNC_CTL   = spi_gpio_cfg_table[bus].cs.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].mosi.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].mosi.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].miso.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].miso.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].sclk.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].sclk.ico_func_ctl | IOC_PAD_FUNC_CTL_LOOP_BACK_SET(1);
+          hpm_spibus_pins_init(bus);
 
           /* Set up default configuration: Master, 8-bit, etc. */
 
 #if defined(CONFIG_HPM_SPI0_DMA) 
-          priv->spi_context->cs_pin   = spi_gpio_cfg_table[bus].cs.ioc_pad;
+          priv->spi_context->cs_pin   = hpm_spibus_get_cs_pin(bus);
           priv->spi_context->write_cs = write_spi0_cs;
 #endif
           spi_bus_initialize(priv);
@@ -1697,15 +1596,12 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
         {
           /* Configure SPI1 pins: SCK, MISO, and MOSI */
 
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].cs.ioc_pad].FUNC_CTL   = spi_gpio_cfg_table[bus].cs.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].mosi.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].mosi.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].miso.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].miso.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].sclk.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].sclk.ico_func_ctl | IOC_PAD_FUNC_CTL_LOOP_BACK_SET(1);
+          hpm_spibus_pins_init(bus);
 
           /* Set up default configuration: Master, 8-bit, etc. */
 
 #if defined(CONFIG_HPM_SPI1_DMA) 
-          priv->spi_context->cs_pin   = spi_gpio_cfg_table[bus].cs.ioc_pad;
+          priv->spi_context->cs_pin   = hpm_spibus_get_cs_pin(bus);
           priv->spi_context->write_cs = write_spi1_cs;
 #endif
           spi_bus_initialize(priv);
@@ -1727,14 +1623,11 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
         {
           /* Configure SPI2 pins: SCK, MISO, and MOSI */
 
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].cs.ioc_pad].FUNC_CTL   = spi_gpio_cfg_table[bus].cs.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].mosi.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].mosi.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].miso.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].miso.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].sclk.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].sclk.ico_func_ctl | IOC_PAD_FUNC_CTL_LOOP_BACK_SET(1);
+          hpm_spibus_pins_init(bus);
 
           /* Set up default configuration: Master, 8-bit, etc. */
 #if defined(CONFIG_HPM_SPI2_DMA) 
-          priv->spi_context->cs_pin   = spi_gpio_cfg_table[bus].cs.ioc_pad;
+          priv->spi_context->cs_pin   = hpm_spibus_get_cs_pin(bus);
           priv->spi_context->write_cs = write_spi2_cs;
 #endif
           spi_bus_initialize(priv);
@@ -1756,15 +1649,12 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
         {
           /* Configure SPI3 pins: SCK, MISO, and MOSI */
 
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].cs.ioc_pad].FUNC_CTL   = spi_gpio_cfg_table[bus].cs.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].mosi.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].mosi.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].miso.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].miso.ico_func_ctl;
-          HPM_IOC->PAD[spi_gpio_cfg_table[bus].sclk.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].sclk.ico_func_ctl | IOC_PAD_FUNC_CTL_LOOP_BACK_SET(1);
+          hpm_spibus_pins_init(bus);
 
           /* Set up default configuration: Master, 8-bit, etc. */
 
 #if defined(CONFIG_HPM_SPI3_DMA) 
-          priv->spi_context->cs_pin   = spi_gpio_cfg_table[bus].cs.ioc_pad;
+          priv->spi_context->cs_pin   = hpm_spibus_get_cs_pin(bus);
           priv->spi_context->write_cs = write_spi3_cs;
 #endif
           spi_bus_initialize(priv);

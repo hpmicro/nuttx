@@ -59,6 +59,35 @@ extern "C"
 struct spi_dev_s *hpm_spibus_initialize(int bus);
 
 /****************************************************************************
+ * Name: hpm_spibus_pins_init
+ *
+ * Description:
+ *   Initialize the selected SPI bus pins
+ *
+ * Input Parameters:
+ *   Port number (for hardware that has multiple SPI interfaces)
+ *
+ ****************************************************************************/
+
+void hpm_spibus_pins_init(int bus);
+
+/****************************************************************************
+ * Name: hpm_spibus_get_cs_pin
+ *
+ * Description:
+ *   get the selected SPI bus cs pin num
+ *
+ * Input Parameters:
+ *   Port number (for hardware that has multiple SPI interfaces)
+ *
+ * Returned Value:
+ *   cs pin
+ *
+ ****************************************************************************/
+
+uint32_t hpm_spibus_get_cs_pin(int bus);
+
+/****************************************************************************
  * Name:  hpm_spi1/2/...select and hpm_spi1/2/...status
  *
  * Description:
@@ -90,6 +119,7 @@ struct spi_dev_s *hpm_spibus_initialize(int bus);
  ****************************************************************************/
 
 #ifdef CONFIG_HPM_SPI0
+void write_spi0_cs(uint32_t pin, uint8_t state);
 void hpm_spi0select(struct spi_dev_s *dev, uint32_t devid,
                       bool selected);
 uint8_t hpm_spi0status(struct spi_dev_s *dev, uint32_t devid);
@@ -97,6 +127,7 @@ int hpm_spi0cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd);
 #endif
 
 #ifdef CONFIG_HPM_SPI1
+void write_spi1_cs(uint32_t pin, uint8_t state);
 void hpm_spi1select(struct spi_dev_s *dev, uint32_t devid,
                       bool selected);
 uint8_t hpm_spi1status(struct spi_dev_s *dev, uint32_t devid);
@@ -104,6 +135,7 @@ int hpm_spi1cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd);
 #endif
 
 #ifdef CONFIG_HPM_SPI2
+void write_spi2_cs(uint32_t pin, uint8_t state);
 void hpm_spi2select(struct spi_dev_s *dev, uint32_t devid,
                       bool selected);
 uint8_t hpm_spi2status(struct spi_dev_s *dev, uint32_t devid);
@@ -111,6 +143,7 @@ int hpm_spi2cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd);
 #endif
 
 #ifdef CONFIG_HPM_SPI3
+void write_spi3_cs(uint32_t pin, uint8_t state);
 void hpm_spi3select(struct spi_dev_s *dev, uint32_t devid,
                       bool selected);
 uint8_t hpm_spi3status(struct spi_dev_s *dev, uint32_t devid);

@@ -29,7 +29,7 @@
 
 #if defined(CONFIG_HPM_SPI_DRV)
 
-#ifdef CONFIG_HPM6750_SPI2
+#ifdef CONFIG_HPM_SPI2
 struct spi_dev_s *hpm6750_spi2initialize(void);
 #endif
 
