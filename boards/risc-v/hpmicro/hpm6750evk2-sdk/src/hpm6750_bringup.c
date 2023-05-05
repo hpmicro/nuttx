@@ -95,6 +95,7 @@
 
 #ifdef CONFIG_HPM_SDXC_DRV
 # include "hpm_sdmmc.h"
+#include "hpm6750_sdmmc.h"
 #endif
 
 /****************************************************************************
@@ -112,6 +113,7 @@ int hpm6750_bringup(void)
   int ret = OK;
 
   board_init();
+  board_ungate_mchtmr_at_lp_mode();
   
 #ifdef CONFIG_FS_BINFS
 
