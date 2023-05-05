@@ -206,7 +206,7 @@ config HPM_COMPONENTS_DMA_MANAGER
 	bool
 	default n
 
-config HPM_HPM_COMPONENTS_SPI
+config HPM_COMPONENTS_SPI
 	bool
 	default n
 
