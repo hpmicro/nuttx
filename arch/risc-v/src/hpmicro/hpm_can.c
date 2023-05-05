@@ -46,7 +46,7 @@
 #include "hpm_clock_drv.h"
 #include "hpm_can.h"
 
-#ifdef CONFIG_HPM_CAN_DRV
+#if defined(CONFIG_HPM_CAN_DRV) && defined(CONFIG_HPM_CAN_CHARDRIVER)
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -996,7 +996,7 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
               bm->bm_loopback = 0;
             }
           
-          if (priv == can_mode_listen_only)
+          if (priv->can_config.mode == can_mode_listen_only)
             {
               bm->bm_silent  = 1;
             }
@@ -1179,7 +1179,7 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
 
   if(flag)
     {
-      ret = can_set_cfg(priv);
+      ret = can_set_cfg(dev);
     }
 
   return ret;
