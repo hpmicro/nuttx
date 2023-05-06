@@ -56,7 +56,7 @@
 
  *  a) Create a 64Kb RAM disk at /dev/ram0:
 
- *    nsh> mkrd --m 1 -s 512 128
+ *    nsh> mkrd -m 1 -s 512 128
 
  *  b) Put a FAT file system on the RAM disk:
 
