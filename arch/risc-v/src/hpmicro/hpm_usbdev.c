@@ -373,7 +373,7 @@ struct hpm_usbdev_s
 
   struct usbdevclass_driver_s *driver;
 
-  /* HPMXX-specific fields */
+  /* HPM-specific fields */
 
   uint8_t                 ep0state;      /* State of certain EP0 operations */
                                          /* buffer for EP0 short transfers */
