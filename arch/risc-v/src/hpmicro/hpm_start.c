@@ -68,6 +68,9 @@ void __hpm_start(void)
 
   board_init_clock();
 
+  /* Keep cpu clock on wfi, so that mchtmr irq can still work after wfi */
+  board_ungate_mchtmr_at_lp_mode();
+
   /* Configure the UART so we can get debug output */
 
   hpm_lowsetup();

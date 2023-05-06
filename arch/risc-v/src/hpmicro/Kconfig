@@ -1641,6 +1641,24 @@ config HPM_USBDEV
 			
 	endmenu # USB host controller driver (HCD) options
 
+#####################################################################
+#  SDXC Configuration
+#####################################################################
+config HPM_SDXC0
+	bool "SDXC0"
+	default n
+	select HPM_SDXC_DRV
+    select ARCH_HAVE_SDIO
+    select MMCSD_SDIO
+    select SDIO_DMA
+
+config HPM_SDXC1
+	bool "SDXC1"
+	default n
+	select HPM_SDXC_DRV
+    select ARCH_HAVE_SDIO
+    select MMCSD_SDIO
+    select SDIO_DMA
 
 endmenu # HPM6750 Peripheral Support
 
