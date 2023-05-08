@@ -41,7 +41,7 @@
  *
  ****************************************************************************/
 
-void up_mdelay(unsigned int milliseconds)
+void weak_function up_mdelay(unsigned int milliseconds)
 {
   volatile unsigned int i;
   volatile unsigned int j;

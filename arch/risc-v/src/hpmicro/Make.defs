@@ -22,7 +22,7 @@ include common/Make.defs
 include chip/hpm_sdk/Make.defs
 
 # Specify our C code within this directory to be included
-CHIP_CSRCS += hpmicro$(DELIM)hpm_allocateheap.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_allocateheap.c hpmicro$(DELIM)hpm_delay.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm_irq.c hpmicro$(DELIM)hpm_irq_dispatch.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm_lowputc.c hpmicro$(DELIM)hpm_serial.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm_start.c hpmicro$(DELIM)hpm_timerisr.c
