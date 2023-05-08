@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/common/riscv_udelay.c
+ * arch/risc-v/src/hpmicro/hpm_delay.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -26,77 +26,56 @@
 #include <sys/types.h>
 #include <nuttx/arch.h>
 
+#include "hpm_clock_drv.h"
+
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
 
-#define CONFIG_BOARD_LOOPSPER100USEC ((CONFIG_BOARD_LOOPSPERMSEC+5)/10)
-#define CONFIG_BOARD_LOOPSPER10USEC  ((CONFIG_BOARD_LOOPSPERMSEC+50)/100)
-#define CONFIG_BOARD_LOOPSPERUSEC    ((CONFIG_BOARD_LOOPSPERMSEC+500)/1000)
+/****************************************************************************
+ * Data Definitions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Private Functions
+ ****************************************************************************/
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: up_udelay
+ * Name: up_mdelay
  *
  * Description:
- *   Delay inline for the requested number of microseconds.  NOTE:  Because
- *   of all of the setup, several microseconds will be lost before the actual
- *   timing loop begins.  Thus, the delay will always be a few microseconds
- *   longer than requested.
- *
+ *   Delay inline for the requested number of milliseconds.
+ *   System Clock Frequency of HPMICRO is variable, the built-in
+ *   up_mdelay doesn't work very well for this chip. A Timer
+ *   Service facilitates the delay function to get better accuracy.
+ * 
  *   *** NOT multi-tasking friendly ***
- *
- * ASSUMPTIONS:
- *   The setting CONFIG_BOARD_LOOPSPERMSEC has been calibrated
  *
  ****************************************************************************/
 
-void weak_function up_udelay(useconds_t microseconds)
+void up_mdelay(unsigned int milliseconds)
 {
-  volatile int i;
+  clock_cpu_delay_ms(milliseconds);
+}
 
-  /* We'll do this a little at a time because we expect that the
-   * CONFIG_BOARD_LOOPSPERUSEC is very inaccurate during to truncation in
-   * the divisions of its calculation.  We'll use the largest values that
-   * we can in order to prevent significant error buildup in the loops.
-   */
+/****************************************************************************
+ * Name: up_udelay
+ *
+ * Description:
+ *   Delay inline for the requested number of microseconds.
+ *   System Clock Frequency of HPMICRO is variable, the built-in
+ *   up_udelay doesn't work very well for this chip. A Timer
+ *   Service facilitates the delay function to get better accuracy.
+ *
+ *   *** NOT multi-tasking friendly ***
+ *
+ ****************************************************************************/
 
-  while (microseconds > 1000)
-    {
-      for (i = 0; i < CONFIG_BOARD_LOOPSPERMSEC; i++)
-        {
-        }
-
-      microseconds -= 1000;
-    }
-
-  while (microseconds > 100)
-    {
-      for (i = 0; i < CONFIG_BOARD_LOOPSPER100USEC; i++)
-        {
-        }
-
-      microseconds -= 100;
-    }
-
-  while (microseconds > 10)
-    {
-      for (i = 0; i < CONFIG_BOARD_LOOPSPER10USEC; i++)
-        {
-        }
-
-      microseconds -= 10;
-    }
-
-  while (microseconds > 0)
-    {
-      for (i = 0; i < CONFIG_BOARD_LOOPSPERUSEC; i++)
-        {
-        }
-
-      microseconds--;
-    }
+void up_udelay(useconds_t microseconds)
+{
+  clock_cpu_delay_us(microseconds);
 }
