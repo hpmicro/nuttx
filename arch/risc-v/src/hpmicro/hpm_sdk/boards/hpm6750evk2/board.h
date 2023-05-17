@@ -283,8 +283,8 @@
 #define BOARD_ENET_RGMII_RST_GPIO_INDEX GPIO_DO_GPIOF
 #define BOARD_ENET_RGMII_RST_GPIO_PIN   (0U)
 #define BOARD_ENET_RGMII                HPM_ENET0
-#define BOARD_ENET_RGMII_TX_DLY         (5U)
-#define BOARD_ENET_RGMII_RX_DLY         (2U)
+#define BOARD_ENET_RGMII_TX_DLY         (0U)
+#define BOARD_ENET_RGMII_RX_DLY         (7U)
 
 #define BOARD_ENET_RGMII_PTP_CLOCK      (clock_ptp0)
 
