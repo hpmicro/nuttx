@@ -69,3 +69,15 @@ CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)debug_console
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)dma_manager
 CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)
+
+ifeq ($(CONFIG_ENET_PHY),y)
+CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)enet_phy
+endif
+
+ifeq ($(CONFIG_ENET_PHY_RTL8201),y)
+CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)enet_phy$(DELIM)rtl8201
+endif
+
+ifeq ($(CONFIG_ENET_PHY_RTL8211),y)
+CFLAGS += $(INCDIR_PREFIX)$(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)components$(DELIM)enet_phy$(DELIM)rtl8211
+endif
