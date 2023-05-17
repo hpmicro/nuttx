@@ -1660,9 +1660,156 @@ config HPM_SDXC1
     select MMCSD_SDIO
     select SDIO_DMA
 
+#####################################################################
+#  Enet Configuration
+#####################################################################
+config ENET_RGMII
+    bool 
+    default n
+
+config ENET_RMII
+    bool 
+    default n
+
+config ENET_PHY
+    bool
+    default n
+
+config ENET_PHY_RTL8211
+    bool
+    default n
+
+config ENET_PHY_RTL8201
+    bool
+    default n
+
+config HPM_ENET0
+    bool "ENT0"
+    default n
+    select HPM_ENET_DRV
+    select ENET_PHY
+    select ENET_PHY_RTL8211
+
+    menu "ENET0 device driver options" 
+    depends on HPM_ENET0
+
+        choice          
+            prompt "Interface Type"
+            default HPM_ENET_RGMII
+
+            config HPM_ENET_RGMII
+            bool "RGMII"
+
+        endchoice
+        # End Of PHY Mode Setting 
+
+        # MAC Setting
+        config MAC_ADDR0
+        hex "MAC_ADDR0"
+        range 0 ff
+        default 98
+
+        config MAC_ADDR1
+        hex "MAC_ADDR1"
+        range 0 ff
+        default 2C
+
+        config MAC_ADDR2
+        hex "MAC_ADDR2"
+        range 0 ff
+        default BC
+
+        config MAC_ADDR3
+        hex "MAC_ADDR3"
+        range 0 ff
+        default B1
+
+        config MAC_ADDR4
+        hex "MAC_ADDR4"
+        range 0 ff
+        default 9F
+
+        config MAC_ADDR5
+        hex "MAC_ADDR5"
+        range 0 ff
+        default 17
+        # End Of MAC Setting
+    endmenu # ENET0 device driver options
+
+config HPM_ENET1    
+    bool "ENT1"
+    default n
+    select HPM_ENET_DRV
+    select ENET_PHY
+    select ENET_PHY_RTL8201
+
+    menu "ENET1 device driver options" 
+    depends on HPM_ENET1
+
+        choice          
+            prompt "Interface Type"
+            default HPM_ENET_RMII
+
+            config HPM_ENET_RMII
+            bool "RMII"
+
+        endchoice
+        # End Of PHY Mode Setting 
+
+        # REFClk Setting
+        config RMII_REFCLK
+        int 
+        default 1
+        depends on RMII_REFCLK_INT
+
+        config RMII_REFCLK
+        int 
+        default 0
+        depends on RMII_REFCLK_EXT
+
+        choice 
+            prompt "Ref Clock"
+            default RMII_REFCLK_INT
+
+            config RMII_REFCLK_INT
+            bool "Internal Refk"
+
+            config RMII_REFCLK_EXT
+            bool "External RefClk"            
+        endchoice
+        # End Of REFClk Setting 
+
+        # MAC Setting
+        config MAC_ADDR0
+        hex "MAC_ADDR0"
+        range 0 ff
+        default 98
+
+        config MAC_ADDR1
+        hex "MAC_ADDR1"
+        range 0 ff
+        default 2C
+
+        config MAC_ADDR2
+        hex "MAC_ADDR2"
+        range 0 ff
+        default BC
+
+        config MAC_ADDR3
+        hex "MAC_ADDR3"
+        range 0 ff
+        default B1
+
+        config MAC_ADDR4
+        hex "MAC_ADDR4"
+        range 0 ff
+        default 9F
+
+        config MAC_ADDR5
+        hex "MAC_ADDR5"
+        range 0 ff
+        default 17
+        # End Of MAC Setting
+    endmenu # ENET1 device driver options
+
 endmenu # HPM6750 Peripheral Support
-
-
-	
-
-
