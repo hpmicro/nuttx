@@ -178,3 +178,11 @@ endif
 ifeq ($(CONFIG_HPM_COMPONENTS_SPI),y)
   CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)components$(DELIM)spi$(DELIM)hpm_spi.c
 endif
+
+ifeq ($(CONFIG_ENET_PHY_RTL8201),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)components$(DELIM)enet_phy$(DELIM)rtl8201$(DELIM)hpm_rtl8201.c
+endif
+
+ifeq ($(CONFIG_ENET_PHY_RTL8211),y)
+CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)components$(DELIM)enet_phy$(DELIM)rtl8211$(DELIM)hpm_rtl8211.c
+endif
