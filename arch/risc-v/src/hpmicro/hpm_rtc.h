@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/hpmicro/common/hpm_rtc_lowerhalf.h
+ * arch/risc-v/src/hpmicro/hpm_rtc_lowerhalf.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -22,8 +22,8 @@
  * Included Files
  ****************************************************************************/
 
-#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_RTC_H
-#define __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_RTC_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_HPM_RTC_H
+#define __ARCH_RISCV_SRC_HPMICRO_HPM_RTC_H
 
 #include <nuttx/config.h>
 

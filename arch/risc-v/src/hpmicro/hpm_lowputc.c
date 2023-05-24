@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/hpmicro/common/hpm_lowputc.c
+ * arch/risc-v/src/hpmicro/hpm_lowputc.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with

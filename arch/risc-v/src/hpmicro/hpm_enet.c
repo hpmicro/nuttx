@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/hpmicro/hpm6750/hpm_ethernet.c
+ * arch/risc-v/src/hpmicro/hpm_ethernet.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with

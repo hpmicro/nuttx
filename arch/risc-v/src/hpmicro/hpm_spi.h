@@ -18,8 +18,8 @@
  *
  ****************************************************************************/
 
-#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_SPI_H
-#define __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_SPI_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_HPM_SPI_H
+#define __ARCH_RISCV_SRC_HPMICRO_HPM_SPI_H
 
 /****************************************************************************
  * Included Files
@@ -156,4 +156,4 @@ int hpm_spi3cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd);
 #endif
 
 #endif /* __ASSEMBLY__ */
-#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_SPI_H */
+#endif /* __ARCH_RISCV_SRC_HPMICRO_HPM_SPI_H */
