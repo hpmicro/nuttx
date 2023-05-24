@@ -62,4 +62,8 @@ ifeq ($(CONFIG_USBMSC),y)
 CSRCS += hpm6750_usbmsc.c
 endif
 
+ifeq ($(CONFIG_HPM_MBX),y)
+CSRCS += hpm6750_mbx.c
+endif
+
 include $(TOPDIR)/boards/Board.mk

@@ -94,6 +94,10 @@
 #  include <nuttx/usb/usbmonitor.h>
 #endif
 
+#ifdef CONFIG_HPM_MBX
+#  include "hpm6200_mbx.h"
+#endif
+
 /****************************************************************************
  * Name: hpm6200_bringup
  ****************************************************************************/
@@ -327,6 +331,15 @@ int hpm6200_bringup(void)
       syslog(LOG_ERR, "ERROR: Failed to start USB monitor: %d\n", ret);
       return ret;
     }
+#endif
+
+#ifdef CONFIG_HPM_MBX
+  ret = hpm6200evk_mbxdev_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "mbxdev_initialize failed: %d\n", ret);
+    }
+
 #endif
 
   return ret;
