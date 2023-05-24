@@ -1812,4 +1812,13 @@ config HPM_ENET1
         # End Of MAC Setting
     endmenu # ENET1 device driver options
 
+#####################################################################
+#  MBX Configuration
+#####################################################################
+if ARCH_CHIP_HPM6750 || ARCH_CHIP_HPM6280
+    config HPM_MBX
+      bool "MBX"
+      default n
+endif
+
 endmenu # HPM6750 Peripheral Support

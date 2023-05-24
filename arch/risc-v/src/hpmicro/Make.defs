@@ -91,3 +91,7 @@ endif
 ifeq ($(CONFIG_HPM_ENET_DRV),y)
   CHIP_CSRCS += hpmicro$(DELIM)hpm_enet.c
 endif
+
+ifeq ($(CONFIG_HPM_MBX),y)
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_mbx.c
+endif

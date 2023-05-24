@@ -97,6 +97,10 @@
 #  include "hpm6750_sdmmc.h"
 #endif
 
+#ifdef CONFIG_HPM_MBX
+#  include "hpm6750_mbx.h"
+#endif
+
 /****************************************************************************
  * Name: hpm6750_bringup
  ****************************************************************************/
@@ -362,6 +366,15 @@ int hpm6750_bringup(void)
     {
       syslog(LOG_ERR, "ERROR: hpm_sdio_initialize failed: %d\n", ret);
     }
+#endif
+
+#ifdef CONFIG_HPM_MBX
+  ret = hpm6750evk2_mbxdev_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "mbxdev_initialize failed: %d\n", ret);
+    }
+
 #endif
 
   return ret;
