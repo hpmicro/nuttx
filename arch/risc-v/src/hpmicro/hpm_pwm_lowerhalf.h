@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/hpmicro/common/hpm_pwm_lowerhalf.c
+ * arch/risc-v/src/hpmicro/hpm_pwm_lowerhalf.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,8 +18,8 @@
  *
  ****************************************************************************/
 
-#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_PWM_LOWERHALF_H
-#define __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_PWM_LOWERHALF_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_HPM_PWM_LOWERHALF_H
+#define __ARCH_RISCV_SRC_HPMICRO_HPM_PWM_LOWERHALF_H
 
 /****************************************************************************
  * Included Files
@@ -92,4 +92,4 @@ struct pwm_lowerhalf_s *hpm_pwminitialize(int pwm);
 #endif
 
 #endif /* __ASSEMBLY__ */
-#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_PWM_LOWERHALF_H */
+#endif /* __ARCH_RISCV_SRC_HPMICRO_HPM_PWM_LOWERHALF_H */

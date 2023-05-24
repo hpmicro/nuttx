@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/hpmicro/hpm6750/hpm_adc16.h
+ * arch/risc-v/src/hpmicro/hpmicro/hpm_adc16.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,8 +18,8 @@
  *
  ****************************************************************************/
 
-#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_ADC16_H
-#define __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_ADC16_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_HPM_ADC16_H
+#define __ARCH_RISCV_SRC_HPMICRO_HPM_ADC16_H
 
 /****************************************************************************
  * Included Files
@@ -57,4 +57,4 @@ EXTERN int hpm_adc16_setup(void);
 #undef EXTERN
 
 #endif /* __ASSEMBLY__ */
-#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_ADC16_H */
+#endif /* __ARCH_RISCV_SRC_HPMICRO_HPM_ADC16_H */

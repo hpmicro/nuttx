@@ -18,8 +18,8 @@
  *
  ****************************************************************************/
 
-#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_CHIP_H
-#define __ARCH_RISCV_SRC_HPMICRO_COMMON_CHIP_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_CHIP_H
+#define __ARCH_RISCV_SRC_HPMICRO_CHIP_H
 
 /****************************************************************************
  * Included Files
@@ -27,4 +27,4 @@
 
 #include <nuttx/config.h>
 
-#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_CHIP_H */
+#endif /* __ARCH_RISCV_SRC_HPMICRO_CHIP_H */

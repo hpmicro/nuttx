@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/arm/src/hpmicro/common/hpm_ehci.h
+ * arch/arm/src/hpmicro/hpm_ehci.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with

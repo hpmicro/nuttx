@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/hpmicro/common/hpm_usbdev.h
+ * arch/risc-v/src/hpmicro/hpm_usbdev.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,8 +18,8 @@
  *
  ****************************************************************************/
 
-#ifndef __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_USBDEV_H
-#define __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_USBDEV_H
+#ifndef __ARCH_RISCV_SRC_HPMICRO_HPM_USBDEV_H
+#define __ARCH_RISCV_SRC_HPMICRO_HPM_USBDEV_H
 
 /****************************************************************************
  * Included Files
@@ -57,4 +57,4 @@ EXTERN void hpm_usbdev_initialize(int controller);
 #undef EXTERN
 
 #endif /* __ASSEMBLY__ */
-#endif /* __ARCH_RISCV_SRC_HPMICRO_COMMON_HPM_USBDEV_H */
+#endif /* __ARCH_RISCV_SRC_HPMICRO_HPM_USBDEV_H */
