@@ -357,7 +357,7 @@ struct pwm_lowerhalf_s *hpm_pwminitialize(int pwm)
 {
   hpm_pwm_s *lower = NULL;
 
-  if (pwm > 4)
+  if (pwm > 3)
     {
       pwminfo("Initialize PWM%u failed\n", pwm);
       return NULL;
@@ -366,19 +366,31 @@ struct pwm_lowerhalf_s *hpm_pwminitialize(int pwm)
   pwminfo("Initialize PWM%u\n", pwm);
 
 #ifdef CONFIG_HPM_PWM0
-  lower = &g_hpm_pwm0;
+  if (pwm == 0)
+    {
+      lower = &g_hpm_pwm0;
+    }
 #endif
 
 #ifdef CONFIG_HPM_PWM1
-  lower = &g_hpm_pwm1;
+  if (pwm == 1)
+    {
+      lower = &g_hpm_pwm1;
+    }
 #endif
 
 #ifdef CONFIG_HPM_PWM2
-  lower = &g_hpm_pwm2;
+  if (pwm == 2)
+  {
+    lower = &g_hpm_pwm2;   
+  }
 #endif
 
 #ifdef CONFIG_HPM_PWM3
-  lower = &g_hpm_pwm3;
+  if (pwm == 3)
+  {
+    lower = &g_hpm_pwm3;
+  }
 #endif
 
   return (struct pwm_lowerhalf_s *)lower;
