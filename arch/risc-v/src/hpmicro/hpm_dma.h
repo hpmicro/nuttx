@@ -46,7 +46,11 @@ typedef struct _dmamux_resource {
  * Public Function Prototypes
  ****************************************************************************/
 
-
+#ifndef __ASSEMBLY__
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 /****************************************************************************
  * Name: hpm_dma_channel_request
  *
@@ -197,6 +201,11 @@ int hpm_dmamux_channel_get_resource(uint8_t dma_channel_id, hpm_dmamux_resource_
  ****************************************************************************/
 
 void hpm_dma_init(void);
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* __ASSEMBLY__ */
 
 #endif
 
