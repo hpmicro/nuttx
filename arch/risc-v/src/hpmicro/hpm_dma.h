@@ -42,6 +42,12 @@ typedef struct _dmamux_resource {
     uint32_t dma_req;                  /*dma request*/               
 } hpm_dmamux_resource_t;
 
+/* DMA channel configuration - common for DMA1 DMA2 MDMA and BDMA */
+
+typedef struct hpm_dma_config {
+  dma_channel_config_t ch_config;
+}hpm_dma_config_t;
+
 /****************************************************************************
  * Public Function Prototypes
  ****************************************************************************/
@@ -58,7 +64,8 @@ extern "C"
  *   Allocate a new DMA channel.
  *
  * Input Parameters:
- *   None
+ *   callback: dma callback
+ *   arg : user data
  *
  * Returned Value:
  *   0-15: DMA channel
@@ -75,7 +82,7 @@ int8_t hpm_dma_channel_request(hpm_dma_channel_callback_t callback, void *arg);
  *   Release a DMA channel.
  *
  * Input Parameters:
- *   channel: DMA channel.
+ *   channel_id: DMA channel.
  *
  * Returned Value:
  *   Zero (OK) is returned on success. Otherwise -1 (ERROR).
@@ -91,7 +98,7 @@ int hpm_dma_channel_release(uint8_t channel_id);
  *   Start a DMA channel.
  *
  * Input Parameters:
- *   channel: DMA channel.
+ *   channel_id: DMA channel.
  *
  * Returned Value:
  *   Zero (OK) is returned on success. Otherwise -1 (ERROR).
@@ -107,7 +114,7 @@ int hpm_dma_channel_start(uint8_t channel_id);
  *   Stop a DMA channel.
  *
  * Input Parameters:
- *   channel: DMA channel.
+ *   channel_id: DMA channel.
  *
  * Returned Value:
  *   Zero (OK) is returned on success. Otherwise -1 (ERROR).
@@ -123,7 +130,7 @@ int hpm_dma_channel_stop(uint8_t channel_id);
  *   get DMA channel resooure
  *
  * Input Parameters:
- *   channel: DMA channel.
+ *   channel_id: DMA channel.
  *
  * Output Parameters: 
  *   resource: DMA channel resource strut
@@ -158,7 +165,7 @@ int hpm_dmamux_channel_request(uint8_t dma_channel_id, uint16_t dmamux_req);
  *   Release a DMAmux channel.
  *
  * Input Parameters:
- *   channel: DMA channel.
+ *   dma_channel_id: DMA channel.
  *
  * Returned Value:
  *   Zero (OK) is returned on success. Otherwise -1 (ERROR).
@@ -174,7 +181,7 @@ int hpm_dmamux_channel_release(uint8_t dma_channel_id);
  *   get DMAMUX channel resooure
  *
  * Input Parameters:
- *   channel: DMA channel.
+ *   dma_channel_id: DMA channel.
  *
  * Output Parameters: 
  *   resource: DMAMUX channel resource strut
@@ -187,20 +194,21 @@ int hpm_dmamux_channel_release(uint8_t dma_channel_id);
 int hpm_dmamux_channel_get_resource(uint8_t dma_channel_id, hpm_dmamux_resource_t *resource);
 
 /****************************************************************************
- * Name: hpm_dma_init
+ * Name: hpm_dmasetup
  *
  * Description:
- *   Initialize DMA driver.
+ *   Configure DMA before using
  *
  * Input Parameters:
- *   None
+ *   dma_channel_id: DMA channel.
+ *   cfg: hpm dma config para
  *
  * Returned Value:
- *   None.
+*   Zero (OK) is returned on success. Otherwise -1 (ERROR)
  *
  ****************************************************************************/
 
-void hpm_dma_init(void);
+int hpm_dmasetup(uint8_t dma_channel_id, hpm_dma_config_t *cfg);
 
 #ifdef __cplusplus
 }

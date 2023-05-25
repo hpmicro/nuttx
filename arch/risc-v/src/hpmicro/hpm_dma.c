@@ -410,6 +410,58 @@ int hpm_dmamux_channel_get_resource(uint8_t dma_channel_id, hpm_dmamux_resource_
 }
 
 /****************************************************************************
+ * Name: hpm_dmasetup
+ *
+ * Description:
+ *   Configure DMA before using
+ *
+ * Input Parameters:
+ *   dma_channel_id: DMA channel.
+ *   cfg: hpm dma config para
+ *
+ * Returned Value:
+*   Zero (OK) is returned on success. Otherwise -1 (ERROR)
+ *
+ ****************************************************************************/
+
+int hpm_dmasetup(uint8_t dma_channel_id, hpm_dma_config_t *cfg)
+{
+  if (dma_channel_id >= DMA_RESOURCE_NUM)
+    {
+      return -1;
+    }
+  
+  int32_t instance;
+  uint32_t channel;
+  hpm_dma_resource_t *resource_dma = &dma_resource_pools[dma_channel_id];
+   if (!resource_dma->base)
+    {
+      return -1;
+    }
+
+  for (instance = 0; instance < DMA_SOC_MAX_COUNT; instance++)
+    {
+      if (resource_dma->base == dmamux_context_pools[instance]->base)
+        {
+          for (channel= 0; channel < DMA_SOC_CHANNEL_NUM; channel++)
+            {
+              if ((dmamux_context_pools[instance][channel].is_allocated == true) &&
+                  (dmamux_context_pools[instance][channel].channel      == resource_dma->channel))
+                {
+                  if (status_success != dma_setup_channel(resource_dma->base, dmamux_resource_pools[instance][channel].dmamux_channel, &cfg->ch_config, false))
+                    {
+                      return -1;
+                    }
+                  return 0;
+                }
+            }
+        }
+    }
+  return -1;
+
+}
+
+/****************************************************************************
  * Name: riscv_dma_initialize
  *
  * Description:
