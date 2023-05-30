@@ -42,28 +42,21 @@
 #define BOARD_LED1        0
 #define BOARD_LED2        1
 #define BOARD_LED3        2
-#define BOARD_NLEDS       3
+#define BOARD_NLEDS       1
 
 /* The board has only one controllable LED */
 
 #define LED_STARTED       0  /* No LEDs */
-#define LED_HEAPALLOCATE  1  /* LED1 on */
-#define LED_IRQSENABLED   2  /* LED2 on */
-#define LED_STACKCREATED  3  /* LED1 on */
-#define LED_INIRQ         4  /* LED1 off */
-#define LED_SIGNAL        5  /* LED2 on */
-#define LED_ASSERTION     6  /* LED1 + LED2 */
 #define LED_PANIC         7  /* LED1 / LED2 blinking */
 
 /* GPIO Configuration */
 
 #define BOARD_NGPIOIN     1 /* Amount of GPIO Input pins */
-#define BOARD_NGPIOOUT    2 /* Amount of GPIO Output pins */
+#define BOARD_NGPIOOUT    1 /* Amount of GPIO Output pins */
 #define BOARD_NGPIOINT    1 /* Amount of GPIO Input w/ Interruption pins */
 
 #define BOARD_GPIO_IN1    (IOC_PAD_PZ02)
-#define BOARD_GPIO_OUT1   (IOC_PAD_PZ04)
-#define BOARD_GPIO_OUT2   (IOC_PAD_PZ05)
+#define BOARD_GPIO_OUT1   (IOC_PAD_PA07)
 #define BOARD_GPIO_INT1   (IOC_PAD_PZ03)
 
 /* ADC Configuration */

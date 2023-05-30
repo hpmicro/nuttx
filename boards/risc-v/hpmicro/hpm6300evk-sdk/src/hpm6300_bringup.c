@@ -94,6 +94,10 @@
 #  include <nuttx/usb/usbmonitor.h>
 #endif
 
+#ifdef CONFIG_DEV_GPIO
+#  include "hpm6300_gpio.h"
+#endif
+
 /****************************************************************************
  * Name: hpm6300_bringup
  ****************************************************************************/
@@ -325,6 +329,15 @@ int hpm6300_bringup(void)
   if (ret != OK)
     {
       syslog(LOG_ERR, "ERROR: Failed to start USB monitor: %d\n", ret);
+      return ret;
+    }
+#endif
+
+#ifdef CONFIG_DEV_GPIO
+  ret = hpm6300_gpio_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "Failed to initialize GPIO Driver: %d\n", ret);
       return ret;
     }
 #endif

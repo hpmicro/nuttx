@@ -101,6 +101,10 @@
 #  include "hpm6750_mbx.h"
 #endif
 
+#ifdef CONFIG_DEV_GPIO
+#  include "hpm6750_gpio.h"
+#endif
+
 /****************************************************************************
  * Name: hpm6750_bringup
  ****************************************************************************/
@@ -375,6 +379,15 @@ int hpm6750_bringup(void)
       syslog(LOG_ERR, "mbxdev_initialize failed: %d\n", ret);
     }
 
+#endif
+
+#ifdef CONFIG_DEV_GPIO
+  ret = hpm6750_gpio_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "Failed to initialize GPIO Driver: %d\n", ret);
+      return ret;
+    }
 #endif
 
   return ret;
