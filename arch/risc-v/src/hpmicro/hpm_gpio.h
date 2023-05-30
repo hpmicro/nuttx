@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6300evk/src/hpm6300_userleds.h
+ * arch/risc-v/src/hpmicro/hpm_gpio.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -18,79 +18,111 @@
  *
  ****************************************************************************/
 
+#ifndef __ARCH_RISCV_SRC_HPMICRO_GPIO_H
+#define __ARCH_RISCV_SRC_HPMICRO_GPIO_H
+
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
 
+#ifndef __ASSEMBLY__
 #include <stdint.h>
 #include <stdbool.h>
-#include <debug.h>
+#endif
 
-#include <arch/board/board.h>
+#include <nuttx/irq.h>
 
-#include "board.h"
 #include "chip.h"
-#include "hpm.h"
+#include "nuttx/ioexpander/gpio.h"
 #include "hpm_gpio_drv.h"
 
-#ifndef CONFIG_ARCH_LEDS
+/****************************************************************************
+ * Pre-Processor Declarations
+ ****************************************************************************/
+#define  GPIO_INPUT_MODE       (0UL)
+#define  GPIO_OUTPUT_MODE      (1UL)
 
 /****************************************************************************
- * Private Data
+ * Public Data
  ****************************************************************************/
 
-/* This array maps an LED number to GPIO pin configuration */
+#ifndef __ASSEMBLY__
 
-static const uint32_t g_ledcfg[BOARD_NLEDS] =
+#undef EXTERN
+#if defined(__cplusplus)
+#define EXTERN extern "C"
+extern "C"
 {
-  BOARD_LED_GPIO_PIN,
-};
+#else
+#define EXTERN extern
+#endif
 
 /****************************************************************************
- * Public Functions
+ * Public Types
+ ****************************************************************************/
+
+/* The smallest integer type that can hold the GPIO encoding */
+
+typedef uint32_t gpio_pin_t;
+
+/****************************************************************************
+ * Public Function Prototypes
  ****************************************************************************/
 
 /****************************************************************************
- * Name: board_userled_initialize
+ * Name: hpm_configgpio
+ *
+ * Description:
+ *   Configure a GPIO pin based on bit-encoded description of the pin.
+ *
+ * Returned Value:
+ *   OK on success
+ *   ERROR on invalid port.
+ *
  ****************************************************************************/
 
-uint32_t board_userled_initialize(void)
-{
-  /* Configure LED1-8 GPIOs for output */
-  board_init_led_pins();
+int hpm_configgpio(GPIO_Type *ptr, gpio_pin_t pin, enum gpio_pintype_e type);
 
-  return BOARD_NLEDS;
+/****************************************************************************
+ * Name: hpm_gpiowrite
+ *
+ * Description:
+ *   Write one or zero to the selected GPIO pin
+ *
+ ****************************************************************************/
+
+void hpm_gpiowrite(GPIO_Type *ptr, gpio_pin_t pin, bool value);
+
+/****************************************************************************
+ * Name: hpm_gpioread
+ *
+ * Description:
+ *   Read one or zero from the selected GPIO pin
+ *
+ ****************************************************************************/
+
+bool hpm_gpioread(GPIO_Type *ptr, gpio_pin_t pin, uint8_t mode);
+
+/****************************************************************************
+ * Function:  hpm6750_dumpgpio
+ *
+ * Description:
+ *   Dump all GPIO registers associated with the provided base address
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_DEBUG_GPIO_INFO
+int hpm6750_dumpgpio(gpio_pinset_t pinset, const char *msg);
+#else
+#define hpm6750_dumpgpio(p, m)
+#endif
+
+#undef EXTERN
+#if defined(__cplusplus)
 }
+#endif
 
-/****************************************************************************
- * Name: board_userled
- ****************************************************************************/
-
-void board_userled(int led, bool ledon)
-{
-  if ((unsigned)led < BOARD_NLEDS)
-    {
-      gpio_write_pin(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX, g_ledcfg[led], ledon);
-    }
-}
-
-/****************************************************************************
- * Name: board_userled_all
- ****************************************************************************/
-
-void board_userled_all(uint32_t ledset)
-{
-  switch (ledset)
-    {
-      case LED_PANIC:
-        gpio_toggle_pin(BOARD_LED_GPIO_CTRL, BOARD_LED_GPIO_INDEX, BOARD_LED_GPIO_PIN);
-
-        break;
-      default:
-        break;
-    }
-}
-
-#endif /* !CONFIG_ARCH_LEDS */
+#endif /* __ASSEMBLY__ */
+#endif /* __ARCH_RISCV_SRC_HPMICRO_GPIO_H */

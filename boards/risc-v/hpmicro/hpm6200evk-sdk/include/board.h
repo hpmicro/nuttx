@@ -57,14 +57,14 @@
 
 /* GPIO Configuration */
 
-#define BOARD_NGPIOIN     1 /* Amount of GPIO Input pins */
-#define BOARD_NGPIOOUT    2 /* Amount of GPIO Output pins */
+#define BOARD_NGPIOIN     0 /* Amount of GPIO Input pins */
+#define BOARD_NGPIOOUT    3 /* Amount of GPIO Output pins */
 #define BOARD_NGPIOINT    1 /* Amount of GPIO Input w/ Interruption pins */
 
-#define BOARD_GPIO_IN1    (IOC_PAD_PZ02)
-#define BOARD_GPIO_OUT1   (IOC_PAD_PZ04)
-#define BOARD_GPIO_OUT2   (IOC_PAD_PZ05)
-#define BOARD_GPIO_INT1   (IOC_PAD_PZ03)
+#define BOARD_GPIO_OUT1   (IOC_PAD_PA27)
+#define BOARD_GPIO_OUT2   (IOC_PAD_PB01)
+#define BOARD_GPIO_OUT3   (IOC_PAD_PB19)
+#define BOARD_GPIO_INT1   (IOC_PAD_PZ02)
 
 /* ADC Configuration */
 

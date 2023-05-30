@@ -98,6 +98,10 @@
 #  include "hpm6200_mbx.h"
 #endif
 
+#ifdef CONFIG_DEV_GPIO
+#  include "hpm6200_gpio.h"
+#endif
+
 /****************************************************************************
  * Name: hpm6200_bringup
  ****************************************************************************/
@@ -340,6 +344,15 @@ int hpm6200_bringup(void)
       syslog(LOG_ERR, "mbxdev_initialize failed: %d\n", ret);
     }
 
+#endif
+
+#ifdef CONFIG_DEV_GPIO
+  ret = hpm6200_gpio_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "Failed to initialize GPIO Driver: %d\n", ret);
+      return ret;
+    }
 #endif
 
   return ret;
