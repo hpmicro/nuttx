@@ -1,5 +1,5 @@
 /****************************************************************************
- * arch/risc-v/src/hpmicro/common/hpm_spi.c
+ * arch/risc-v/src/hpmicro/hpm_spi.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -78,12 +78,10 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-#ifdef CONFIG_ARCH_CHIP_HPM6750
 #define  HPM_MAX_SPI_COUNT      4
 #define  HPM_MAX_SPI_DMA_COUNT  129   /*max len is 65535, spi max len is 512. 65535/512.*/
-#endif
 
-#ifdef CONFIG_HPM_SPI_DRV
+#if defined (CONFIG_HPM_SPI_DRV) && defined (CONFIG_SPI_DRIVER)
 
 /* Configuration ************************************************************/
 

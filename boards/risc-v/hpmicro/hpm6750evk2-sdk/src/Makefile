@@ -66,4 +66,8 @@ ifeq ($(CONFIG_HPM_MBX),y)
 CSRCS += hpm6750_mbx.c
 endif
 
+ifeq ($(CONFIG_SPI_SLAVE),y)
+CSRCS += hpm6750_spi_slave.c
+endif
+
 include $(TOPDIR)/boards/Board.mk

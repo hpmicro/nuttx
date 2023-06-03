@@ -32,6 +32,15 @@
 #include <nuttx/board.h>
 #include <nuttx/input/buttons.h>
 
+#include <sys/ioctl.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <errno.h>
+
 #ifdef CONFIG_USERLED
 #  include <nuttx/leds/userled.h>
 #endif
@@ -103,6 +112,10 @@
 
 #ifdef CONFIG_DEV_GPIO
 #  include "hpm6750_gpio.h"
+#endif
+
+#ifdef CONFIG_SPI_SLAVE
+#  include "hpm6750_spi_slave.h"
 #endif
 
 /****************************************************************************
@@ -390,6 +403,16 @@ int hpm6750_bringup(void)
     }
 #endif
 
+#ifdef CONFIG_SPI_SLAVE
+#  ifdef CONFIG_HPM_SPI2
+  ret = hpm6750_spislavedev_initialize(2);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "Failed to initialize SPI SLAVE Driver: %d\n", ret);
+      return ret;
+    }
+#  endif
+#endif
   return ret;
 }
 
