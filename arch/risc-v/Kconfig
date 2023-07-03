@@ -253,6 +253,14 @@ config ARCH_CHIP_K230
 
 config ARCH_CHIP_HPMICRO
 	bool "HPMicro Chip"
+	select ARCH_RV32
+	select ARCH_RV_ISA_M
+	select ARCH_RV_ISA_A
+	select ARCH_RV_ISA_C
+	select ONESHOT
+	select ALARM_ARCH
+	select ARCH_DCACHE
+	select ARCH_ICACHE
 	---help---
 		HPMicro processor selection.
 
