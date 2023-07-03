@@ -13,7 +13,6 @@
 #include "hpm_femc_drv.h"
 #include "pinmux.h"
 #include "hpm_pmp_drv.h"
-#include "assert.h"
 #include "hpm_clock_drv.h"
 #include "hpm_sysctl_drv.h"
 #include "hpm_sdxc_drv.h"
@@ -124,22 +123,22 @@ void board_print_clock_freq(void)
     printf("==============================\n");
     printf(" %s clock summary\n", BOARD_NAME);
     printf("==============================\n");
-    printf("cpu0:\t\t %dHz\n", clock_get_frequency(clock_cpu0));
-    printf("cpu1:\t\t %dHz\n", clock_get_frequency(clock_cpu1));
-    printf("axi0:\t\t %dHz\n", clock_get_frequency(clock_axi0));
-    printf("axi1:\t\t %dHz\n", clock_get_frequency(clock_axi1));
-    printf("axi2:\t\t %dHz\n", clock_get_frequency(clock_axi2));
-    printf("ahb:\t\t %dHz\n", clock_get_frequency(clock_ahb));
-    printf("mchtmr0:\t %dHz\n", clock_get_frequency(clock_mchtmr0));
-    printf("mchtmr1:\t %dHz\n", clock_get_frequency(clock_mchtmr1));
-    printf("xpi0:\t\t %dHz\n", clock_get_frequency(clock_xpi0));
-    printf("xpi1:\t\t %dHz\n", clock_get_frequency(clock_xpi1));
-    printf("femc:\t\t %dHz\n", clock_get_frequency(clock_femc));
-    printf("display:\t %dHz\n", clock_get_frequency(clock_display));
-    printf("cam0:\t\t %dHz\n", clock_get_frequency(clock_camera0));
-    printf("cam1:\t\t %dHz\n", clock_get_frequency(clock_camera1));
-    printf("jpeg:\t\t %dHz\n", clock_get_frequency(clock_jpeg));
-    printf("pdma:\t\t %dHz\n", clock_get_frequency(clock_pdma));
+    printf("cpu0:\t\t %luHz\n", clock_get_frequency(clock_cpu0));
+    printf("cpu1:\t\t %luHz\n", clock_get_frequency(clock_cpu1));
+    printf("axi0:\t\t %luHz\n", clock_get_frequency(clock_axi0));
+    printf("axi1:\t\t %luHz\n", clock_get_frequency(clock_axi1));
+    printf("axi2:\t\t %luHz\n", clock_get_frequency(clock_axi2));
+    printf("ahb:\t\t %luHz\n", clock_get_frequency(clock_ahb));
+    printf("mchtmr0:\t %luHz\n", clock_get_frequency(clock_mchtmr0));
+    printf("mchtmr1:\t %luHz\n", clock_get_frequency(clock_mchtmr1));
+    printf("xpi0:\t\t %luHz\n", clock_get_frequency(clock_xpi0));
+    printf("xpi1:\t\t %luHz\n", clock_get_frequency(clock_xpi1));
+    printf("femc:\t\t %luHz\n", clock_get_frequency(clock_femc));
+    printf("display:\t %luHz\n", clock_get_frequency(clock_display));
+    printf("cam0:\t\t %luHz\n", clock_get_frequency(clock_camera0));
+    printf("cam1:\t\t %luHz\n", clock_get_frequency(clock_camera1));
+    printf("jpeg:\t\t %luHz\n", clock_get_frequency(clock_jpeg));
+    printf("pdma:\t\t %luHz\n", clock_get_frequency(clock_pdma));
     printf("==============================\n");
 }
 
@@ -357,7 +356,7 @@ void board_init_i2c(I2C_Type *ptr)
     freq = clock_get_frequency(BOARD_CAP_I2C_CLK_NAME);
     stat = i2c_init_master(BOARD_CAP_I2C_BASE, freq, &config);
     if (stat != status_success) {
-        printf("failed to initialize i2c 0x%x\n", (uint32_t)BOARD_CAP_I2C_BASE);
+        printf("failed to initialize i2c 0x%lx\n", (uint32_t)BOARD_CAP_I2C_BASE);
         while (1) {
         }
     }
@@ -764,6 +763,24 @@ uint32_t board_init_i2s_clock(I2S_Type *ptr)
     return 0;
 }
 
+/* adjust I2S source clock base on sample rate */
+uint32_t board_config_i2s_clock(I2S_Type *ptr, uint32_t sample_rate)
+{
+    if (ptr == HPM_I2S0) {
+        if ((sample_rate % 22050) == 0) {
+            clock_add_to_group(clock_i2s0, 0);
+            clock_set_source_divider(clock_aud1, clk_src_pll3_clk0, 54); /* config clock_aud1 for 22050*n sample rate */
+            clock_set_i2s_source(clock_i2s0, clk_i2s_src_aud1);
+        } else {
+            clock_add_to_group(clock_i2s0, 0);
+            clock_set_source_divider(clock_aud0, clk_src_pll3_clk0, 25); /* config clock_aud0 for 8000*n sample rate */
+            clock_set_i2s_source(clock_i2s0, clk_i2s_src_aud0);
+        }
+        return clock_get_frequency(clock_i2s0);
+    }
+    return 0;
+}
+
 uint32_t board_init_adc16_clock(ADC16_Type *ptr)
 {
     uint32_t freq = 0;
@@ -1037,16 +1054,19 @@ hpm_stat_t board_init_enet_ptp_clock(ENET_Type *ptr)
 
 hpm_stat_t board_init_enet_rmii_reference_clock(ENET_Type *ptr, bool internal)
 {
-    if (internal == false) {
-        return status_success;
-    }
     /* Configure Enet clock to output reference clock */
-    if (ptr == HPM_ENET0) {
-        /* make sure pll2_clk1 output clock at 250MHz then set 50MHz for enet0 */
-        clock_set_source_divider(clock_eth0, clk_src_pll2_clk1, 5);
-    } else if (ptr == HPM_ENET1) {
-        /* make sure pll2_clk1 output clock at 250MHz then set 50MHz for enet1 */
-        clock_set_source_divider(clock_eth1, clk_src_pll2_clk1, 5); /* set 50MHz for enet1 */
+    if (ptr == HPM_ENET0 || ptr == HPM_ENET1) {
+        if (internal) {
+            /* set pll output frequency at 1GHz */
+            if (pllctl_init_int_pll_with_freq(HPM_PLLCTL, PLLCTL_PLL_PLL2, 1000000000UL) == status_success) {
+                /* set pll2_clk1 output frequence at 250MHz from PLL2 divided by 4 */
+                pllctl_set_div(HPM_PLLCTL, PLLCTL_PLL_PLL2, 1, 4);
+                /* set eth clock frequency at 50MHz for enet0 */
+                clock_set_source_divider(ptr == HPM_ENET0 ? clock_eth0 : clock_eth1, clk_src_pll2_clk1, 5);
+            } else {
+                return status_fail;
+            }
+        }
     } else {
         return status_invalid_argument;
     }

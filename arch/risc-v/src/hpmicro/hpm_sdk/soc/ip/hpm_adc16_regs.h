@@ -211,6 +211,16 @@ typedef struct {
 
 /* Bitfield definition for register: BUF_CFG0 */
 /*
+ * BUS_MODE_EN (RW)
+ *
+ * bus mode enable
+ */
+#define ADC16_BUF_CFG0_BUS_MODE_EN_MASK (0x2U)
+#define ADC16_BUF_CFG0_BUS_MODE_EN_SHIFT (1U)
+#define ADC16_BUF_CFG0_BUS_MODE_EN_SET(x) (((uint32_t)(x) << ADC16_BUF_CFG0_BUS_MODE_EN_SHIFT) & ADC16_BUF_CFG0_BUS_MODE_EN_MASK)
+#define ADC16_BUF_CFG0_BUS_MODE_EN_GET(x) (((uint32_t)(x) & ADC16_BUF_CFG0_BUS_MODE_EN_MASK) >> ADC16_BUF_CFG0_BUS_MODE_EN_SHIFT)
+
+/*
  * WAIT_DIS (RW)
  *
  * set to disable read waiting, get result immediately but maybe not current conversion result.
@@ -309,7 +319,7 @@ typedef struct {
  * HW update this field after each dma write, it indicate the next dma write pointer.
  * dma write address is (tar_addr+seq_wr_pointer)*4
  */
-#define ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_MASK (0xFFFU)
+#define ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_MASK (0xFFFFFFUL)
 #define ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_SHIFT (0U)
 #define ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_GET(x) (((uint32_t)(x) & ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_MASK) >> ADC16_SEQ_WR_ADDR_SEQ_WR_POINTER_SHIFT)
 
