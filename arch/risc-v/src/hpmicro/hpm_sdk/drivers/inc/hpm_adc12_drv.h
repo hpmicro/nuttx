@@ -26,7 +26,7 @@
 #define ADC12_IS_CHANNEL_INVALID(CH) (CH > ADC12_SOC_MAX_CH_NUM)
 
 /** @brief Define ADC12 validity check for the trigger number */
-#define ADC12_IS_TRIG_CH_INVLAID(CH) (CH > ADC12_SOC_MAX_TRIG_CH_NUM)
+#define ADC12_IS_TRIG_CH_INVLAID(CH) (CH > ADC_SOC_MAX_TRIG_CH_NUM)
 
 /** @brief Define ADC12 validity check for the trigger length */
 #define ADC12_IS_TRIG_LEN_INVLAID(TRIG_LEN) (TRIG_LEN > ADC_SOC_MAX_TRIG_CH_LEN)
@@ -157,14 +157,14 @@ typedef struct {
 
 /** @brief ADC12 DMA configuration struct for the preemption mode. */
 typedef struct {
-    uint32_t            :4;
-    uint32_t result     :12;
-    uint32_t trig_ch    :2;
-    uint32_t            :2;
-    uint32_t trig_index :4;
-    uint32_t adc_ch     :5;
-    uint32_t            :2;
-    uint32_t cycle_bit  :1;
+    uint32_t           :4;
+    uint32_t result    :12;
+    uint32_t seq_num   :2;
+    uint32_t           :2;
+    uint32_t trig_ch   :4;
+    uint32_t adc_ch    :5;
+    uint32_t           :2;
+    uint32_t cycle_bit :1;
 } adc12_pmt_dma_data_t;
 
 /** @brief ADC12 configuration struct for the period mode. */

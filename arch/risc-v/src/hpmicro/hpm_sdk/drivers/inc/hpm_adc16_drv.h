@@ -20,14 +20,14 @@
  */
 
 /** @brief Define ADC16 validity check for the channel number */
-#if ADC16_SOC_TEMP_CH_EN
+#if defined (ADC16_SOC_TEMP_CH_EN) && ADC16_SOC_TEMP_CH_EN
 #define ADC16_IS_CHANNEL_INVALID(CH) (CH > ADC16_SOC_MAX_CH_NUM && CH != ADC16_SOC_TEMP_CH_NUM)
 #else
 #define ADC16_IS_CHANNEL_INVALID(CH) (CH > ADC16_SOC_MAX_CH_NUM)
 #endif
 
 /** @brief Define ADC16 validity check for the trigger number */
-#define ADC16_IS_TRIG_CH_INVLAID(CH) (CH > ADC16_SOC_MAX_TRIG_CH_NUM)
+#define ADC16_IS_TRIG_CH_INVLAID(CH) (CH > ADC_SOC_MAX_TRIG_CH_NUM)
 
 /** @brief Define ADC16 validity check for the trigger length */
 #define ADC16_IS_TRIG_LEN_INVLAID(TRIG_LEN) (TRIG_LEN > ADC_SOC_MAX_TRIG_CH_LEN)
@@ -151,13 +151,13 @@ typedef struct {
 
 /** @brief ADC16 DMA configuration struct for the preemption mode. */
 typedef struct {
-    uint32_t result     :16;
-    uint32_t trig_ch    :2;
-    uint32_t            :2;
-    uint32_t trig_index :4;
-    uint32_t adc_ch     :5;
-    uint32_t            :2;
-    uint32_t cycle_bit  :1;
+    uint32_t result    :16;
+    uint32_t seq_num   :2;
+    uint32_t           :2;
+    uint32_t trig_ch   :4;
+    uint32_t adc_ch    :5;
+    uint32_t           :2;
+    uint32_t cycle_bit :1;
 } adc16_pmt_dma_data_t;
 
 /** @brief ADC16 configuration struct for the the period mode. */
@@ -472,6 +472,7 @@ hpm_stat_t adc16_get_oneshot_result(ADC16_Type *ptr, uint8_t ch, uint16_t *resul
  */
 hpm_stat_t adc16_get_prd_result(ADC16_Type *ptr, uint8_t ch, uint16_t *result);
 
+#if defined(ADC16_SOC_TEMP_CH_EN) && ADC16_SOC_TEMP_CH_EN
 /**
  * @brief Enable the temperature sensor
  *
@@ -485,6 +486,7 @@ void adc16_enable_temp_sensor(ADC16_Type *ptr);
  * @param[in] ptr An ADC16 peripheral base address.
  */
 void adc16_disable_temp_sensor(ADC16_Type *ptr);
+#endif
 
 /** @} */
 

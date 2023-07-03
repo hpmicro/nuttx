@@ -291,10 +291,15 @@ hpm_stat_t adc12_set_pmt_config(ADC12_Type *ptr, adc12_pmt_config_t *config)
         return status_invalid_argument;
     }
 
+	/* Check the triggier channel */
+    if (ADC12_IS_TRIG_CH_INVLAID(config->trig_ch)) {
+        return status_invalid_argument;
+    }
+
     temp |= ADC12_CONFIG_TRIG_LEN_SET(config->trig_len - 1);
 
     for (int i = 0; i < config->trig_len; i++) {
-        if (ADC12_IS_CHANNEL_INVALID(config->trig_ch)) {
+        if (ADC12_IS_CHANNEL_INVALID(config->adc_ch[i])) {
             return status_invalid_argument;
         }
 
