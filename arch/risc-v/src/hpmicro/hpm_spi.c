@@ -1150,7 +1150,7 @@ static uint32_t spi_send(struct spi_dev_s *dev, uint32_t wd)
   stat = hpm_spi_transfer((SPI_Type *)priv->spibase,
                 &control_config,
                 NULL, NULL,
-                (uint8_t *)&wd, sizeof(uint32_t), (uint8_t *)&regval, sizeof(uint32_t));
+                (uint8_t *)&wd, 1, (uint8_t *)&regval, 1);
   UNUSED(regval);
   return stat;
 }
