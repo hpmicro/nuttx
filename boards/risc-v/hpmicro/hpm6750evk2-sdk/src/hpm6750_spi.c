@@ -115,6 +115,13 @@ void weak_function hpm6750_spidev_initialize(void)
     gpio_set_pin_output(HPM_GPIO0, GPIO_OE_GPIOZ, 9);
     gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOZ, 9, gpiom_soc_gpio0);
 
+    HPM_IOC->PAD[IOC_PAD_PZ09].FUNC_CTL = IOC_PZ09_FUNC_CTL_GPIO_Z_09;
+    HPM_BIOC->PAD[IOC_PAD_PZ09].FUNC_CTL = IOC_PZ09_FUNC_CTL_SOC_PZ_09;
+
+    gpio_set_pin_output(HPM_GPIO0, GPIO_OE_GPIOZ, 10);
+    gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOZ, 10, gpiom_soc_gpio0);
+    gpio_write_pin(HPM_GPIO0, GPIO_DO_GPIOZ , 10, 1);
+
     gpio_write_pin(HPM_GPIO0, GPIO_DO_GPIOZ , 9, 0);
     up_mdelay(400);
     gpio_write_pin(HPM_GPIO0, GPIO_DO_GPIOZ , 9, 1);
