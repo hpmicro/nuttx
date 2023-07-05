@@ -64,6 +64,7 @@ typedef struct
   uint32_t                pwm_reload;
   PWM_Type                *base;
   clock_name_t            clock_name; 
+  struct pwm_info_s       pwm_info;
 }hpm_pwm_s;
 
 /****************************************************************************
@@ -149,7 +150,6 @@ static int motsys_generate_pwm(hpm_pwm_s *pwm, const struct pwm_info_s *info)
 
 #ifdef CONFIG_PWM_NCHANNELS
 
-    uint8_t cmp_index = 0;
     uint32_t cmp = 0;
     int i;
     int8_t chan;
@@ -157,9 +157,9 @@ static int motsys_generate_pwm(hpm_pwm_s *pwm, const struct pwm_info_s *info)
     pwm_cmp_config_t cmp_config;
     pwm_config_t pwm_config = {0};
 
+    pwm_stop_counter(pwm->base);
     pwm_get_default_pwm_config(pwm->base, &pwm_config);
 
-    pwm_stop_counter(pwm->base);
     pwm_config.enable_output = true;
     pwm_config.dead_zone_in_half_cycle = 0;
     pwm_config.invert_output = false;
@@ -171,11 +171,8 @@ static int motsys_generate_pwm(hpm_pwm_s *pwm, const struct pwm_info_s *info)
     pwm_set_start_count(pwm->base, 0, 0);
 
     cmp_config.mode           = pwm_cmp_mode_output_compare;
-    cmp_config.cmp            = 0;
-    cmp_config.update_trigger = pwm_shadow_register_update_on_modify;
-    pwm_load_cmp_shadow_on_match(pwm->base, 0, &cmp_config);
-
-    cmp_config.update_trigger = pwm_shadow_register_update_on_hw_event;
+    cmp_config.cmp            = pwm->pwm_reload + 1;
+    cmp_config.update_trigger = pwm_shadow_register_update_on_shlk;
 
     for (i = 0; i < CONFIG_PWM_NCHANNELS; i++)
       {
@@ -198,7 +195,6 @@ static int motsys_generate_pwm(hpm_pwm_s *pwm, const struct pwm_info_s *info)
         return -1;
       }
     pwm_start_counter(pwm->base);
-    pwm_issue_shadow_register_lock_event(pwm->base);
     for (i = 0; i < CONFIG_PWM_NCHANNELS; i++)
       {
         _duty = b16toi(info->channels[i].duty * 100);
@@ -211,9 +207,9 @@ static int motsys_generate_pwm(hpm_pwm_s *pwm, const struct pwm_info_s *info)
           {
             break;
           }
-        
-        pwm_update_raw_cmp_edge_aligned(pwm->base, chan, cmp);
-      }  
+        pwm_cmp_update_cmp_value(pwm->base, chan, cmp, 0);
+      }
+    pwm_issue_shadow_register_lock_event(pwm->base);
 #endif
   return (sta != status_success)? -1 : 0;
 }
@@ -260,7 +256,7 @@ static int hpm_pwm_shutdown(struct pwm_lowerhalf_s *dev)
   UNUSED(i);
   for (i = 0; i < CONFIG_PWM_NCHANNELS; i++)
   {
-    pwm_disable_output(priv->base, i);
+    pwm_disable_output(priv->base, priv->pwm_info.channels[i].channel);
   }
   
   return ret;
@@ -280,8 +276,8 @@ static int hpm_pwm_start(struct pwm_lowerhalf_s *dev,
   hpm_pwm_s *priv = (hpm_pwm_s *)dev;
   int                 ret  = OK;
   int                 i;
-  int _duty = 0;
   UNUSED(i);
+  memcpy(&priv->pwm_info.frequency, info, sizeof(struct pwm_info_s));
   ret = motsys_generate_pwm(priv, info);
   return ret;
 }
@@ -305,7 +301,7 @@ static int hpm_pwm_stop(struct pwm_lowerhalf_s *dev)
 #ifdef CONFIG_PWM_NCHANNELS
   for (i = 0; i < CONFIG_PWM_NCHANNELS; i++)
     {
-      pwm_disable_output(priv->base, i);
+      pwm_disable_output(priv->base, priv->pwm_info.channels[i].channel);
     }
 #endif
 
