@@ -48,8 +48,6 @@
  ****************************************************************************/
 
 #define TIMER_MAX_VALUE        (0xFFFFFFFFU)
-#define TIMER_CLK_DIV          (40U) /* the timer src_clock is pll1clk1, pll1clk1 is 400M so the timer clk is 10M ,tick is 0.1us*/
-#define TIMER_1US_MULTIPLE     (10U) /* 1us is 0.1 * 10*/
 #define TIMER_CHANNEL          (0U)
 
 /****************************************************************************
@@ -236,8 +234,8 @@ static int hpm_timer_handler(int irq, void *context, void *arg)
             {
               gptmr_stop_counter(priv->base, priv->channel);
               gptmr_channel_get_default_config(priv->base, &config);
-              config.reload = (next_interval_us * TIMER_1US_MULTIPLE);
-              priv->time_out_value = (next_interval_us * TIMER_1US_MULTIPLE);
+              config.reload = priv->timer_freq / 1000000 * next_interval_us;
+              priv->time_out_value = next_interval_us;
               gptmr_channel_config(priv->base, priv->channel, &config, true);
 
             }
@@ -267,7 +265,6 @@ static int hpm_timer_init(hpm_tim_lowerhalf_s *lower)
 {
   /* Configure the Timer clock to 1MHz */
 
-  clock_set_source_divider(lower->clock_name, clk_src_pll1_clk1, TIMER_CLK_DIV);
   clock_add_to_group(lower->clock_name, BOARD_RUNNING_CORE);
   lower->timer_freq = clock_get_frequency(lower->clock_name);
   return OK;
@@ -404,9 +401,9 @@ static int hpm_tim_getstatus(struct timer_lowerhalf_s *lower,
       status->flags |= TCFLAGS_HANDLER;
     }
 
-  status->timeout = (priv->base->CHANNEL[priv->channel].RLD + 1)/TIMER_1US_MULTIPLE;
+  status->timeout = (gptmr_channel_get_reload(priv->base, priv->channel) + 1) / (priv->timer_freq / 1000000);
   
-  current_counter_value = (gptmr_channel_get_counter(priv->base, priv->channel, gptmr_counter_type_normal))/TIMER_1US_MULTIPLE;
+  current_counter_value = gptmr_channel_get_counter(priv->base, priv->channel, gptmr_counter_type_normal) / (priv->timer_freq /1000000);
 
   if (current_counter_value < status->timeout)
     {
@@ -443,9 +440,9 @@ static int hpm_tim_settimeout(struct timer_lowerhalf_s *lower,
   gptmr_channel_config_t config;
 
   gptmr_channel_get_default_config(priv->base, &config);
-  config.reload = (timeout * TIMER_1US_MULTIPLE);
+  config.reload = priv->timer_freq / 1000000 * timeout;
   gptmr_channel_config(priv->base, priv->channel, &config, false);
-  priv->time_out_value = (timeout * TIMER_1US_MULTIPLE);
+  priv->time_out_value = timeout;
   return OK;
 }
 
@@ -503,7 +500,7 @@ static int hpm_tim_maxtimeout(struct timer_lowerhalf_s *lower,
 {
   DEBUGASSERT(maxtimeout);
 
-  *maxtimeout = (TIMER_MAX_VALUE/TIMER_1US_MULTIPLE);
+  *maxtimeout = (TIMER_MAX_VALUE);
 
   return OK;
 }
