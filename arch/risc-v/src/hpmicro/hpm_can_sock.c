@@ -622,6 +622,7 @@ static int hpm_can_setup(struct hpm_can_driver_s *dev)
 
   up_enable_irq(dev->irq_num);
 
+  hpm_can_rxint(dev, true);
   leave_critical_section(flags);
 
   return ret;
@@ -774,7 +775,7 @@ static void hpm_can_rxinterrupt_work(void *arg)
 # ifdef CONFIG_NET_CAN_CANFD
   uint32_t i;
 # endif
-
+  irqstate_t flags = enter_critical_section();
   can_read_received_message(priv->can_base, (can_receive_buf_t *)&s_can_rx_buf);
 
 #ifdef CONFIG_NET_CAN_CANFD
@@ -795,6 +796,17 @@ static void hpm_can_rxinterrupt_work(void *arg)
       if (s_can_rx_buf.remote_frame)
         {
           frame->can_id |= CAN_RTR_FLAG;
+        }
+      /* Get CANFD flags */
+
+      frame->flags = 0;
+      if (s_can_rx_buf.bitrate_switch)
+        {
+          frame->flags |= CANFD_BRS;
+        }
+      if (s_can_rx_buf.error_state_indicator)
+        {
+          frame->flags |= CANFD_ESI;
         }
 
       frame->len = can_dlc_to_len[s_can_rx_buf.dlc];
@@ -846,10 +858,10 @@ static void hpm_can_rxinterrupt_work(void *arg)
       priv->dev.d_buf = (uint8_t *)frame;
     }
   /* Send to socket interface */
+  can_input(&priv->dev);
+
 
   NETDEV_RXPACKETS(&priv->dev);
-
-  can_input(&priv->dev);
 
   /* Point the packet buffer back to the next Tx buffer that will be
   * used during the next write.  If the write queue is full, then
@@ -868,7 +880,7 @@ static void hpm_can_rxinterrupt_work(void *arg)
     }
 
   hpm_can_rxint(priv, true);
-
+  leave_critical_section(flags);
 }
 
 /****************************************************************************
