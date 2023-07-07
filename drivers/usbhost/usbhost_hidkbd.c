@@ -1051,28 +1051,32 @@ static int usbhost_kbdpoll(int argc, char *argv[])
           return ret;
         }
 
-      /* Format the HID report request:
-       *
-       *   bmRequestType 10100001
-       *   bRequest      GET_REPORT (0x01)
-       *   wValue        Report Type and Report Index
-       *   wIndex        Interface Number
-       *   wLength       Descriptor Length
-       *   Data          Descriptor Data
-       */
+      // /* Format the HID report request:
+      //  *
+      //  *   bmRequestType 10100001
+      //  *   bRequest      GET_REPORT (0x01)
+      //  *   wValue        Report Type and Report Index
+      //  *   wIndex        Interface Number
+      //  *   wLength       Descriptor Length
+      //  *   Data          Descriptor Data
+      //  */
 
-      ctrlreq       = (struct usb_ctrlreq_s *)priv->tbuffer;
-      ctrlreq->type = USB_REQ_DIR_IN | USB_REQ_TYPE_CLASS |
-                      USB_REQ_RECIPIENT_INTERFACE;
-      ctrlreq->req  = USBHID_REQUEST_GETREPORT;
+      // ctrlreq       = (struct usb_ctrlreq_s *)priv->tbuffer;
+      // ctrlreq->type = USB_REQ_DIR_IN | USB_REQ_TYPE_CLASS |
+      //                 USB_REQ_RECIPIENT_INTERFACE;
+      // ctrlreq->req  = USBHID_REQUEST_GETREPORT;
 
-      usbhost_putle16(ctrlreq->value, (USBHID_REPORTTYPE_INPUT << 8));
-      usbhost_putle16(ctrlreq->index, priv->ifno);
-      usbhost_putle16(ctrlreq->len,   sizeof(struct usbhid_kbdreport_s));
+      // usbhost_putle16(ctrlreq->value, (USBHID_REPORTTYPE_INPUT << 8));
+      // usbhost_putle16(ctrlreq->index, priv->ifno);
+      // usbhost_putle16(ctrlreq->len,   sizeof(struct usbhid_kbdreport_s));
 
-      /* Send HID report request */
+      // /* Send HID report request */
 
-      ret = DRVR_CTRLIN(hport->drvr, hport->ep0, ctrlreq, priv->tbuffer);
+      // ret = DRVR_CTRLIN(hport->drvr, hport->ep0, ctrlreq, priv->tbuffer);
+
+      /* use interrupt endpoint */
+      ret = DRVR_TRANSFER(hport->drvr, priv->epin, priv->tbuffer, 8);
+
       nxmutex_unlock(&priv->lock);
 
       /* Check for errors -- Bail if an excessive number of consecutive
