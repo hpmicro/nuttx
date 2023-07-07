@@ -492,10 +492,11 @@ static hpm_stat_t process_seq_data(struct adc_dev_s *dev)
         return status_invalid_argument;
     }    
 
+    ainfo("Sequence Mode - %s - ", priv->name);
+
     for (int i = 0; i < len; i++) {
-        ainfo("Sequence Mode - %s - ", priv->name);
-        ainfo("Sequence Number:%02d ", dma_data[i].seq_num);
         ainfo("Cycle Bit: %02d ", dma_data[i].cycle_bit);
+        ainfo("Sequence Number:%02d ", dma_data[i].seq_num);
         ainfo("ADC Channel: %02d ", dma_data[i].adc_ch);
         ainfo("Result: 0x%04x\n", dma_data[i].result);
     }    
@@ -514,13 +515,14 @@ static hpm_stat_t process_pmt_data(struct adc_dev_s *dev)
         return status_invalid_argument;
     }
 
-    for (int i = start_pos; i < start_pos + len; i++) {
-        ainfo("Cycle Bit: %02d ", dma_data[i].cycle_bit);
+    ainfo("Preemption Mode - %s - ", priv->name); 
+
+    for (int i = start_pos; i < start_pos + len; i++) {        
         if (dma_data[i].cycle_bit) {
-            ainfo("Preemption Mode - %s - ", priv->name); 
-            ainfo("ADC Channel: %02d ", dma_data[i].adc_ch);
-            ainfo("Trig Index: %02d ", dma_data[i].trig_index);
             ainfo("Trig Channel: %02d ", dma_data[i].trig_ch);
+            ainfo("Cycle Bit: %02d ", dma_data[i].cycle_bit);
+            ainfo("Sequence Number: %02d ", dma_data[i].seq_num);
+            ainfo("ADC Channel: %02d ", dma_data[i].adc_ch);    
             ainfo("Result: 0x%04x\n", dma_data[i].result);
             dma_data[i].cycle_bit = 0;
         } else {
