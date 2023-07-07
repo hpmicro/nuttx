@@ -63,7 +63,7 @@
  *    nsh> mkfatfs /dev/ram1
 
  *  c) Now the 'msconn' command will connect to the host and
- *     export /dev/ram0 as the USB logical unit:
+ *     export /dev/ram1 as the USB logical unit:
 
  *    nsh> msconn
  *
