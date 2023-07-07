@@ -155,7 +155,7 @@ static uint32_t gpio_get_irq_index(GPIO_Type *ptr, uint32_t pin)
 {
     uint32_t offset = 0;
     uint32_t start_irqnum = 0;
-    EBUGASSERT(ptr != HPM_PGPIO);
+    DEBUGASSERT(ptr != HPM_PGPIO);
     DEBUGASSERT(ptr != HPM_BGPIO);
     start_irqnum = HPM_IRQn_GPIO0_A;
     if (pin >= IOC_PAD_PX00)

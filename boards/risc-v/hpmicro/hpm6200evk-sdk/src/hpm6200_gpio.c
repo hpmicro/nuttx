@@ -380,7 +380,7 @@ int hpm6200_gpio_initialize(void)
 
       gpio_pin = g_gpiooutputs[i];
       hpm_configgpio(BOARD_APP_GPIO_CTRL, gpio_pin, GPIO_OUTPUT_PIN);
-      hpm_gpiowrite(BOARD_APP_GPIO_CTRL, gpio_pin, 1);
+      hpm_gpiowrite(BOARD_APP_GPIO_CTRL, gpio_pin, 0);
       gpiom_set_pin_controller(HPM_GPIOM, GPIO_GET_PORT_INDEX(gpio_pin), GPIO_GET_PIN_INDEX(gpio_pin), gpiom_soc_gpio0);
       pincount++;
     }
