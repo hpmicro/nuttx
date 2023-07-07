@@ -86,10 +86,6 @@
 #  include "hpm_usbdev.h"
 #endif
 
-#ifdef CONFIG_CDCACM
-#  include <nuttx/usb/cdcacm.h>
-#endif
-
 #ifdef CONFIG_USBMONITOR
 #  include <nuttx/usb/usbmonitor.h>
 #endif
@@ -311,16 +307,6 @@ int hpm6300_bringup(void)
 #ifdef CONFIG_HPM_USBDEV
   hpm_usbdev_initialize(CONFIG_HPM_USBDEV_INSTANCE);
 #endif
-
-#if defined(CONFIG_CDCACM) && !defined(CONFIG_CDCACM_CONSOLE) && !defined(CONFIG_CDCACM_COMPOSITE)
-  /* Initialize CDCACM */
-
-  ret = cdcacm_initialize(0, NULL);
-  if (ret < 0)
-    {
-      syslog(LOG_ERR, "ERROR: cdcacm_initialize failed: %d\n", ret);
-    }
-#endif /* CONFIG_CDCACM & !CONFIG_CDCACM_CONSOLE */
 
 #ifdef CONFIG_USBMONITOR
   /* Start the USB Monitor */
