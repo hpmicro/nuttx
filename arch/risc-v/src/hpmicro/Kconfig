@@ -1612,7 +1612,7 @@ config HPM_USBDEV
 
 	config HPM_USBDEV_INSTANCE
 		int "HPM usb instance"
-		default 1
+		default 0
 		---help---
 			0 - use USB0;  1 - use USB1
 			
