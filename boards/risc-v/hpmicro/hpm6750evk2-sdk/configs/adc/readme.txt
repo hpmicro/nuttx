@@ -12,6 +12,8 @@ ADC0/1/2    CH10      J10-7       PE24
 ADC0/1/2    CH11      J10-6       PE25
 ADC3        CH2       J10-5       PE29
 
+Note: For hpm6750evk2, make sure that the jumper is conneced on component J108 for VREF.
+
 Configuration & Build NuttX
 ==========================================
 $ make distclean
