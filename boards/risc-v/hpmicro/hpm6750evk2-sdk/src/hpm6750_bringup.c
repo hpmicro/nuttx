@@ -181,18 +181,6 @@ int hpm6750_bringup(void)
     }
 #endif
 
-#ifdef CONFIG_HPM_CAN_SOCKET
-
-  /* Initialize CAN socket interface */
-
-  ret = hpm6750_cansock_setup();
-  if (ret < 0)
-    {
-      syslog(LOG_ERR, "ERROR: hpm6750_cansock_setup failed: %d\n", ret);
-    }
-#endif
-
-
 #ifdef CONFIG_SPI_DRIVER
 #  ifdef CONFIG_HPM_SPI2
   struct spi_dev_s *spi;
