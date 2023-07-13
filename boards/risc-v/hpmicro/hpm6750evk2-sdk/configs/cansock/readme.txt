@@ -32,8 +32,28 @@ Open the terminal for interaction
 
 Example Usage:
 
+1. find net cansock device
+You can enter this command(?) to get help. the apps included netlink_route
 
-1. use cansend tool
+nsh> ?
+help usage:  help [-v] [<cmd>]
+
+  ?       cd      exec    kill    mount   pwd     uname
+  cat     echo    help    ls      printf  sleep   usleep
+Builtin Apps:
+  candump        cansend        netlink_route  nsh            sh
+
+so you can enter this command(netlink_route), it's can find net devices
+Index: it's means net device Interface index. Zero is reserved to mean no-index in the POSIX standards.
+
+nsh>
+nsh> netlink_route
+
+Device List (Entries: 1)
+  Index:  1  Name: "can0"
+
+
+2. use cansend tool
 you can enter this command(cansend ?) to get help
 
 nsh> cansend ?
@@ -64,7 +84,7 @@ nsh> cansend can0 333##1112233445566778899112233
 nsh>
 
 
-2.use candump tool
+3.use candump tool
 you can enter this command(candump) to get help
 
 nsh> candump
