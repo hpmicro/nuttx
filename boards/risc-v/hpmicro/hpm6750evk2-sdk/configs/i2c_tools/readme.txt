@@ -18,7 +18,7 @@ nsh> ls /dev
 device             board interface               use                    pin
                        J11[3]                  I2C0.SCL                 PZ11
  i2c0    <----->       
-                       J11[4]                  I2C0.SCL                 PZ10
+                       J11[4]                  I2C0.SDA                 PZ10
 Notice:you can access your i2c module at the info pin above
 
 Configure NuttX
