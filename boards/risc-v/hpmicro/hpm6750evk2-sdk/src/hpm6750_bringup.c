@@ -114,6 +114,10 @@
 #  include "hpm6750_spi_slave.h"
 #endif
 
+#ifdef CONFIG_FAT_DMAMEMORY
+#  include "hpm6750_dma_alloc.h"
+#endif
+
 /****************************************************************************
  * Name: hpm6750_bringup
  ****************************************************************************/
@@ -399,6 +403,14 @@ int hpm6750_bringup(void)
     }
 #  endif
 #endif
+
+#if defined(CONFIG_FAT_DMAMEMORY)
+  if (hpm6750_dma_alloc_init() < 0)
+    {
+      syslog(LOG_ERR, "DMA alloc FAILED");
+    }
+#endif
+
   return ret;
 }
 

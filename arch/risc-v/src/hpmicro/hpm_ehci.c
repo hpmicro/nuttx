@@ -92,7 +92,7 @@
 /* Configurable size of a request/descriptor buffers */
 
 #ifndef CONFIG_HPM_EHCI_BUFSIZE
-#  define CONFIG_HPM_EHCI_BUFSIZE 128
+#  define CONFIG_HPM_EHCI_BUFSIZE 512
 #endif
 
 #define HPM_EHCI_BUFSIZE \
@@ -438,10 +438,11 @@ static int hpm_qh_discard(struct hpm_qh_s *qh);
 static int hpm_qtd_invalidate(struct hpm_qtd_s *qtd, uint32_t **bp,
           void *arg);
 static int hpm_qh_invalidate(struct hpm_qh_s *qh);
-#endif
+
 static int hpm_qtd_flush(struct hpm_qtd_s *qtd, uint32_t **bp,
                            void *arg);
 static int hpm_qh_flush(struct hpm_qh_s *qh);
+#endif
 
 /* Endpoint Transfer Handling ***********************************************/
 
@@ -1415,6 +1416,7 @@ static int hpm_qh_invalidate(struct hpm_qh_s *qh)
 }
 #endif
 
+#if 0 /* Not used */
 /****************************************************************************
  * Name: hpm_qtd_flush
  *
@@ -1436,7 +1438,9 @@ static int hpm_qtd_flush(struct hpm_qtd_s *qtd, uint32_t **bp, void *arg)
                   (uintptr_t)&qtd->hw + sizeof(struct ehci_qtd_s));
   return OK;
 }
+#endif
 
+#if 0 /* Not used */
 /****************************************************************************
  * Name: hpm_qh_flush
  *
@@ -1459,6 +1463,7 @@ static int hpm_qh_flush(struct hpm_qh_s *qh)
 
   return hpm_qtd_foreach(qh, hpm_qtd_flush, NULL);
 }
+#endif
 
 /****************************************************************************
  * Name: hpm_qtd_print
@@ -1682,7 +1687,9 @@ static void hpm_qh_enqueue(struct hpm_qh_s *qhead, struct hpm_qh_s *qh)
    */
 
   qh->hw.hlp = qhead->hw.hlp;
+#if 0 /* Not used */
   hpm_qh_flush(qh);
+#endif
 
   /* Then set the new QH as the first QH in the asynchronous queue and flush
    * the modified head to RAM.
@@ -1691,8 +1698,10 @@ static void hpm_qh_enqueue(struct hpm_qh_s *qhead, struct hpm_qh_s *qh)
   physaddr = (uintptr_t)hpm_physramaddr((uintptr_t)qh);
   qhead->hw.hlp = hpm_swap32(physaddr | QH_HLP_TYP_QH);
 
+#if 0 /* Not used */
   up_flush_dcache((uintptr_t)&qhead->hw,
                   (uintptr_t)&qhead->hw + sizeof(struct ehci_qh_s));
+#endif
 }
 
 /****************************************************************************
@@ -1853,7 +1862,7 @@ static int hpm_qtd_addbpl(struct hpm_qtd_s *qtd, const void *buffer,
    * contents will be accessed for an OUT DMA.
    */
 
-  up_flush_dcache((uintptr_t)buffer, (uintptr_t)buffer + buflen);
+  up_flush_dcache((uintptr_t)buffer, (uintptr_t)HPM_L1C_CACHELINE_ALIGN_UP(buffer + buflen));
 
   /* Loop, adding the aligned physical addresses of the buffer to the buffer
    * page list.  Only the first entry need not be aligned (because only the
@@ -2701,9 +2710,10 @@ static int hpm_qtd_ioccheck(struct hpm_qtd_s *qtd, uint32_t **bp,
   DEBUGASSERT(qtd && epinfo);
 
   /* Make sure we reload the QH from memory */
-
+#if 0 /* Not used */
   up_invalidate_dcache((uintptr_t)&qtd->hw,
                        (uintptr_t)&qtd->hw + sizeof(struct ehci_qtd_s));
+#endif
   hpm_qtd_print(qtd);
 
   /* Remove the qTD from the list
@@ -2752,9 +2762,10 @@ static int hpm_qh_ioccheck(struct hpm_qh_s *qh, uint32_t **bp, void *arg)
   DEBUGASSERT(qh && bp);
 
   /* Make sure we reload the QH from memory */
-
+#if 0 /* Not used */
   up_invalidate_dcache((uintptr_t)&qh->hw,
                        (uintptr_t)&qh->hw + sizeof(struct ehci_qh_s));
+#endif
   hpm_qh_print(qh);
 
   /* Get the endpoint info pointer from the extended QH data.  Only the
@@ -2809,8 +2820,9 @@ static int hpm_qh_ioccheck(struct hpm_qh_s *qh, uint32_t **bp, void *arg)
        */
 
       **bp = qh->hw.hlp;
+#if 0 /* Not used */
       up_flush_dcache((uintptr_t)*bp, (uintptr_t)*bp + sizeof(uint32_t));
-
+#endif
       /* Check for errors, update the data toggle */
 
       if ((token & QH_TOKEN_ERRORS) == 0)
@@ -2912,9 +2924,10 @@ static int hpm_qtd_cancel(struct hpm_qtd_s *qtd, uint32_t **bp,
   DEBUGASSERT(qtd != NULL && bp != NULL);
 
   /* Make sure we reload the QH from memory */
-
+#if 0 /* Not used */
   up_invalidate_dcache((uintptr_t)&qtd->hw,
                        (uintptr_t)&qtd->hw + sizeof(struct ehci_qtd_s));
+#endif
   hpm_qtd_print(qtd);
 
   /* Remove the qTD from the list
@@ -2957,9 +2970,10 @@ static int hpm_qh_cancel(struct hpm_qh_s *qh, uint32_t **bp, void *arg)
   DEBUGASSERT(qh != NULL && bp != NULL && epinfo != NULL);
 
   /* Make sure we reload the QH from memory */
-
+#if 0 /* Not used */
   up_invalidate_dcache((uintptr_t)&qh->hw,
                        (uintptr_t)&qh->hw + sizeof(struct ehci_qh_s));
+#endif
   hpm_qh_print(qh);
 
   /* Check if this is the QH that we are looking for */
@@ -2988,7 +3002,9 @@ static int hpm_qh_cancel(struct hpm_qh_s *qh, uint32_t **bp, void *arg)
    */
 
   **bp = qh->hw.hlp;
+#if 0 /* Not used */
   up_flush_dcache((uintptr_t)*bp, (uintptr_t)*bp + sizeof(uint32_t));
+#endif
 
   /* Re-enable the schedules (if they were enabled before. */
 
@@ -3039,9 +3055,11 @@ static inline void hpm_ioc_bottomhalf(void)
    * Make sure that the head of the asynchronous queue is invalidated.
    */
 
+#if 0 /* Not used */
   up_invalidate_dcache((uintptr_t)&g_asynchead.hw,
                        (uintptr_t)&g_asynchead.hw +
                        sizeof(struct ehci_qh_s));
+#endif
 
   /* Set the back pointer to the forward QH pointer of the asynchronous
    * queue head.
@@ -3073,9 +3091,10 @@ static inline void hpm_ioc_bottomhalf(void)
   /* Check the Interrupt Queue
    * Make sure that the head of the interrupt queue is invalidated.
    */
-
+#if 0 /* Not used */
   up_invalidate_dcache((uintptr_t)&g_intrhead.hw,
                        (uintptr_t)&g_intrhead.hw + sizeof(struct ehci_qh_s));
+#endif
 
   /* Set the back pointer to the forward qTD pointer of the asynchronous
    * queue head.
@@ -3421,7 +3440,7 @@ static int hpm_ehci_interrupt(int irq, void *context, void *arg)
 #ifdef CONFIG_USBHOST_TRACE
   usbhost_vtrace1(EHCI_VTRACE1_TOPHALF, usbsts & regval);
 #else
-  uinfo("USBSTS: %08x USBINTR: %08x\n", usbsts, regval);
+  uinfo("USBSTS: %08lx USBINTR: %08lx\n", usbsts, regval);
 #endif
 
   /* Handle all unmasked interrupt sources */
@@ -5268,10 +5287,10 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
   g_asynchead.fqp = hpm_swap32(QTD_NQP_T);
 
   /* Set the Current Asynchronous List Address. */
-
+#if 0 /* Not used */
   up_flush_dcache((uintptr_t)&g_asynchead.hw,
     (uintptr_t)&g_asynchead.hw + sizeof(struct ehci_qh_s));
-
+#endif
   hpm_putreg(hpm_swap32(physaddr), &HCOR->asynclistaddr);
 
 #  ifndef CONFIG_USBHOST_INT_DISABLE
