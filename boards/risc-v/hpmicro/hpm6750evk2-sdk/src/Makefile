@@ -70,4 +70,8 @@ ifeq ($(CONFIG_SPI_SLAVE),y)
 CSRCS += hpm6750_spi_slave.c
 endif
 
+ifeq ($(CONFIG_FAT_DMAMEMORY),y)
+CSRCS += hpm6750_dma_alloc.c
+endif
+
 include $(TOPDIR)/boards/Board.mk

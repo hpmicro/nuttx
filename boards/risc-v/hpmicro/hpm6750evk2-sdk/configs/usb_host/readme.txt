@@ -37,17 +37,19 @@ If a FAT format USB flash disk is connected, a /dev/sda device will appear.
    sda
 
   nsh> mount -t vfat /dev/sda /mnt/sda
-  nsh> ls -l /mnt/sda
+  nsh> ls /mnt/sda
   /mnt/sda:
-   drw-rw-rw-       0 SYSTEM~1/
-   -rw-rw-rw-   17183 202210~1.PNG
-   -rw-rw-rw-   17782 202210~2.PNG
-   drw-rw-rw-       0 LOST.DIR/
-   -rw-rw-rw-   16185 202211~1.PNG
+   System Volume Information/
+   20221010_085856.png
+   20221010_101553.png
+   LOST.DIR/
+   20221115_153342.png
+   20221115_160823.png
+   20221115_160921.png
 
-  nsh> echo "dfdfd" > /mnt/sda/nuttx.txt
+  nsh> echo "hello hpmicro nuttx!" > /mnt/sda/nuttx.txt
   nsh> cat /mnt/sda/nuttx.txt
-  dfdfd
+  hello hpmicro nuttx!
 
 To prevent data loss, don't forget to un-mount the FLASH drive before removing it:
 

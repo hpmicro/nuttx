@@ -1566,28 +1566,28 @@ config HPM_USBOTG
 
 		config HPM_EHCI_NQHS
 			int "Number of Queue Head (QH) structures"
-			default 4
+			default 10
 			---help---
 				Configurable number of Queue Head (QH) structures.  The default is
-				one per Root hub port plus one for EP0 (4).
+				one per Root hub port plus one for EP0 (10).
 
 		config HPM_EHCI_NQTDS
 			int "Number of Queue Element Transfer Descriptor (qTDs)"
-			default 6
+			default 30
 			---help---
 				Configurable number of Queue Element Transfer Descriptor (qTDs).
-				The default is one per root hub plus three from EP0 (6).
+				The default is one per root hub plus three from EP0 (30).
 
 		config HPM_EHCI_BUFSIZE
 			int "Size of one request/descriptor buffer"
-			default 128
+			default 512
 			---help---
 				The size of one request/descriptor buffer in bytes.  The TD buffer
 				size must be an even number of 32-bit words and must be large enough
 				to hangle the largest transfer via a SETUP request.
 
 		config HPM_EHCI_PREALLOCATE
-			bool "Preallocate descriptor pool"
+			bool
 			default y
 			---help---
 				Select this option to pre-allocate EHCI queue and descriptor
