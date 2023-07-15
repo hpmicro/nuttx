@@ -240,6 +240,16 @@ struct hpm_dtd_s
   uint32_t                xfer_len;      /* Software only - transfer len that was queued */
 };
 
+/* This represents a Endpoint Transfer buffer address and length
+ */
+
+struct hpm_ep_buf_s
+{
+  uint32_t                address;       /* Buffer start address */
+  uint32_t                xfer_len;      /* Software only - transfer len that was queued */
+};
+
+
 /* DTD nextdesc field */
 
 #define DTD_NEXTDESC_INVALID         (1 << 0)    /* Bit 0     : Next Descriptor Invalid. The "Terminate" bit. */
@@ -377,7 +387,7 @@ struct hpm_usbdev_s
 
   uint8_t                 ep0state;      /* State of certain EP0 operations */
                                          /* buffer for EP0 short transfers */
-  uint8_t                 ep0buf[64] CACHE_ALIGNED_DATA;
+  uint8_t                 ep0buf[512] CACHE_ALIGNED_DATA;
   uint8_t                 paddr;         /* Address assigned by SETADDRESS */
   uint8_t                 stalled:1;     /* 1: Protocol stalled */
   uint8_t                 selfpowered:1; /* 1: Device is self powered */
@@ -440,6 +450,11 @@ static bool       hpm_rqenqueue(struct hpm_ep_s *privep,
 static inline void hpm_writedtd(struct hpm_dtd_s *dtd,
                                   const uint8_t *data,
                                   uint32_t nbytes);
+
+static inline void hpm_record_epbuf(struct hpm_ep_buf_s *buf,
+                                    const uint8_t *data,
+                                    uint32_t nbytes);
+
 static inline void hpm_queuedtd(uint8_t epphy, struct hpm_dtd_s *dtd);
 static inline void hpm_ep0xfer(uint8_t epphy, uint8_t *data,
                                  uint32_t nbytes);
@@ -530,6 +545,8 @@ ATTR_PLACE_AT_NONCACHEABLE struct hpm_dqh_s g_qh[HPM_NPHYSENDPOINTS]
 
 ATTR_PLACE_AT_NONCACHEABLE struct hpm_dtd_s g_td[HPM_NPHYSENDPOINTS]
                                aligned_data(32);
+
+static struct hpm_ep_buf_s s_ep_buf[HPM_NPHYSENDPOINTS];
 
 static const struct usbdev_epops_s g_epops =
 {
@@ -771,7 +788,23 @@ static inline void hpm_writedtd(struct hpm_dtd_s *dtd,
   dtd->xfer_len  = nbytes;
 
   up_flush_dcache((uintptr_t)data,
-                  (uintptr_t)data + nbytes);
+                  (uintptr_t)HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)data + nbytes));
+}
+
+/****************************************************************************
+ * Name: hpm_record_epbuf
+ *
+ * Description:
+ *   Record Ep Buffer Address and Length
+ *
+ ****************************************************************************/
+
+static inline void hpm_record_epbuf(struct hpm_ep_buf_s *buf,
+                                    const uint8_t *data,
+                                    uint32_t nbytes)
+{
+  buf->address   = hpm_physramaddr((uint32_t) data);
+  buf->xfer_len  = nbytes;
 }
 
 /****************************************************************************
@@ -816,8 +849,11 @@ static inline void hpm_ep0xfer(uint8_t epphy, uint8_t *buf,
                                  uint32_t nbytes)
 {
   struct hpm_dtd_s *dtd = &g_td[epphy];
+  struct hpm_ep_buf_s *ep_buf = &s_ep_buf[epphy];
 
   hpm_writedtd(dtd, buf, nbytes);
+
+  hpm_record_epbuf(ep_buf, buf, nbytes);
 
   hpm_queuedtd(epphy, dtd);
 }
@@ -909,6 +945,7 @@ static void hpm_flushep(struct hpm_ep_s *privep)
 static int hpm_progressep(struct hpm_ep_s *privep)
 {
   struct hpm_dtd_s *dtd = &g_td[privep->epphy];
+  struct hpm_ep_buf_s *ep_buf = &s_ep_buf[privep->epphy];
   struct hpm_req_s *privreq;
 
   /* Check the request from the head of the endpoint request queue */
@@ -972,6 +1009,9 @@ static int hpm_progressep(struct hpm_ep_s *privep)
   /* Initialise the DTD to transfer the next chunk */
 
   hpm_writedtd(dtd, privreq->req.buf + privreq->req.xfrd, bytesleft);
+
+  /* Record ep buf addr and length */
+  hpm_record_epbuf(ep_buf, privreq->req.buf, privreq->req.xfrd + bytesleft);
 
   /* Then queue onto the DQH */
 
@@ -1707,7 +1747,7 @@ static void hpm_ep0complete(struct hpm_usbdev_s *priv, uint8_t epphy)
        */
 
       up_invalidate_dcache((uintptr_t)priv->ep0buf,
-                           (uintptr_t)priv->ep0buf + sizeof(priv->ep0buf));
+                           (uintptr_t)(priv->ep0buf + sizeof(priv->ep0buf)));
 
       hpm_dispatchrequest(priv, &priv->ep0ctrl);
       hpm_ep0state(priv, EP0STATE_WAIT_NAK_IN);
@@ -1815,6 +1855,7 @@ bool hpm_epcomplete(struct hpm_usbdev_s *priv, uint8_t epphy)
   struct hpm_ep_s  *privep  = &priv->eplist[epphy];
   struct hpm_req_s *privreq = privep->head;
   struct hpm_dtd_s *dtd     = &g_td[epphy];
+  struct hpm_ep_buf_s *ep_buf = &s_ep_buf[privep->epphy];
 
   if (privreq == NULL)        /* This shouldn't really happen */
     {
@@ -1833,9 +1874,8 @@ bool hpm_epcomplete(struct hpm_usbdev_s *priv, uint8_t epphy)
   /* Make sure we have updated data after the DMA transfer.
    * This invalidation matches the flush in writedtd().
    */
-
-  up_invalidate_dcache((uintptr_t)dtd->buffer0,
-                       (uintptr_t)dtd->buffer0 + dtd->xfer_len);
+  up_invalidate_dcache((uintptr_t)ep_buf->address, 
+                       (uintptr_t)HPM_L1C_CACHELINE_ALIGN_UP(ep_buf->address + ep_buf->xfer_len));
 
   int xfrd = dtd->xfer_len - (dtd->config >> 16);
 
@@ -2329,7 +2369,7 @@ static void *hpm_epallocbuffer(struct usbdev_ep_s *ep, uint16_t bytes)
 #ifdef CONFIG_USBDEV_DMAMEMORY
   return usbdev_dma_alloc(bytes);
 #else
-  return cache_aligned_alloc(bytes);
+  return cache_aligned_alloc(HPM_L1C_CACHELINE_ALIGN_UP(bytes));
 #endif
 }
 #endif
