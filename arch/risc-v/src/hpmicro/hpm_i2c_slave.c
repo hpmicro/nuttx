@@ -86,9 +86,11 @@ typedef struct
 
 static int hpm_i2c_slave_init(hpm_i2c_slave_t  *dev);
 
+#if CONFIG_I2C_SLAVE_INTERRUPT
 static int hpm_i2c_slave_interrupt(int   irq,
                          void *context,
                          void *arg);
+#endif
 
 static void hpm_i2c_rtxint(struct i2c_slave_s  *dev, bool enable);
 
@@ -130,7 +132,7 @@ hpm_i2c_slave_t i2c0_slave_dev =
   .controller                      = 0,             /* I2C controller number */
   .ptr                             = HPM_I2C0,
   .i2c_clock                       = clock_i2c0,
-  .slave_address                   = CONFIG_HPM_I2C0_SLAVE_ADDR
+  .slave_address                   = CONFIG_HPM_I2C0_SLAVE_ADDR,
   .config.i2c_mode                 = CONFIG_HPM_I2C0_SLAVE_MODE,
   .config.is_10bit_addressing      = CONFIG_HPM_I2C0_SLAVE_10BIT_ADDR,
   .irqid                           = HPM_IRQn_I2C0,
@@ -146,7 +148,7 @@ hpm_i2c_slave_t i2c1_slave_dev =
   .controller                      = 1,             /* I2C controller number */
   .ptr                             = HPM_I2C1,
   .i2c_clock                       = clock_i2c1,
-  .slave_address                   = CONFIG_HPM_I2C1_SLAVE_ADDR
+  .slave_address                   = CONFIG_HPM_I2C1_SLAVE_ADDR,
   .config.i2c_mode                 = CONFIG_HPM_I2C1_SLAVE_MODE,
   .config.is_10bit_addressing      = CONFIG_HPM_I2C1_SLAVE_10BIT_ADDR,
   .irqid                           = HPM_IRQn_I2C1,
@@ -218,7 +220,7 @@ static int hpm_i2c_slave_init(hpm_i2c_slave_t *dev)
  *   The I2C Interrupt Handler
  *
  ****************************************************************************/
-
+#ifdef CONFIG_I2C_SLAVE_INTERRUPT
 static int hpm_i2c_slave_interrupt(int irq, void *context, void *arg)
 {
   hpm_i2c_slave_t *priv = (hpm_i2c_slave_t *)arg;
@@ -314,6 +316,7 @@ static int hpm_i2c_slave_interrupt(int irq, void *context, void *arg)
         i2c_clear_status(priv->ptr, I2C_EVENT_TRANSACTION_COMPLETE);
       }     
 }
+#endif
 
 /****************************************************************************
  * Name: hpm_i2c_rtxint
