@@ -203,6 +203,10 @@ static void        spi_recvblock(struct spi_dev_s *dev,
                                  void *rxbuffer, size_t nwords);
 #endif
 
+#ifdef CONFIG_HPM_SPI_INTERRUPTS
+static int spi_interrupt(int irq, void *context, void *arg)
+#endif
+
 /* Initialization */
 
 static void        spi_bus_initialize(struct hpm_spidev_s *priv);
@@ -692,7 +696,7 @@ static void spi_dumpregs(struct hpm_spidev_s *priv)
  *   In DMA transfer mode, handle the transmission complete interrupt
  *
  ****************************************************************************/
-
+#ifdef CONFIG_HPM_SPI_INTERRUPTS
 static int spi_interrupt(int irq, void *context, void *arg)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)arg;
@@ -717,6 +721,7 @@ static int spi_interrupt(int irq, void *context, void *arg)
 
   return 0;
 }
+#endif
 
 /****************************************************************************
  * Name: spi_dmarxwait

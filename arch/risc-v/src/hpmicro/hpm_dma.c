@@ -103,6 +103,7 @@ static int hpm_dmainterrupt(int irq, void *context, void *arg)
             }     
         }
     }
+  return 0;
 }
 
 /****************************************************************************
