@@ -1705,6 +1705,48 @@ static void hpm_qh_enqueue(struct hpm_qh_s *qhead, struct hpm_qh_s *qh)
 }
 
 /****************************************************************************
+ * Name: hpm_ehci_caculate_smask
+ *
+ * Description:
+ *   Calculates smask
+ *
+ ****************************************************************************/
+static int hpm_ehci_caculate_smask(int binterval)
+{
+    int order, interval;
+
+    interval = 1;
+
+    while (binterval > 1)
+      {
+        interval *= 2;
+        binterval--;
+      }
+
+    if (interval < 2) /* interval 1 */
+      {
+        return 0xFF;
+      }
+
+    if (interval < 4) /* interval 2 */
+      {
+        return 0x55;
+      }
+
+    if (interval < 8) /* interval 4 */
+      {
+        return 0x22;
+      }
+
+    for (order = 0; (interval > 1); order++)
+      {
+        interval >>= 1;
+      }
+
+    return (0x1 << (order % 8));
+}
+
+/****************************************************************************
  * Name: hpm_qh_create
  *
  * Description:
@@ -1817,16 +1859,17 @@ static struct hpm_qh_s *hpm_qh_create(struct hpm_rhport_s *rhport,
        * that the transaction for the endpoint should be executed on the bus
        * during micro-frame 0 of the frame.
        *
-       * REVISIT: The polling interval should be controlled by the which
-       * entry is the framelist holds the QH pointer for a given micro-frame
-       * and the QH pointer should be replicated for different polling rates.
-       * This implementation currently just sets all frame_list entry to
-       * all the same interrupt queue.  That should work but will not give
-       * any control over polling rates.
        */
-#warning REVISIT
 
-      regval |= ((uint32_t)1               << QH_EPCAPS_SSMASK_SHIFT);
+      if (epinfo->speed  == USB_SPEED_HIGH)
+        {
+          regval |= hpm_ehci_caculate_smask(epinfo->interval);
+        }
+      else
+        {
+          regval |= ((uint32_t)0x02            << QH_EPCAPS_SSMASK_SHIFT);
+          regval |= ((uint32_t)0x78            << QH_EPCAPS_SCMASK_SHIFT);
+        }
     }
 #endif
 
@@ -5035,10 +5078,6 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
   struct usbhost_hubport_s *hport;
   USB_Type *usb_instance;
   uint32_t regval;
-#  if defined(CONFIG_DEBUG_USB) && defined(CONFIG_DEBUG_INFO)
-  uint16_t regval16;
-  unsigned int nports;
-#  endif
   uintptr_t physaddr;
   int ret;
   int i;
