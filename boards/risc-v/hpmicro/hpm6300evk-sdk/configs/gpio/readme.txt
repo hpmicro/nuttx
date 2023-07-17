@@ -24,8 +24,8 @@ keep defconfig
 
 Build NuttX
 $ make distclean
-$ ./tools/configure.sh -l hpm6750evk2-sdk:gpio
-$ make -j8
+$ ./tools/configure.sh -l hpm6300evk-sdk:gpio
+$ make -j
 
 Flash the nuttx to the board and run
 
