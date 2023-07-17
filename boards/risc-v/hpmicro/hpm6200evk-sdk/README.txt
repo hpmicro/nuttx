@@ -47,7 +47,7 @@
 
 6. Flash the nuttx with openocd and run
 
-  The openocd cfg files in the path: sdk_env/hpm_sdk/boards/openocd. If you use fireDAP debugger, in windows shell, start openocd command as follows.
+  The openocd cfg files in the path: sdk_env/hpm_sdk/boards/openocd. If you use on-board debugger, in windows shell, start openocd command as follows.
     $ openocd -f probes/ft2232.cfg -f soc/hpm6280-single-core.cfg -f boards/hpm6200evk.cfg
     
   In Linux shell, start picocom.
