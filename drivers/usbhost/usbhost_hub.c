@@ -764,13 +764,6 @@ static void usbhost_hub_event(FAR void *arg)
       usbhost_putle16(ctrlreq->index, port);
       usbhost_putle16(ctrlreq->len, USB_SIZEOF_PORTSTS);
 
-      ret = DRVR_ALLOC(hport->drvr, (FAR uint8_t **)&portstatus, &maxlen);
-      if (ret < 0)
-        {
-          uerr("ERROR: DRVR_ALLOC failed: %d\n", ret);
-          continue;
-        }
-
       ret = DRVR_CTRLIN(hport->drvr, hport->ep0, ctrlreq,
                         (FAR uint8_t *)portstatus);
       if (ret < 0)
@@ -1034,11 +1027,11 @@ static void usbhost_hub_event(FAR void *arg)
           uwarn("WARNING: status %04x change %04x not handled\n",
                  status, change);
         }
-
-      /* Free portstatus memory */
-
-      (void)DRVR_FREE(hport->drvr, (FAR uint8_t *)portstatus);
     }
+  
+  /* Free portstatus memory */
+
+  DRVR_FREE(hport->drvr, (FAR uint8_t *)portstatus);
 
   /* Free portstatus memory */
 
