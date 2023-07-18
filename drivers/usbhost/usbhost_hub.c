@@ -575,7 +575,7 @@ static inline int usbhost_hubdesc(FAR struct usbhost_class_s *hubclass)
   uinfo("  DeviceRemovable:     %d\n", hubdesc->devattached);
   uinfo("  PortPwrCtrlMask:     %d\n", hubdesc->pwrctrlmask);
 
-  (void)DRVR_FREE(hport->drvr, (FAR uint8_t *)hubdesc);
+  DRVR_FREE(hport->drvr, (FAR uint8_t *)hubdesc);
 
   return OK;
 }
@@ -723,6 +723,13 @@ static void usbhost_hub_event(FAR void *arg)
   statuschange = priv->buffer[0];
   uinfo("StatusChange: %02x\n", statuschange);
 
+  ret = DRVR_ALLOC(hport->drvr, (FAR uint8_t **)&portstatus, &maxlen);
+  if (ret < 0)
+    {
+      uerr("ERROR: DRVR_ALLOC failed: %d\n", ret);
+      return;
+    }
+
   /* Check for status change on any port */
 
   for (port = 1; port <= priv->nports; port++)
@@ -747,13 +754,6 @@ static void usbhost_hub_event(FAR void *arg)
       usbhost_putle16(ctrlreq->value, 0);
       usbhost_putle16(ctrlreq->index, port);
       usbhost_putle16(ctrlreq->len, USB_SIZEOF_PORTSTS);
-
-      ret = DRVR_ALLOC(hport->drvr, (FAR uint8_t **)&portstatus, &maxlen);
-      if (ret < 0)
-        {
-          uerr("ERROR: DRVR_ALLOC failed: %d\n", ret);
-          continue;
-        }
 
       ret = DRVR_CTRLIN(hport->drvr, hport->ep0, ctrlreq,
                         (FAR uint8_t *)portstatus);
@@ -996,11 +996,11 @@ static void usbhost_hub_event(FAR void *arg)
           uwarn("WARNING: status %04x change %04x not handled\n",
                  status, change);
         }
-
-      /* Free portstatus memory */
-
-      (void)DRVR_FREE(hport->drvr, (FAR uint8_t *)portstatus);
     }
+  
+  /* Free portstatus memory */
+
+  DRVR_FREE(hport->drvr, (FAR uint8_t *)portstatus);
 
   /* Check for hub status change */
 
