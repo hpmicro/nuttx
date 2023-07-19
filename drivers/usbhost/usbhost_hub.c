@@ -542,6 +542,7 @@ static inline int usbhost_hubdesc(FAR struct usbhost_class_s *hubclass)
                     ctrlreq, (FAR uint8_t *)hubdesc);
   if (ret < 0)
     {
+      DRVR_FREE(hport->drvr, (FAR uint8_t *)hubdesc);
       uerr("ERROR: Failed to read hub descriptor: %d\n", ret);
       return ret;
     }
