@@ -268,7 +268,7 @@ static int gpout_read(struct gpio_dev_s *dev, bool *value)
 
   uint32_t gpio_pin = g_gpiooutputs[hpm63xxgpio->id];
 
-  *value = hpm_gpioread(BOARD_APP_GPIO_CTRL, gpio_pin, GPIO_INPUT_MODE);
+  *value = hpm_gpioread(BOARD_APP_GPIO_CTRL, gpio_pin, GPIO_OUTPUT_MODE);
 
   return OK;
 }
