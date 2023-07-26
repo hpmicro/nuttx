@@ -147,7 +147,7 @@ uint16_t can_callback(FAR struct net_driver_s *dev,
               clock_systime_timespec(ts);
               tv.tv_usec = ts->tv_nsec / 1000;
 
-              len = iob_trycopyin(dev->d_iob, (FAR uint8_t *)&tv,
+              len = iob_trycopyin(dev->d_iob + dev->d_len, (FAR uint8_t *)&tv,
                                   sizeof(struct timeval), 0, false);
               if (len != sizeof(struct timeval))
                 {
