@@ -973,7 +973,6 @@ static int hpm_can_send(struct hpm_can_driver_s *dev)
       struct canfd_frame *frame = (struct canfd_frame *)dev->dev.d_buf;
 
       tx_buf.canfd_frame    = 1;  /* CAN FD Frame */
-      // tx_buf.bitrate_switch = 1;
 
       if (frame->can_id & CAN_EFF_FLAG)
         {
