@@ -149,7 +149,6 @@ static struct hpmcan_dev_s g_can0priv         =
   .fifo_index                                 = 0,
   .filter_num                                 = 0,
   .filter_index                               = 0,
-  .can_config.enable_tdc                      = true,
 #  ifdef CONFIG_HPM_CAN0_USER_SET_TINING
 
   /* Assume the CAN clock is 80MHz, configure the nominal baudrate to 500kbit/s, configure the canfd baudrate to 5Mbit/s */
@@ -183,7 +182,7 @@ static struct hpmcan_dev_s g_can0priv         =
   .can_config.disable_re_transmission_for_stb = false,
   .can_config.enable_self_ack                 = false,
   .can_config.enable_tx_buffer_priority_mode  = false,
-  .can_config.enable_tdc                      = false,
+  .can_config.enable_tdc                      = true,
   .can_config.irq_txrx_enable_mask            = false,
   .can_config.irq_error_enable_mask           = false,
   .can_config.enable_can_fd_iso_mode          = CONFIG_HPM_CAN0_FD_ISO_MODE,
@@ -1232,9 +1231,9 @@ static int hpm_can_send(struct can_dev_s *dev,
   can_transmit_buf_t tx_buf = { 0 };
   
   tx_buf.id = msg->cm_hdr.ch_id;
-
+  
 #ifdef CONFIG_CAN_EXTID
-  tx_buf.extend_id = true;
+  tx_buf.extend_id = msg->cm_hdr.ch_extid;
 #else
   tx_buf.extend_id = false;
 #endif
@@ -1249,9 +1248,9 @@ static int hpm_can_send(struct can_dev_s *dev,
     }
  
 #ifdef CONFIG_CAN_FD
-  if (msg->cm_hdr.ch_edl == 1)
+  tx_buf.canfd_frame = true;
+  if (msg->cm_hdr.ch_brs)
     {
-      tx_buf.canfd_frame    = 1;
       tx_buf.bitrate_switch = 1;
     }
 #endif
