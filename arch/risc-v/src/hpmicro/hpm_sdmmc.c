@@ -166,7 +166,9 @@ static int hpm_sdmmc_interrupt(int irq, void *context, void *arg);
 static int hpm_sdmmc_registercallback(FAR struct sdio_dev_s *dev, worker_t callback, void *arg);
 #endif
 
+#ifdef CONFIG_ARCH_HAVE_SDIO_PREFLIGHT
 static int hpm_sdmmc_dmapreflight(FAR struct sdio_dev_s *dev, FAR const uint8_t *buffer, size_t buflen);
+#endif
 static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffer, size_t buflen);
 static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t *buffer, size_t buflen);
 
@@ -412,7 +414,6 @@ static void hpm_sdmmc_reset(FAR struct sdio_dev_s *dev)
  ****************************************************************************/
 static sdio_capset_t hpm_sdmmc_capabilities(FAR struct sdio_dev_s *dev)
 {
-    struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
     sdio_capset_t caps = 0;
 
     caps |= SDIO_CAPS_DMABEFOREWRITE | SDIO_CAPS_DMASUPPORTED;
@@ -509,7 +510,7 @@ static void hpm_sdmmc_sendfifo(struct hpm_sdmmc_dev_s *priv)
             }
             else
             {
-                uint32_t *ptr = (uint8_t *)priv->buffer;
+                uint32_t *ptr = (uint32_t *)priv->buffer;
                 data.w = 0;
                 for (uint32_t i = 0; i < priv->remaining; i++)
                 {
@@ -525,11 +526,6 @@ static void hpm_sdmmc_sendfifo(struct hpm_sdmmc_dev_s *priv)
 
 static void hpm_sdmmc_recvfifo(struct hpm_sdmmc_dev_s *priv)
 {
-    union
-    {
-        uint32_t w;
-        uint8_t b[4];
-    } data;
     if ((sdxc_get_present_status(priv->base) & SDXC_PSTATE_BUF_RD_ENABLE_MASK) != 0)
     {
         while (priv->remaining > 0)
@@ -550,8 +546,6 @@ static void hpm_sdmmc_recvfifo(struct hpm_sdmmc_dev_s *priv)
 static int hpm_sdmmc_interrupt(int irq, void *context, void *arg)
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)arg;
-    uint32_t enabled;
-    uint32_t pending = SDXC_INT_STAT_BUF_RD_READY_MASK | SDXC_INT_STAT_BUF_WR_READY_MASK | SDXC_INT_STAT_DMA_INTERRUPT_MASK;
     uint32_t mask;
     while ((mask = sdxc_get_interrupt_status(priv->base)) != 0)
     {
@@ -587,6 +581,7 @@ static int hpm_sdmmc_interrupt(int irq, void *context, void *arg)
 
         sdxc_clear_interrupt_status(priv->base, mask);
     }
+    return 0;
 }
 
 static int hpm_sdmmc_attach(FAR struct sdio_dev_s *dev)
@@ -614,7 +609,6 @@ static int hpm_sdmmc_attach(FAR struct sdio_dev_s *dev)
 static int hpm_sdmmc_sendcmd(FAR struct sdio_dev_s *dev, uint32_t cmd, uint32_t arg)
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
-    uint32_t cmd_idx;
 
     sdxc_command_t *sdxc_cmd = &priv->cmd;
     SDXC_Type *base = priv->base;
@@ -681,7 +675,7 @@ static int hpm_sdmmc_sendcmd(FAR struct sdio_dev_s *dev, uint32_t cmd, uint32_t 
         {
             sdxc_cmd->cmd_flags |= SDXC_CMD_XFER_DMA_ENABLE_MASK;
             base->PROT_CTRL = (base->PROT_CTRL & ~SDXC_PROT_CTRL_DMA_SEL_MASK) | SDXC_PROT_CTRL_DMA_SEL_SET(priv->adma_cfg.dma_type);
-            base->ADMA_SYS_ADDR = priv->adma_cfg.adma_table;
+            base->ADMA_SYS_ADDR = (uint32_t)priv->adma_cfg.adma_table;
         }
     }
 
@@ -1109,6 +1103,7 @@ static int hpm_sdmmc_registercallback(FAR struct sdio_dev_s *dev, worker_t callb
 }
 #endif
 
+#ifdef CONFIG_ARCH_HAVE_SDIO_PREFLIGHT
 static int hpm_sdmmc_dmapreflight(FAR struct sdio_dev_s *dev, FAR const uint8_t *buffer, size_t buflen)
 {
     /**/
@@ -1118,6 +1113,7 @@ static int hpm_sdmmc_dmapreflight(FAR struct sdio_dev_s *dev, FAR const uint8_t 
 
     return OK;
 }
+#endif
 
 static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffer, size_t buflen)
 {
@@ -1128,7 +1124,7 @@ static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffe
     /* Prepare DMA parameter */
     uint32_t sys_addr = core_local_mem_to_sys_address(BOARD_RUNNING_CORE, (uint32_t)buffer);
     hpm_sdmmc_noncacheable_ctx_t *nc_ctx = priv->nc_ctx;
-    nc_ctx->adma_desc.addr = sys_addr;
+    nc_ctx->adma_desc.addr = (uint32_t*)sys_addr;
     nc_ctx->adma_desc.len_attr = 0;
     nc_ctx->adma_desc.len_lower = buflen & 0xFFFFU;
     nc_ctx->adma_desc.len_upper = (buflen >> 16) & 0xFFFFU;
@@ -1137,7 +1133,7 @@ static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffe
     nc_ctx->adma_desc.act = SDXC_ADMA2_DESC_TYPE_TRANS;
     nc_ctx->adma_desc.end = 1;
 
-    priv->adma_cfg.adma_table = &nc_ctx->adma_desc;
+    priv->adma_cfg.adma_table = (uint32_t*)&nc_ctx->adma_desc;
     priv->adma_cfg.dma_type = sdxc_dmasel_adma2;
     priv->adma_cfg.adma_table_words = sizeof(nc_ctx->adma_desc) / sizeof(uint32_t);
     priv->dma_mode = HPM_SDMMC_DMA_MODE_ADMA2;
@@ -1167,7 +1163,7 @@ static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t 
     /* Prepare DMA parameter */
     uint32_t sys_addr = core_local_mem_to_sys_address(BOARD_RUNNING_CORE, (uint32_t)buffer);
     hpm_sdmmc_noncacheable_ctx_t *nc_ctx = priv->nc_ctx;
-    nc_ctx->adma_desc.addr = sys_addr;
+    nc_ctx->adma_desc.addr = (uint32_t*)sys_addr;
     nc_ctx->adma_desc.len_attr = 0;
     nc_ctx->adma_desc.len_lower = buflen & 0xFFFFU;
     nc_ctx->adma_desc.len_upper = (buflen >> 16) & 0xFFFFU;
@@ -1176,7 +1172,7 @@ static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t 
     nc_ctx->adma_desc.act = SDXC_ADMA2_DESC_TYPE_TRANS;
     nc_ctx->adma_desc.end = 1;
 
-    priv->adma_cfg.adma_table = &nc_ctx->adma_desc;
+    priv->adma_cfg.adma_table = (uint32_t*)&nc_ctx->adma_desc;
     priv->adma_cfg.dma_type = sdxc_dmasel_adma2;
     priv->adma_cfg.adma_table_words = sizeof(nc_ctx->adma_desc) / sizeof(uint32_t);
     priv->dma_mode = HPM_SDMMC_DMA_MODE_ADMA2;
@@ -1213,7 +1209,7 @@ struct sdio_dev_s *sdio_initialize(int slotno)
     {
         board_init_sd_pins(priv->base);
         board_sd_configure_clock(priv->base, HPM_SDMMC_CLK_INIT_FREQ);
-        hpm_sdmmc_reset(priv);
+        hpm_sdmmc_reset(&priv->dev);
         return &priv->dev;
     }
     return NULL;
