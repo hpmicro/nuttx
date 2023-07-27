@@ -167,6 +167,8 @@
 
 /* Port numbers */
 
+#define HPNDX(hp)             ((hp)->port)
+#define HPORT(hp)             (HPNDX(hp)+1)
 #define RHPNDX(rh)            ((rh)->hport.hport.port)
 #define RHPORT(rh)            (RHPNDX(rh)+1)
 
@@ -244,6 +246,12 @@ struct hpm_epinfo_s
   usbhost_asynch_t callback;     /* Transfer complete callback */
   void *arg;                     /* Argument that accompanies the callback */
 #endif
+
+  /* These fields are used in the split-transaction protocol. */
+
+  uint8_t hubaddr;             /* USB device address of the high-speed hub below */
+                               /* which a full/low-speed device is attached. */
+  uint8_t hubport;             /* The port on the above high-speed hub. */
 };
 
 /* This structure retains the state of one root hub port */
@@ -287,6 +295,8 @@ struct hpm_ehci_s
 
   volatile struct usbhost_hubport_s *hport;
 #endif
+
+  struct usbhost_devaddr_s devgen;  /* Address generation data */
 
   /* Root hub ports */
 
@@ -1758,10 +1768,8 @@ static struct hpm_qh_s *hpm_qh_create(struct hpm_rhport_s *rhport,
                                           struct hpm_epinfo_s *epinfo)
 {
   struct hpm_qh_s *qh;
-  uint32_t rhpndx;
   uint32_t regval;
-  uint8_t hubaddr;
-  uint8_t hubport;
+  uint32_t rl = 0;
 
   /* Allocate a new queue head structure */
 
@@ -1787,8 +1795,15 @@ static struct hpm_qh_s *hpm_qh_create(struct hpm_rhport_s *rhport,
    * DTC      Data toggle control             1
    * MAXPKT   Max packet size                 Endpoint structure
    * C        Control endpoint                Calculated
-   * RL       NAK count reloaded              8
+   * RL       NAK count reloaded              Depends on speed and
+   *                                          epinfo->xfrtype
    */
+
+  if (epinfo->speed == USB_SPEED_HIGH &&
+      epinfo->xfrtype != USB_EP_ATTR_XFER_INT)
+    {
+      rl = 8;
+    }
 
   regval = ((uint32_t)epinfo->devaddr << QH_EPCHAR_DEVADDR_SHIFT) |
            ((uint32_t)epinfo->epno << QH_EPCHAR_ENDPT_SHIFT) |
@@ -1796,7 +1811,7 @@ static struct hpm_qh_s *hpm_qh_create(struct hpm_rhport_s *rhport,
             QH_EPCHAR_EPS_SHIFT) |
            QH_EPCHAR_DTC |
            ((uint32_t)epinfo->maxpacket << QH_EPCHAR_MAXPKT_SHIFT) |
-           ((uint32_t)8 << QH_EPCHAR_RL_SHIFT);
+           ((uint32_t)rl << QH_EPCHAR_RL_SHIFT);
 
   /* Paragraph 3.6.3: "Control Endpoint Flag (C). If the QH.EPS field
    * indicates the endpoint is not a high-speed device, and the endpoint
@@ -1819,37 +1834,14 @@ static struct hpm_qh_s *hpm_qh_create(struct hpm_rhport_s *rhport,
    * FIELD    DESCRIPTION                     VALUE/SOURCE
    * -------- ------------------------------- --------------------
    * SSMASK   Interrupt Schedule Mask         Depends on epinfo->xfrtype
-   * SCMASK   Split Completion Mask           0
-   * HUBADDR  Hub Address                     Always 0 for now
-   * PORT     Port number                     RH port index + 1
+   * SCMASK   Split Completion Mask           Depends on epinfo->speed
+   * HUBADDR  Hub Address                     epinfo->hubaddr
+   * PORT     Port number                     epinfo->hubport
    * MULT     High band width multiplier      1
    */
 
-  rhpndx  = RHPNDX(rhport);
-
-#ifdef CONFIG_USBHOST_HUB
-  /* REVISIT:  Future HUB support will require the HUB port number
-   * and HUB device address to be included here:
-   *
-   * - The HUB device address is the USB device address of the USB 2.0 Hub
-   *   below which a full- or low-speed device is attached.
-   * - The HUB port number is the port number on the above USB 2.0 Hub
-   *
-   * These fields are used in the split-transaction protocol.  The kludge
-   * below should work for hubs connected directly to a root hub port,
-   * but would not work for devices connected to downstream hubs.
-   */
-
-#warning Missing logic
-  hubaddr = rhport->ep0.devaddr;
-  hubport = rhpndx + 1;
-#else
-  hubaddr = rhport->ep0.devaddr;
-  hubport = rhpndx + 1;
-#endif
-
-  regval  = ((uint32_t)hubaddr << QH_EPCAPS_HUBADDR_SHIFT) |
-            ((uint32_t)hubport << QH_EPCAPS_PORT_SHIFT) |
+  regval  = ((uint32_t)(epinfo->hubaddr) << QH_EPCAPS_HUBADDR_SHIFT) |
+            ((uint32_t)(epinfo->hubport) << QH_EPCAPS_PORT_SHIFT) |
             ((uint32_t)1       << QH_EPCAPS_MULT_SHIFT);
 
 #ifndef CONFIG_USBHOST_INT_DISABLE
@@ -3601,7 +3593,7 @@ static int hpm_wait(struct usbhost_connection_s *conn,
           leave_critical_section(flags);
 
           usbhost_vtrace2(EHCI_VTRACE2_MONWAKEUP,
-                          connport->port + 1, connport->connected);
+                          HPORT(connport), connport->connected);
           return OK;
         }
 #endif
@@ -3896,13 +3888,13 @@ static int hpm_enumerate(struct usbhost_connection_s *conn,
 
   /* Then let the common usbhost_enumerate do the real enumeration. */
 
-  usbhost_vtrace1(EHCI_VTRACE1_CLASSENUM, hport->port);
+  usbhost_vtrace1(EHCI_VTRACE1_CLASSENUM, HPORT(hport));
   ret = usbhost_enumerate(hport, &hport->devclass);
   if (ret < 0)
     {
       /* Failed to enumerate */
 
-      usbhost_trace2(EHCI_TRACE2_CLASSENUM_FAILED, hport->port + 1, -ret);
+      usbhost_trace2(EHCI_TRACE2_CLASSENUM_FAILED, HPORT(hport), -ret);
 
       /* If this is a root hub port, then marking the hub port not connected
        * will cause hpm_wait() to return and we will try the connection
@@ -4042,6 +4034,32 @@ static int hpm_epalloc(struct usbhost_driver_s *drvr,
   epinfo->speed     = hport->speed;
 
   nxsem_init(&epinfo->iocsem, 0, 0);
+
+#ifdef CONFIG_USBHOST_HUB
+  if (hport->speed != USB_SPEED_HIGH)
+    {
+      /* A high speed hub exists between this device and the root hub
+       * otherwise we would not get here.
+       */
+
+      struct usbhost_hubport_s *parent = hport->parent;
+
+      for (; parent->speed != USB_SPEED_HIGH; parent = hport->parent)
+        {
+          hport = parent;
+        }
+
+      if (parent->speed == USB_SPEED_HIGH)
+        {
+          epinfo->hubport = HPORT(hport);
+          epinfo->hubaddr = hport->parent->funcaddr;
+        }
+      else
+        {
+          return -EINVAL;
+        }
+    }
+#endif
 
   /* Success.. return an opaque reference to the endpoint information
    * structure instance
@@ -5129,6 +5147,10 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
 
   usbhost_vtrace1(EHCI_VTRACE1_INITIALIZING, 0);
 
+  /* Initialize function address generation logic */
+
+  usbhost_devaddr_initialize(&g_ehci.devgen);
+
   /* Initialize the root hub port structures */
 
   for (i = 0; i < HPM_EHCI_NRHPORT; i++)
@@ -5155,6 +5177,7 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
       rhport->drvr.connect = hpm_connect;
 #  endif
       rhport->drvr.disconnect = hpm_disconnect;
+      rhport->hport.pdevgen   = &g_ehci.devgen;
 
       /* Initialize EP0 */
 
@@ -5173,10 +5196,6 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
       hport->ep0 = &rhport->ep0;
       hport->port = i;
       hport->speed = USB_SPEED_FULL;
-
-      /* Initialize function address generation logic */
-
-      usbhost_devaddr_initialize(&rhport->hport);
     }
 
 #  ifndef CONFIG_HPM_EHCI_PREALLOCATE
