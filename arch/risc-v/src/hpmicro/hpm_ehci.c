@@ -3850,15 +3850,26 @@ static int hpm_rh_enumerate(struct usbhost_connection_s *conn,
        *    repeat."
        */
 
-      DEBUGASSERT(hport->speed == USB_SPEED_FULL);
+      if (hport->speed != USB_SPEED_FULL)
+        {
+          /* And return a failure */
+
+          rhport->connected = false;
+          return -EPERM;
+        }
     }
 
   /* Otherwise it must be a low speed device */
 
   else
     {
-      DEBUGASSERT(hport->speed == USB_SPEED_LOW);
-      DEBUGASSERT(USB_PORTSC1_PSPD_GET(regval) == 0x01);
+      if (hport->speed != USB_SPEED_LOW)
+        {
+          /* And return a failure */
+
+          rhport->connected = false;
+          return -EPERM;
+        }
     }
 
   return OK;
