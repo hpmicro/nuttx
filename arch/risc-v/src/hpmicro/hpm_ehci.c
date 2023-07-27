@@ -4036,7 +4036,7 @@ static int hpm_epalloc(struct usbhost_driver_s *drvr,
   nxsem_init(&epinfo->iocsem, 0, 0);
 
 #ifdef CONFIG_USBHOST_HUB
-  if (hport->speed != USB_SPEED_HIGH)
+  if ((hport->parent != NULL) && (hport->speed != USB_SPEED_HIGH))
     {
       /* A high speed hub exists between this device and the root hub
        * otherwise we would not get here.
