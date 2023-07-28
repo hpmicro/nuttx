@@ -10,7 +10,6 @@ Board interface(J17)          CAN analyzer
 
 Configure NuttX
 the CAN char device only support standard can, so only a maximum of 8 bytes can be received.
-You can enable CANFD,but it only support display a maimum of  16 bytes in terminal
 
 if you want change baudrate,you can make menuconfig:
 -> System Type                                                                                                                                                                                                                                                                                                                                                                                                      │  
