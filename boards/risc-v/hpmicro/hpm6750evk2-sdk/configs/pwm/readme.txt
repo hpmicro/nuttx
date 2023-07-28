@@ -14,10 +14,10 @@ nsh> ls /dev
 
 PWM2 channel             board interface               pin
     CH1                      J10[13]                   PD30
-    CH2                      J11[12]                   PE04
-    CH3                      J11[11]                   PE03
-    CH4                      J11[10]                   PD29
-    CH5                      J11[9]                    PD28
+    CH2                      J10[12]                   PE04
+    CH3                      J10[11]                   PE03
+    CH4                      J10[10]                   PD29
+    CH5                      J10[9]                    PD28
 
 Notice:since the PWM pins is shared with the ETH pins, it's necessary to disconnect the relevant resistors.
 that is, disconnect all the resistors at the silk screen of the GigE POP
