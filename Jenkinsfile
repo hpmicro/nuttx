@@ -1,32 +1,31 @@
-#!groovy
+#!groovytestReport
 
 def testReport = "TestReport.xml"
 def cases = []
 def commitid = ""
-def cronSettings = "0 23 * * *"
+def cronSettings = "0 10 * * *"
+def rttWorkspace = ""
+def debugNodes = "qa_builder"
 
-if(BRANCH_NAME == "master"){
-	cronSettings = "0 23 * * *"
+if(BRANCH_NAME == "add_jenkinsfile"){
+	cronSettings = "0 12 * * *"    // default set 10 clock to execute every day
 } else {
-    return
+    cronSettings = "0 0 31 2 *"
 }
 
 
 class Globals {
-    static winBatBatch = [:] // buildnode: BatbBatchNum
     static linuxReportStash = [:] //buildnode: stashreport
-    static String buildCodeClone = "git clone git@192.168.11.211:swtesting/rtt_build.git -b release_1.0.0"
-    static String hpmSdkCloneLink = "git@192.168.11.211:oss/nuttx.git"
-    static String winCloneDstDir = "D:\\hpm_sdk"
-    static String exBoardList = "[]"
-    static String toolchainList = "['gnu_gcc']"
-    static String exBuildTypeList = "[]"
+    static String buildCodeClone = "git clone git@192.168.11.211:swtesting/rtt_build.git -b integration_nuttx_build"
+    static String nuttxCodeClone = "git clone git@192.168.11.211:oss/nuttx.git"
+    // static String appsCodeClone = "git clone https://github.com/apache/nuttx-apps.git apps --depth=1 -b releases/12.0"
+    static String appsPackage = "nuttx-apps-releases-12.0"
 }
 
 pipeline {
     agent {
         label "linux_node"
-    }    // agent
+    }
 
     options {
         skipDefaultCheckout()
@@ -44,28 +43,28 @@ pipeline {
                 branch BRANCH_NAME
             }
             steps {
+                println WORKSPACE
                 deleteDir()
-                checkout scm
+                // checkout scm
                 script {
-                    commitid = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-
+                    sh("$Globals.buildCodeClone && $Globals.nuttxCodeClone")
+                    commitid = sh(returnStdout: true, script: "cd nuttx && git rev-parse --short HEAD").trim()
                 }
             }
         }
 
-        stage("Collect case list"){
+        stage("collect case list"){
             when {
                 branch BRANCH_NAME
             }
-
             steps {
                 script {
-                    sh("$Globals.buildCodeClone && /home/builder/.local/bin/pytest --collect-only --hpm_sdk_dir . ci_build/test_build.py --build_base_dir build --ex_board_list \"$Globals.exBoardList\" --toolchain_list \"$Globals.toolchainList\" --ex_build_type_list \"$Globals.exBuildTypeList\"")
-                    if(fileExists('caselist.csv')) {
+                    sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd rtt_build && /home/builder/.local/bin/pytest --collect-only --project nuttx --project_src_dir ${WORKSPACE}/nuttx --build_dir ${WORKSPACE}/output test_build/test_nuttx_build/test_build.py::test_build")
+                    def caseFile = "$WORKSPACE/rtt_build/caselist.csv"
+                    if(fileExists(caseFile)) {
                         echo 'caselist.csv found'
-                        readFile("caselist.csv").split('\n').each { line, count ->
+                        readFile(caseFile).split('\n').each { line, count ->
                             cases.add(line.split(',')[1])
-
                         }
                         cases =  cases[1..-1]  // ignore header column
                     }
@@ -79,49 +78,33 @@ pipeline {
             }
             steps{
                 script {
-                    def projectName = getProjectnName()
+                    def projectName = getProjectName()
                     def buildStages = [:]
-                    if(projectName.indexOf("linux") != -1){
+                    if(projectName.indexOf("nuttx") != -1){
                         buildStages = getParallelStageByCaseBalance(cases, "linux")
-                    } else {
-                        buildStages = getParallelStageByCaseBalance(cases, "windows")
                     }
                     parallel buildStages
                 }
             }
         }
-
-
         stage("merge report"){
 
             when {
                 branch BRANCH_NAME
             }
-
             steps {
                 script {
-                    def projectName = getProjectnName()
-                    def buildNodes = []
-
-
+                    rttWorkspace = "$WORKSPACE/rtt_build"
                     // unstash report for each build
                     def merge_cmd = "/home/builder/.local/bin/junitparser merge"
+                    // def merge_cmd = "junitparser merge"
 
-                    if(projectName.indexOf("linux") != -1){
-                        Globals.linuxReportStash.each { node, report ->
-                            unstash name: report
-                            merge_cmd = merge_cmd + " ci_build/" + report +".xml"
-                        }
-                    } else {
-                        Globals.winBatBatch.each { node, num ->
-                            for(int i=1; i < num + 1; i++){
-                                unstash name: "report_" + node + "_" + Integer.toString(i)
-                                merge_cmd = merge_cmd + " ci_build/report_" + node + "_" +  Integer.toString(i) + ".xml"
-                            }
-                        }
+                    Globals.linuxReportStash.each{node, report ->
+                        unstash name: report
+                        merge_cmd = merge_cmd + " " + "rtt_build/${report}.xml"
                     }
-
                     merge_cmd = merge_cmd + " " + testReport
+
                     sh(merge_cmd)
                     junit testReport
                 }
@@ -135,7 +118,7 @@ pipeline {
             echo "Done with the Build"
             script {
                 def changeSets = getChangeSets().toString()
-                gen_report_cmd = "python3 ci_build/generate_report.py --xml_reportfile $testReport --build_url ${BUILD_URL} --build_date \"${BUILD_TIMESTAMP}\" --build_duration \"${currentBuild.durationString}\" --git_commit $commitid --branch ${BRANCH_NAME} --cause \"${currentBuild.getBuildCauses()[0].shortDescription}\" --changesets \"${changeSets}\""
+                gen_report_cmd = "python3 rtt_build/nuttx_generate_report.py --xml_reportfile $testReport --build_url ${BUILD_URL} --build_date \"${BUILD_TIMESTAMP}\" --build_duration \"${currentBuild.durationString}\" --git_commit $commitid --branch ${BRANCH_NAME} --cause \"${currentBuild.getBuildCauses()[0].shortDescription}\" --changesets \"${changeSets}\""
                 sh(gen_report_cmd)
             }
             //archiveArtifacts artifacts: "*.zip", fingerprint: true
@@ -143,18 +126,21 @@ pipeline {
         }// always
         success {
             script {
+                println "****Success****"
                 testResult = "success"
                 EmailNotification(commitid, testResult)
             }// script
         }// success
         failure {
             script {
+                println "****Failure****"
                 testResult = "failure"
                 EmailNotification(commitid, testResult)
             }// script
         }// failure
         unstable {
             script {
+                println "****Unstable****"
                 testResult = "unstable"
                 EmailNotification(commitid, testResult)
             }// script
@@ -200,19 +186,22 @@ String getBranchName(){
     return branchName
 }
 
-String getProjectnName(){
+String getProjectName(){
     def projectName = "${JOB_NAME}"
+    println "Job Name：${projectName}"
     projectName = projectName.split("/")[0]
     return projectName
 }
 
 def getParallelStageByCaseBalance(cases, os){
-    def buildId = "${BUILD_ID}"
     def buildNodes = []
-    def branchName =  getBranchName()
+    def branchName = getBranchName()
+    def projectName = getProjectName()
 
     if(os == "linux"){
         buildNodes = getOnlineNodeNames("Linux_build")
+        // buildNodes = getOnlineNodeNames("qa_builder")
+        println "buildNodes: ${buildNodes}"
     } else {
         buildNodes = getOnlineNodeNames("Windows_build")
     }
@@ -225,7 +214,7 @@ def getParallelStageByCaseBalance(cases, os){
         nodeCaseMap[node] = []
     }
 
-    //for each node add case
+    // each node add case
     for(caseName in cases){
         if(nodeIndex == buildNodes.size()){
             nodeIndex = 0
@@ -233,8 +222,8 @@ def getParallelStageByCaseBalance(cases, os){
         nodeCaseMap[buildNodes[nodeIndex]].add(caseName)
         nodeIndex = nodeIndex + 1
     }
-
-    //Declear buildStage
+    println "nodeCaseMap: ${nodeCaseMap}"
+    // nodeCaseMap = ["qa_builder":["test_build.py::test_build[hpm6750evk2-sdk_gpio-ram_debug]", "test_build.py::test_build[hpm6750evk2-sdk_gpio-flash_xip]"]]
     def buildStages = [:]
     nodeCaseMap.each { buildNode, runCases ->
         buildStages[buildNode + "_build"] = {
@@ -243,46 +232,21 @@ def getParallelStageByCaseBalance(cases, os){
                     deleteDir()
                     if(os == "linux"){
                         String casesStr = ""
-                        for(String caseName in runCases){
-                            casesStr = casesStr + " " + caseName[0..-1]
-                        }
                         if(runCases.size() != 0){
-                            sh("git clone $Globals.hpmSdkCloneLink -b $branchName")
-                            sh(Globals.buildCodeClone)
-                            sh("export PATH=$PATH:/usr/share/segger_embedded_studio_for_risc/bin && cd ci_build && /home/builder/.local/bin/pytest --hpm_sdk_dir ${WORKSPACE}/hpm_sdk $casesStr --build_base_dir /home/builder/build/$branchName/$buildId --gnu_toolchain_dir /home/builder/riscv32-unknown-elf-newlib-multilib --andes_toolchain_dir /home/builder/nds32le-elf-newlib-v5d -n 8 --suppress-tests-failed-exit-code --junit-xml=report_${buildNode}.xml --branch_name $branchName --build_id $buildId --ex_board_list \"$Globals.exBoardList\" --toolchain_list \"$Globals.toolchainList\" --ex_build_type_list \"$Globals.exBuildTypeList\"")
-                            stash includes: "ci_build/*.xml", name:"report_$buildNode"
-                            Globals.linuxReportStash.put(buildNode, "report_$buildNode")
-                        } else {
-                            println "No case assigned"
-                        }
-                    } else {
-                        bat("if exist $Globals.winCloneDstDir rd /q /s $Globals.winCloneDstDir")
-                        bat("git config --global core.longpaths true")
-                        bat("git clone $Globals.hpmSdkCloneLink -b $branchName $Globals.winCloneDstDir")
-                        bat(Globals.buildCodeClone)
-			            def index = 0
-                        String casesStr = ""
-                        if(runCases.size() != 0) {
-                            // This solution is fix windonws command line length limitation
                             for(String caseName in runCases){
                                 casesStr = casesStr + " " + caseName[0..-1]
-                                if(casesStr.length() > 7000){ // windodws command line max length is 8191
-                                    index = index + 1
-                                    bat("cd ci_build && pytest --hpm_sdk_dir $Globals.winCloneDstDir $casesStr --build_base_dir D:\\build\\$branchName\\$buildId --gnu_toolchain_dir D:\\toolchain\\rv32imac-ilp32-multilib-win --andes_toolchain_dir D:\\toolchain\\nds32le-elf-newlib-v5d -n 8 --suppress-tests-failed-exit-code --junit-xml=report_${buildNode}_${index}.xml --branch_name $branchName --build_id $buildId --ex_board_list \"$Globals.exBoardList\" --toolchain_list \"$Globals.toolchainList\" --ex_build_type_list \"$Globals.exBuildTypeList\"")
-                                    stash includes: "ci_build/report_${buildNode}_${index}.xml", name:"report_${buildNode}_${index}"
-                                    casesStr = ""
-                                }
                             }
-                            if(casesStr.length() > 0){
-                                index = index + 1
-                                bat("cd ci_build && pytest --hpm_sdk_dir $Globals.winCloneDstDir $casesStr --build_base_dir D:\\build\\$branchName\\$buildId --gnu_toolchain_dir D:\\toolchain\\rv32imac-ilp32-multilib-win --andes_toolchain_dir D:\\toolchain\\nds32le-elf-newlib-v5d -n 8 --suppress-tests-failed-exit-code --junit-xml=report_${buildNode}_${index}.xml --branch_name $branchName --build_id $buildId --ex_board_list \"$Globals.exBoardList\" --toolchain_list \"$Globals.toolchainList\" --ex_build_type_list \"$Globals.exBuildTypeList\"")
-                                stash includes: "ci_build/report_${buildNode}_${index}.xml", name:"report_${buildNode}_${index}"
-                            }
-                            Globals.winBatBatch.put(buildNode, index)
+                            def outputPath = "$WORKSPACE/$BUILD_ID/output"
+                            def buildPath = "$WORKSPACE/rtt_build"
+                            def nuttxPath = "$WORKSPACE/nuttx"
+                            sh("$Globals.nuttxCodeClone  && $Globals.buildCodeClone && unzip -q /home/builder/${Globals.appsPackage}.zip && mv ${Globals.appsPackage} apps ")
+                            sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd $buildPath/test_build/test_nuttx_build && /home/builder/.local/bin/pytest --suppress-tests-failed-exit-code --project nuttx $casesStr --project_src_dir $nuttxPath --build_dir $outputPath --junit-xml=$buildPath/report_${buildNode}.xml --jenkins_project $projectName --jenkins_build_id $BUILD_ID --jenkins_branch $BRANCH_NAME")
+                            
+                            stash includes: "rtt_build/report_${buildNode}.xml", name:"report_${buildNode}"
+                            Globals.linuxReportStash.put(buildNode, "report_${buildNode}")
                         } else {
                             println "No case assigned"
-                        }
-
+                        } 
                     }
                 }
             }
@@ -303,7 +267,7 @@ def EmailNotification(commitid, buildResult){
         jenkinsBuildType = "Daily Build"
     }
 
-    if(getProjectnName().indexOf("linux") != -1){
+    if(getProjectName().indexOf("nuttx") != -1){
         os = "Linux"
     } else {
         os = "Windows"
@@ -319,16 +283,14 @@ def EmailNotification(commitid, buildResult){
         mailList = "swtest@hpmicro.com"
         testResult = "Failed"
     } else {
-        mailList = "sw@hpmicro.com"
+        mailList = "swtest@hpmicro.com"
         testResult = "Failed"
     }
-
 
     emailext body: '''${FILE, path="report.html"}''',
     	mimeType: 'text/html',
         subject: "[${jenkinsBuildType}]${project}-${env.BRANCH_NAME}-${commitid}-${os}-${testResult}",
         to: "${mailList}",
-        replyTo: "${mailList}",
+        // replyTo: "${mailList}",
         recipientProviders: [[$class: 'CulpritsRecipientProvider']]
-
 }// EmailNotification
