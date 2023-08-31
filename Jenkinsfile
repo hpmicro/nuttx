@@ -3,12 +3,11 @@
 def testReport = "TestReport.xml"
 def cases = []
 def commitid = ""
-def cronSettings = "0 10 * * *"
+def cronSettings = "0 0 0 * *"
 def rttWorkspace = ""
-def debugNodes = "qa_builder"
 
-if(BRANCH_NAME == "add_jenkinsfile"){
-	cronSettings = "0 12 * * *"    // default set 10 clock to execute every day
+if(BRANCH_NAME == "nuttx_with_hpmsdk"){
+	cronSettings = "0 12 * * *"    // default set 12 clock to execute every day
 } else {
     cronSettings = "0 0 31 2 *"
 }
@@ -16,7 +15,7 @@ if(BRANCH_NAME == "add_jenkinsfile"){
 
 class Globals {
     static linuxReportStash = [:] //buildnode: stashreport
-    static String buildCodeClone = "git clone git@192.168.11.211:swtesting/rtt_build.git -b integration_nuttx_build"
+    static String buildCodeClone = "git clone git@192.168.11.211:swtesting/rtt_build.git -b nuttx_release_1.0.0"
     static String nuttxCodeClone = "git clone git@192.168.11.211:oss/nuttx.git"
     // static String appsCodeClone = "git clone https://github.com/apache/nuttx-apps.git apps --depth=1 -b releases/12.0"
     static String appsPackage = "nuttx-apps-releases-12.0"
@@ -43,6 +42,7 @@ pipeline {
                 branch BRANCH_NAME
             }
             steps {
+                println "BRANCH_NAME：$BRANCH_NAME "
                 println WORKSPACE
                 deleteDir()
                 // checkout scm
@@ -59,7 +59,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd rtt_build && /home/builder/.local/bin/pytest --collect-only --project nuttx --project_src_dir ${WORKSPACE}/nuttx --build_dir ${WORKSPACE}/output test_build/test_nuttx_build/test_build.py::test_build")
+                    sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd rtt_build && /home/builder/.local/bin/pytest --collect-only --project nuttx --project_src_dir ${WORKSPACE}/nuttx --build_dir ${WORKSPACE}/output test_build/test_nuttx_build/test_build.py")
                     def caseFile = "$WORKSPACE/rtt_build/caselist.csv"
                     if(fileExists(caseFile)) {
                         echo 'caselist.csv found'
@@ -97,8 +97,6 @@ pipeline {
                     rttWorkspace = "$WORKSPACE/rtt_build"
                     // unstash report for each build
                     def merge_cmd = "/home/builder/.local/bin/junitparser merge"
-                    // def merge_cmd = "junitparser merge"
-
                     Globals.linuxReportStash.each{node, report ->
                         unstash name: report
                         merge_cmd = merge_cmd + " " + "rtt_build/${report}.xml"
@@ -239,8 +237,8 @@ def getParallelStageByCaseBalance(cases, os){
                             def outputPath = "$WORKSPACE/$BUILD_ID/output"
                             def buildPath = "$WORKSPACE/rtt_build"
                             def nuttxPath = "$WORKSPACE/nuttx"
-                            sh("$Globals.nuttxCodeClone  && $Globals.buildCodeClone && unzip -q /home/builder/${Globals.appsPackage}.zip && mv ${Globals.appsPackage} apps ")
-                            sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd $buildPath/test_build/test_nuttx_build && /home/builder/.local/bin/pytest --suppress-tests-failed-exit-code --project nuttx $casesStr --project_src_dir $nuttxPath --build_dir $outputPath --junit-xml=$buildPath/report_${buildNode}.xml --jenkins_project $projectName --jenkins_build_id $BUILD_ID --jenkins_branch $BRANCH_NAME")
+                            sh("$Globals.buildCodeClone && unzip -q /home/builder/${Globals.appsPackage}.zip && mv ${Globals.appsPackage} apps && $Globals.nuttxCodeClone && cd nuttx && git checkout -b $branchName")
+                            sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd $buildPath/test_build/test_nuttx_build && /home/builder/.local/bin/pytest --suppress-tests-failed-exit-code --project nuttx $casesStr --project_src_dir $nuttxPath --build_dir $outputPath --junit-xml=$buildPath/report_${buildNode}.xml --jenkins_project $projectName --jenkins_build_id $BUILD_ID --jenkins_branch $BRANCH_NAME -p no:warnings")
                             
                             stash includes: "rtt_build/report_${buildNode}.xml", name:"report_${buildNode}"
                             Globals.linuxReportStash.put(buildNode, "report_${buildNode}")
@@ -283,7 +281,7 @@ def EmailNotification(commitid, buildResult){
         mailList = "swtest@hpmicro.com"
         testResult = "Failed"
     } else {
-        mailList = "swtest@hpmicro.com"
+        mailList = "sw@hpmicro.com"
         testResult = "Failed"
     }
 
