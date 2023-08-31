@@ -16,7 +16,7 @@ if(BRANCH_NAME == "nuttx_with_hpmsdk"){
 class Globals {
     static linuxReportStash = [:] //buildnode: stashreport
     static String buildCodeClone = "git clone git@192.168.11.211:swtesting/rtt_build.git -b nuttx_release_1.0.0"
-    static String nuttxCodeClone = "git clone git@192.168.11.211:oss/nuttx.git"
+    static String nuttxCodeClone = "git@192.168.11.211:oss/nuttx.git"
     // static String appsCodeClone = "git clone https://github.com/apache/nuttx-apps.git apps --depth=1 -b releases/12.0"
     static String appsPackage = "nuttx-apps-releases-12.0"
 }
@@ -47,7 +47,7 @@ pipeline {
                 deleteDir()
                 // checkout scm
                 script {
-                    sh("$Globals.buildCodeClone && $Globals.nuttxCodeClone")
+                    sh("$Globals.buildCodeClone && git clone $Globals.nuttxCodeClone -b $BRANCH_NAME")
                     commitid = sh(returnStdout: true, script: "cd nuttx && git rev-parse --short HEAD").trim()
                 }
             }
@@ -237,7 +237,7 @@ def getParallelStageByCaseBalance(cases, os){
                             def outputPath = "$WORKSPACE/$BUILD_ID/output"
                             def buildPath = "$WORKSPACE/rtt_build"
                             def nuttxPath = "$WORKSPACE/nuttx"
-                            sh("$Globals.buildCodeClone && unzip -q /home/builder/${Globals.appsPackage}.zip && mv ${Globals.appsPackage} apps && $Globals.nuttxCodeClone && cd nuttx && git checkout -b $branchName")
+                            sh("$Globals.buildCodeClone && unzip -q /home/builder/${Globals.appsPackage}.zip && mv ${Globals.appsPackage} apps && git clone $Globals.nuttxCodeClone -b $branchName")
                             sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd $buildPath/test_build/test_nuttx_build && /home/builder/.local/bin/pytest --suppress-tests-failed-exit-code --project nuttx $casesStr --project_src_dir $nuttxPath --build_dir $outputPath --junit-xml=$buildPath/report_${buildNode}.xml --jenkins_project $projectName --jenkins_build_id $BUILD_ID --jenkins_branch $BRANCH_NAME -p no:warnings")
                             
                             stash includes: "rtt_build/report_${buildNode}.xml", name:"report_${buildNode}"
