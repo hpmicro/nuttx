@@ -282,7 +282,7 @@ struct hpm_ehci_s
 {
   volatile bool pscwait;        /* TRUE: Thread is waiting for port status change event */
 
-  mutex_t lock;                 /* Support mutually exclusive access */
+  rmutex_t lock;                /* Support mutually exclusive access */
   sem_t pscsem;                 /* Semaphore to wait for port status change events */
 
   struct hpm_epinfo_s ep0;    /* Endpoint 0 */
@@ -575,7 +575,7 @@ static int hpm_reset(void);
 
 static struct hpm_ehci_s g_ehci =
 {
-  .lock = NXMUTEX_INITIALIZER,
+  .lock = NXRMUTEX_INITIALIZER,
   .pscsem = SEM_INITIALIZER(0),
   .ep0.iocsem = SEM_INITIALIZER(1),
 };
@@ -2568,7 +2568,7 @@ static ssize_t hpm_transfer_wait(struct hpm_epinfo_s *epinfo)
 
   /* REVISIT */
 
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
 
   /* Wait for the IOC completion event */
 
@@ -2578,7 +2578,7 @@ static ssize_t hpm_transfer_wait(struct hpm_epinfo_s *epinfo)
    * this upon return.
    */
 
-  ret2 = nxmutex_lock(&g_ehci.lock);
+  ret2 = nxrmutex_lock(&g_ehci.lock);
   if (ret >= 0 && ret2 < 0)
     {
       ret = ret2;
@@ -2602,7 +2602,7 @@ static ssize_t hpm_transfer_wait(struct hpm_epinfo_s *epinfo)
     }
 #endif
 
-  /* Did hpm_ioc_wait() or nxmutex_lock() report an error? */
+  /* Did hpm_ioc_wait() or nxrmutex_lock() report an error? */
 
   if (ret < 0)
     {
@@ -3333,7 +3333,7 @@ static void hpm_ehci_bottomhalf(void *arg)
    * real option (other than to reschedule and delay).
    */
 
-  nxmutex_lock(&g_ehci.lock);
+  nxrmutex_lock(&g_ehci.lock);
 
   /* Handle all unmasked interrupt sources
    * USB Interrupt (USBINT)
@@ -3444,7 +3444,7 @@ static void hpm_ehci_bottomhalf(void *arg)
 
   /* We are done with the EHCI structures */
 
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
 
   /* Re-enable relevant EHCI interrupts.  Interrupts should still be enabled
    * at the level of the interrupt controller.
@@ -3956,7 +3956,7 @@ static int hpm_ep0configure(struct usbhost_driver_s *drvr,
 
   /* We must have exclusive access to the EHCI data structures. */
 
-  ret = nxmutex_lock(&g_ehci.lock);
+  ret = nxrmutex_lock(&g_ehci.lock);
   if (ret >= 0)
     {
       /* Remember the new device address and max packet size */
@@ -3965,7 +3965,7 @@ static int hpm_ep0configure(struct usbhost_driver_s *drvr,
       epinfo->speed     = speed;
       epinfo->maxpacket = maxpacketsize;
 
-      nxmutex_unlock(&g_ehci.lock);
+      nxrmutex_unlock(&g_ehci.lock);
     }
 
   return ret;
@@ -4349,7 +4349,7 @@ static int hpm_ctrlin(struct usbhost_driver_s *drvr, usbhost_ep_t ep0,
    * structures.
    */
 
-  ret = nxmutex_lock(&g_ehci.lock);
+  ret = nxrmutex_lock(&g_ehci.lock);
   if (ret < 0)
     {
       return ret;
@@ -4376,13 +4376,13 @@ static int hpm_ctrlin(struct usbhost_driver_s *drvr, usbhost_ep_t ep0,
   /* And wait for the transfer to complete */
 
   nbytes = hpm_transfer_wait(ep0info);
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
   return nbytes >= 0 ? OK : (int)nbytes;
 
 errout_with_iocwait:
   ep0info->iocwait = false;
 errout_with_lock:
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
   return ret;
 }
 
@@ -4451,7 +4451,7 @@ static ssize_t hpm_transfer(struct usbhost_driver_s *drvr,
    * structures.
    */
 
-  ret = nxmutex_lock(&g_ehci.lock);
+  ret = nxrmutex_lock(&g_ehci.lock);
   if (ret < 0)
     {
       return (ssize_t)ret;
@@ -4503,14 +4503,14 @@ static ssize_t hpm_transfer(struct usbhost_driver_s *drvr,
   /* Then wait for the transfer to complete */
 
   nbytes = hpm_transfer_wait(epinfo);
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
   return nbytes;
 
 errout_with_iocwait:
   epinfo->iocwait = false;
 errout_with_lock:
   uerr("!!!\n");
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
   return (ssize_t)ret;
 }
 
@@ -4565,7 +4565,7 @@ static int hpm_asynch(struct usbhost_driver_s *drvr, usbhost_ep_t ep,
    * structures.
    */
 
-  ret = nxmutex_lock(&g_ehci.lock);
+  ret = nxrmutex_lock(&g_ehci.lock);
   if (ret < 0)
     {
       return ret;
@@ -4614,14 +4614,14 @@ static int hpm_asynch(struct usbhost_driver_s *drvr, usbhost_ep_t ep,
 
   /* The transfer is in progress */
 
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
   return OK;
 
 errout_with_callback:
   epinfo->callback = NULL;
   epinfo->arg      = NULL;
 errout_with_lock:
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
   return ret;
 }
 #endif /* CONFIG_USBHOST_ASYNCH */
@@ -4669,7 +4669,7 @@ static int hpm_cancel(struct usbhost_driver_s *drvr, usbhost_ep_t ep)
    * interrupt level.
    */
 
-  ret = nxmutex_lock(&g_ehci.lock);
+  ret = nxrmutex_lock(&g_ehci.lock);
   if (ret < 0)
     {
       return ret;
@@ -4824,7 +4824,7 @@ exit_terminate:
 #endif
 
 errout_with_lock:
-  nxmutex_unlock(&g_ehci.lock);
+  nxrmutex_unlock(&g_ehci.lock);
   return ret;
 }
 
