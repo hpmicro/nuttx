@@ -2613,17 +2613,11 @@ static void usbhost_rxint(FAR struct uart_dev_s *uartdev, bool enable)
           DEBUGASSERT(ret >= 0);
           UNUSED(ret);
         }
+
+        /* Save the new RX enable state */
+
+        priv->rxena = enable;
     }
-  else if (!enable && priv->rxena)
-    {
-      /* Cancel any pending RX data reception work */
-
-      work_cancel(LPWORK, &priv->rxwork);
-    }
-
-  /* Save the new RX enable state */
-
-  priv->rxena = enable;
 }
 
 /****************************************************************************
