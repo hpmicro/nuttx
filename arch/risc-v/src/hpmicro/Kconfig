@@ -27,6 +27,22 @@ config ARCH_CHIP_HPM6280
 
 endchoice # HPMicro Chip Selection
 
+config HPMICRO_ENABLE_FPU
+	bool "HPMICRO FPU Support"
+	default n
+	select ARCH_HAVE_FPU
+	---help---
+		Enable the RISC-V Floating Point Unit (FPU).
+
+if HPMICRO_ENABLE_FPU
+config HPMICRO_ENABLE_DPFPU
+	bool "HPMICRO DP-FPU Support"
+	default n
+	select ARCH_HAVE_DPFPU
+	---help---
+		Enable the RISC-V Double Precision Floating Point Unit (DP-FPU).
+endif
+
 #####################################################################
 #  HPM_SDK Linker File Selection
 #####################################################################
@@ -53,7 +69,6 @@ endchoice # HPMicro Linker File Selection
 #####################################################################
 #  HPM_SDK Peripheral support
 #####################################################################
-
 config HPM_PLLCTLV_DRV
 	bool
 	default n
