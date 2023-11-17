@@ -4,7 +4,7 @@ def testReport = "TestReport.xml"
 def cases = []
 def commitid = ""
 def cronSettings = "0 0 0 * *"
-def rttWorkspace = ""
+def ciWorkSpace = ""
 
 if(BRANCH_NAME == "nuttx_with_hpmsdk"){
 	cronSettings = "0 12 * * *"    // default set 12 clock to execute every day
@@ -15,7 +15,7 @@ if(BRANCH_NAME == "nuttx_with_hpmsdk"){
 
 class Globals {
     static linuxReportStash = [:] //buildnode: stashreport
-    static String buildCodeClone = "git clone git@192.168.11.211:swtesting/rtt_build.git -b nuttx_release_1.0.0"
+    static String buildCodeClone = "git clone git@192.168.11.211:swtesting/ci_build.git -b release_3.1.0"
     static String nuttxCodeClone = "git@192.168.11.211:oss/nuttx.git"
     // static String appsCodeClone = "git clone https://github.com/apache/nuttx-apps.git apps --depth=1 -b releases/12.0"
     static String appsPackage = "nuttx-apps-releases-12.0"
@@ -42,7 +42,7 @@ pipeline {
                 branch BRANCH_NAME
             }
             steps {
-                println "BRANCH_NAME：$BRANCH_NAME "
+                println "BRANCH_NAME：$BRANCH_NAME"
                 println WORKSPACE
                 deleteDir()
                 // checkout scm
@@ -59,8 +59,8 @@ pipeline {
             }
             steps {
                 script {
-                    sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd rtt_build && /home/builder/.local/bin/pytest --collect-only --project nuttx --project_src_dir ${WORKSPACE}/nuttx --build_dir ${WORKSPACE}/output test_build/test_nuttx_build/test_build.py")
-                    def caseFile = "$WORKSPACE/rtt_build/caselist.csv"
+                    sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd ci_build && /home/builder/.local/bin/pytest --collect-only --jenkins_project nuttx --project_src_dir ${WORKSPACE}/nuttx --build_dir ${WORKSPACE}/output test_build/test_nuttx_build/test_build.py")
+                    def caseFile = "$WORKSPACE/ci_build/caselist.csv"
                     if(fileExists(caseFile)) {
                         echo 'caselist.csv found'
                         readFile(caseFile).split('\n').each { line, count ->
@@ -94,12 +94,12 @@ pipeline {
             }
             steps {
                 script {
-                    rttWorkspace = "$WORKSPACE/rtt_build"
+                    ciWorkSpace = "$WORKSPACE/ci_build"
                     // unstash report for each build
                     def merge_cmd = "/home/builder/.local/bin/junitparser merge"
                     Globals.linuxReportStash.each{node, report ->
                         unstash name: report
-                        merge_cmd = merge_cmd + " " + "rtt_build/${report}.xml"
+                        merge_cmd = merge_cmd + " " + "ci_build/${report}.xml"
                     }
                     merge_cmd = merge_cmd + " " + testReport
 
@@ -116,7 +116,7 @@ pipeline {
             echo "Done with the Build"
             script {
                 def changeSets = getChangeSets().toString()
-                gen_report_cmd = "python3 rtt_build/nuttx_generate_report.py --xml_reportfile $testReport --build_url ${BUILD_URL} --build_date \"${BUILD_TIMESTAMP}\" --build_duration \"${currentBuild.durationString}\" --git_commit $commitid --branch ${BRANCH_NAME} --cause \"${currentBuild.getBuildCauses()[0].shortDescription}\" --changesets \"${changeSets}\""
+                gen_report_cmd = "python3 ci_build/nuttx_generate_report.py --xml_reportfile $testReport --build_url ${BUILD_URL} --build_date \"${BUILD_TIMESTAMP}\" --build_duration \"${currentBuild.durationString}\" --git_commit $commitid --branch ${BRANCH_NAME} --cause \"${currentBuild.getBuildCauses()[0].shortDescription}\" --changesets \"${changeSets}\""
                 sh(gen_report_cmd)
             }
             //archiveArtifacts artifacts: "*.zip", fingerprint: true
@@ -235,12 +235,12 @@ def getParallelStageByCaseBalance(cases, os){
                                 casesStr = casesStr + " " + caseName[0..-1]
                             }
                             def outputPath = "$WORKSPACE/$BUILD_ID/output"
-                            def buildPath = "$WORKSPACE/rtt_build"
+                            def buildPath = "$WORKSPACE/ci_build"
                             def nuttxPath = "$WORKSPACE/nuttx"
                             sh("$Globals.buildCodeClone && unzip -q /home/builder/${Globals.appsPackage}.zip && mv ${Globals.appsPackage} apps && git clone $Globals.nuttxCodeClone -b $branchName")
-                            sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd $buildPath/test_build/test_nuttx_build && /home/builder/.local/bin/pytest --suppress-tests-failed-exit-code --project nuttx $casesStr --project_src_dir $nuttxPath --build_dir $outputPath --junit-xml=$buildPath/report_${buildNode}.xml --jenkins_project $projectName --jenkins_build_id $BUILD_ID --jenkins_branch $BRANCH_NAME -p no:warnings")
+                            sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd $buildPath/test_build/test_nuttx_build && /home/builder/.local/bin/pytest --suppress-tests-failed-exit-code --jenkins_project $projectName $casesStr --project_src_dir $nuttxPath --build_dir $outputPath --junit-xml=$buildPath/report_${buildNode}.xml --jenkins_build_id $BUILD_ID --jenkins_branch $BRANCH_NAME -p no:warnings")
                             
-                            stash includes: "rtt_build/report_${buildNode}.xml", name:"report_${buildNode}"
+                            stash includes: "ci_build/report_${buildNode}.xml", name:"report_${buildNode}"
                             Globals.linuxReportStash.put(buildNode, "report_${buildNode}")
                         } else {
                             println "No case assigned"
