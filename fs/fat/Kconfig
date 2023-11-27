@@ -97,7 +97,7 @@ config FS_FATTIME
 		hardware RTC or other way to get the time and date.
 
 config FAT_FORCE_INDIRECT
-	bool "Force direct transfers"
+	bool "Force indirect transfers"
 	default n
 	---help---
 		Normally, the default behavior for the FAT file system is to perform
