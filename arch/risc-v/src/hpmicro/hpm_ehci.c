@@ -2187,7 +2187,7 @@ static int hpm_async_setup(struct hpm_rhport_s *rhport,
    * will always be present for normal endpoint data transfers.
    */
 
-  DEBUGASSERT(req || (buffer && buflen > 0));
+  DEBUGASSERT(req || buffer);
 
   /* Create and initialize a Queue Head (QH) structure for this transfer */
 
@@ -2462,7 +2462,7 @@ static int hpm_intr_setup(struct hpm_rhport_s *rhport,
         RHPORT(rhport), epinfo->epno, buffer, buflen);
 #endif
 
-  DEBUGASSERT(rhport && epinfo && buffer && buflen > 0);
+  DEBUGASSERT(rhport && epinfo && buffer);
 
   /* Create and initialize a Queue Head (QH) structure for this transfer */
 
@@ -4445,7 +4445,7 @@ static ssize_t hpm_transfer(struct usbhost_driver_s *drvr,
   ssize_t nbytes;
   int ret;
 
-  DEBUGASSERT(rhport && epinfo && buffer && buflen > 0);
+  DEBUGASSERT(rhport && epinfo && buffer);
 
   /* We must have exclusive access to the EHCI hardware and data
    * structures.
@@ -4559,7 +4559,7 @@ static int hpm_asynch(struct usbhost_driver_s *drvr, usbhost_ep_t ep,
   struct hpm_epinfo_s *epinfo = (struct hpm_epinfo_s *)ep;
   int ret;
 
-  DEBUGASSERT(rhport && epinfo && buffer && buflen > 0);
+  DEBUGASSERT(rhport && epinfo && buffer);
 
   /* We must have exclusive access to the EHCI hardware and data
    * structures.
