@@ -18,7 +18,7 @@ class Globals {
     static String buildCodeClone = "git clone git@192.168.11.211:swtesting/ci_build.git -b release_3.1.0"
     static String nuttxCodeClone = "git@192.168.11.211:oss/nuttx.git"
     // static String appsCodeClone = "git clone https://github.com/apache/nuttx-apps.git apps --depth=1 -b releases/12.0"
-    static String appsPackage = "nuttx-apps-releases-12.0"
+    static String appsPackage = "nuttx-apps-nuttx-12.4.*"
 }
 
 pipeline {
