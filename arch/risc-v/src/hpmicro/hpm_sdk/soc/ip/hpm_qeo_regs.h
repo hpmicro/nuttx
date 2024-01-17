@@ -67,8 +67,7 @@ typedef struct {
  *
  * wave2 high area1 limit mode.
  * 0: output 0xffff.
- * 1: output as level_max_limit
- * 2.level0_max_limit
+ * 1: output as level_max_limit2.level0_max_limit
  */
 #define QEO_WAVE_MODE_WAVE2_HIGH_AREA1_LIMIT_MASK (0x20000000UL)
 #define QEO_WAVE_MODE_WAVE2_HIGH_AREA1_LIMIT_SHIFT (29U)
@@ -80,8 +79,7 @@ typedef struct {
  *
  * wave2 high area0 limit mode.
  * 0: output 0xffff.
- * 1: output as level_max_limit
- * 2.level0_max_limit
+ * 1: output as level_max_limit2.level0_max_limit
  */
 #define QEO_WAVE_MODE_WAVE2_HIGH_AREA0_LIMIT_MASK (0x10000000UL)
 #define QEO_WAVE_MODE_WAVE2_HIGH_AREA0_LIMIT_SHIFT (28U)
@@ -337,14 +335,14 @@ typedef struct {
 
 /* Bitfield definition for register of struct WAVE: RESOLUTION */
 /*
- * SINCOS (RW)
+ * LINES (RW)
  *
  * wave0/1/2 resolution
  */
-#define QEO_WAVE_RESOLUTION_SINCOS_MASK (0xFFFFFFFFUL)
-#define QEO_WAVE_RESOLUTION_SINCOS_SHIFT (0U)
-#define QEO_WAVE_RESOLUTION_SINCOS_SET(x) (((uint32_t)(x) << QEO_WAVE_RESOLUTION_SINCOS_SHIFT) & QEO_WAVE_RESOLUTION_SINCOS_MASK)
-#define QEO_WAVE_RESOLUTION_SINCOS_GET(x) (((uint32_t)(x) & QEO_WAVE_RESOLUTION_SINCOS_MASK) >> QEO_WAVE_RESOLUTION_SINCOS_SHIFT)
+#define QEO_WAVE_RESOLUTION_LINES_MASK (0xFFFFFFFFUL)
+#define QEO_WAVE_RESOLUTION_LINES_SHIFT (0U)
+#define QEO_WAVE_RESOLUTION_LINES_SET(x) (((uint32_t)(x) << QEO_WAVE_RESOLUTION_LINES_SHIFT) & QEO_WAVE_RESOLUTION_LINES_MASK)
+#define QEO_WAVE_RESOLUTION_LINES_GET(x) (((uint32_t)(x) & QEO_WAVE_RESOLUTION_LINES_MASK) >> QEO_WAVE_RESOLUTION_LINES_SHIFT)
 
 /* Bitfield definition for register of struct WAVE: WAVE0 */
 /*
@@ -416,7 +414,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * wave0 output middle point, use this value as 32 bit signed value. bit 31 is signed bit. bit30-28 is integer part value. bit27-0 is fraction value.
+ * wave0 output middle point, use this value as 32 bit signed value. bit 31 is signed bit. bit30-27 is integer part value. bit26-0 is fraction value.
  */
 #define QEO_WAVE_MID_POINT_VAL_MASK (0xFFFFFFFFUL)
 #define QEO_WAVE_MID_POINT_VAL_SHIFT (0U)
@@ -581,14 +579,14 @@ typedef struct {
 
 /* Bitfield definition for register of struct ABZ: RESOLUTION */
 /*
- * SINCOS (RW)
+ * LINES (RW)
  *
  * wave_a/b/z resolution
  */
-#define QEO_ABZ_RESOLUTION_SINCOS_MASK (0xFFFFFFFFUL)
-#define QEO_ABZ_RESOLUTION_SINCOS_SHIFT (0U)
-#define QEO_ABZ_RESOLUTION_SINCOS_SET(x) (((uint32_t)(x) << QEO_ABZ_RESOLUTION_SINCOS_SHIFT) & QEO_ABZ_RESOLUTION_SINCOS_MASK)
-#define QEO_ABZ_RESOLUTION_SINCOS_GET(x) (((uint32_t)(x) & QEO_ABZ_RESOLUTION_SINCOS_MASK) >> QEO_ABZ_RESOLUTION_SINCOS_SHIFT)
+#define QEO_ABZ_RESOLUTION_LINES_MASK (0xFFFFFFFFUL)
+#define QEO_ABZ_RESOLUTION_LINES_SHIFT (0U)
+#define QEO_ABZ_RESOLUTION_LINES_SET(x) (((uint32_t)(x) << QEO_ABZ_RESOLUTION_LINES_SHIFT) & QEO_ABZ_RESOLUTION_LINES_MASK)
+#define QEO_ABZ_RESOLUTION_LINES_GET(x) (((uint32_t)(x) & QEO_ABZ_RESOLUTION_LINES_MASK) >> QEO_ABZ_RESOLUTION_LINES_SHIFT)
 
 /* Bitfield definition for register of struct ABZ: A */
 /*
@@ -765,14 +763,14 @@ typedef struct {
 
 /* Bitfield definition for register of struct PWM: RESOLUTION */
 /*
- * SINCOS (RW)
+ * LINES (RW)
  *
  * pwm resolution
  */
-#define QEO_PWM_RESOLUTION_SINCOS_MASK (0xFFFFFFFFUL)
-#define QEO_PWM_RESOLUTION_SINCOS_SHIFT (0U)
-#define QEO_PWM_RESOLUTION_SINCOS_SET(x) (((uint32_t)(x) << QEO_PWM_RESOLUTION_SINCOS_SHIFT) & QEO_PWM_RESOLUTION_SINCOS_MASK)
-#define QEO_PWM_RESOLUTION_SINCOS_GET(x) (((uint32_t)(x) & QEO_PWM_RESOLUTION_SINCOS_MASK) >> QEO_PWM_RESOLUTION_SINCOS_SHIFT)
+#define QEO_PWM_RESOLUTION_LINES_MASK (0xFFFFFFFFUL)
+#define QEO_PWM_RESOLUTION_LINES_SHIFT (0U)
+#define QEO_PWM_RESOLUTION_LINES_SET(x) (((uint32_t)(x) << QEO_PWM_RESOLUTION_LINES_SHIFT) & QEO_PWM_RESOLUTION_LINES_MASK)
+#define QEO_PWM_RESOLUTION_LINES_GET(x) (((uint32_t)(x) & QEO_PWM_RESOLUTION_LINES_MASK) >> QEO_PWM_RESOLUTION_LINES_SHIFT)
 
 /* Bitfield definition for register of struct PWM: A */
 /*
@@ -892,22 +890,22 @@ typedef struct {
 
 /* Bitfield definition for register: STATUS */
 /*
- * QEO_PWM_FOURCE (RO)
+ * PWM_FOURCE (RO)
  *
  * qeo_pwm_force observe
  */
-#define QEO_STATUS_QEO_PWM_FOURCE_MASK (0xFFFF0000UL)
-#define QEO_STATUS_QEO_PWM_FOURCE_SHIFT (16U)
-#define QEO_STATUS_QEO_PWM_FOURCE_GET(x) (((uint32_t)(x) & QEO_STATUS_QEO_PWM_FOURCE_MASK) >> QEO_STATUS_QEO_PWM_FOURCE_SHIFT)
+#define QEO_STATUS_PWM_FOURCE_MASK (0xFFFF0000UL)
+#define QEO_STATUS_PWM_FOURCE_SHIFT (16U)
+#define QEO_STATUS_PWM_FOURCE_GET(x) (((uint32_t)(x) & QEO_STATUS_PWM_FOURCE_MASK) >> QEO_STATUS_PWM_FOURCE_SHIFT)
 
 /*
- * PWM_FAULT (RO)
+ * PWM_SAFETY (RO)
  *
  * pwm_fault status
  */
-#define QEO_STATUS_PWM_FAULT_MASK (0x1U)
-#define QEO_STATUS_PWM_FAULT_SHIFT (0U)
-#define QEO_STATUS_PWM_FAULT_GET(x) (((uint32_t)(x) & QEO_STATUS_PWM_FAULT_MASK) >> QEO_STATUS_PWM_FAULT_SHIFT)
+#define QEO_STATUS_PWM_SAFETY_MASK (0x1U)
+#define QEO_STATUS_PWM_SAFETY_SHIFT (0U)
+#define QEO_STATUS_PWM_SAFETY_GET(x) (((uint32_t)(x) & QEO_STATUS_PWM_SAFETY_MASK) >> QEO_STATUS_PWM_SAFETY_SHIFT)
 
 /* Bitfield definition for register: DEBUG0 */
 /*

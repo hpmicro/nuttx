@@ -298,7 +298,7 @@ typedef struct {
  * 0101 - MR5
  * 0110 - MR6
  * 0111 - MR7
- * Don't Care for LPDDR2/LPDDR3 (see MRCTRL1.mr_data for mode regsiter addressing in LPDDR2/LPDDR3)
+ * Don't Care for LPDDR2/LPDDR3 (see MRCTRL1.mr_data for mode register addressing in LPDDR2/LPDDR3)
  * This signal is also used for writing to control words of RDIMMs. In that case, it corresponds to the bank address bits sent to the RDIMM
  * In case of DDR4, the bit[3:2] corresponds to the bank group bits. Therefore, the bit[3] as well as the bit[2:0] must be set to an appropriate value which is considered both the Address Mirroring of UDIMMs/RDIMMs and the Output Inversion of RDIMMs.
  * Value After Reset: 0x0
@@ -333,8 +333,7 @@ typedef struct {
  * MR_DATA (R/W)
  *
  * Description: Mode register write data for all non- LPDDR2/non-LPDDR3 modes.
- * For LPDDR2/LPDDR3, MRCTRL1[15:0] are interpreted as [15:8] MR Address
- * [7:0] MR data for writes, don't care for reads. This is 18-bits wide in configurations with DDR4 support and 16-bits in all other configurations.
+ * For LPDDR2/LPDDR3, MRCTRL1[15:0] are interpreted as [15:8] MR Address and [7:0] MR data for writes, don't care for reads. This is 18-bits wide in configurations with DDR4 support and 16-bits in all other configurations.
  * Value After Reset: 0x0
  * Exists: Always
  */

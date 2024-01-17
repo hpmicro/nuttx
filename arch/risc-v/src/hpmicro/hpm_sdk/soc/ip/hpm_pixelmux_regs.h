@@ -11,7 +11,7 @@
 
 typedef struct {
     __RW uint32_t PIXMUX;                      /* 0x0: pixel path mux register */
-    __R  uint8_t  RESERVED0[8];                /* 0x4 - 0xB: Reserved */
+    __RW uint32_t DSI_SETTING[2];              /* 0x4 - 0x8: DSI0 config register */
     __RW uint32_t MISC;                        /* 0xC: common register */
     __RW uint32_t GPR_WR_D0;                   /* 0x10: gpr write-read register 0 */
     __RW uint32_t GPR_WR_D1;                   /* 0x14: gpr write-read register 1 */
@@ -33,7 +33,7 @@ typedef struct {
     __R  uint32_t GPR_RO_D7;                   /* 0x54: gpr read-only register 7 */
     __R  uint32_t GPR_RO_D8;                   /* 0x58: gpr read-only register 8 */
     __R  uint32_t GPR_RO_D9;                   /* 0x5C: gpr read-only register 9 */
-    __RW uint32_t GPR_WR1_CLR_D0;              /* 0x60: gpr write1 set/no-write clr register 0 */
+    __RW uint32_t GPR_WR1_CLR_D0;              /* 0x60: gpr write1 set/no-write clr register */
 } PIXELMUX_Type;
 
 
@@ -105,48 +105,48 @@ typedef struct {
 #define PIXELMUX_PIXMUX_GWC0_SEL_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_GWC0_SEL_MASK) >> PIXELMUX_PIXMUX_GWC0_SEL_SHIFT)
 
 /*
- * LLVD_DI1_EN (RW)
+ * LVB_DI1_EN (RW)
  *
- * LLVB DI1 pixel bus enable
+ * LVB DI1 pixel bus enable
  */
-#define PIXELMUX_PIXMUX_LLVD_DI1_EN_MASK (0x800000UL)
-#define PIXELMUX_PIXMUX_LLVD_DI1_EN_SHIFT (23U)
-#define PIXELMUX_PIXMUX_LLVD_DI1_EN_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_LLVD_DI1_EN_SHIFT) & PIXELMUX_PIXMUX_LLVD_DI1_EN_MASK)
-#define PIXELMUX_PIXMUX_LLVD_DI1_EN_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_LLVD_DI1_EN_MASK) >> PIXELMUX_PIXMUX_LLVD_DI1_EN_SHIFT)
+#define PIXELMUX_PIXMUX_LVB_DI1_EN_MASK (0x800000UL)
+#define PIXELMUX_PIXMUX_LVB_DI1_EN_SHIFT (23U)
+#define PIXELMUX_PIXMUX_LVB_DI1_EN_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_LVB_DI1_EN_SHIFT) & PIXELMUX_PIXMUX_LVB_DI1_EN_MASK)
+#define PIXELMUX_PIXMUX_LVB_DI1_EN_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_LVB_DI1_EN_MASK) >> PIXELMUX_PIXMUX_LVB_DI1_EN_SHIFT)
 
 /*
- * LLVD_DI1_SEL (RW)
+ * LVB_DI1_SEL (RW)
  *
- * LLVB DI1 pixel bus selection
+ * LVB DI1 pixel bus selection
  * 1: LCDC1
  * 0: LCDC0
  */
-#define PIXELMUX_PIXMUX_LLVD_DI1_SEL_MASK (0x400000UL)
-#define PIXELMUX_PIXMUX_LLVD_DI1_SEL_SHIFT (22U)
-#define PIXELMUX_PIXMUX_LLVD_DI1_SEL_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_LLVD_DI1_SEL_SHIFT) & PIXELMUX_PIXMUX_LLVD_DI1_SEL_MASK)
-#define PIXELMUX_PIXMUX_LLVD_DI1_SEL_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_LLVD_DI1_SEL_MASK) >> PIXELMUX_PIXMUX_LLVD_DI1_SEL_SHIFT)
+#define PIXELMUX_PIXMUX_LVB_DI1_SEL_MASK (0x400000UL)
+#define PIXELMUX_PIXMUX_LVB_DI1_SEL_SHIFT (22U)
+#define PIXELMUX_PIXMUX_LVB_DI1_SEL_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_LVB_DI1_SEL_SHIFT) & PIXELMUX_PIXMUX_LVB_DI1_SEL_MASK)
+#define PIXELMUX_PIXMUX_LVB_DI1_SEL_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_LVB_DI1_SEL_MASK) >> PIXELMUX_PIXMUX_LVB_DI1_SEL_SHIFT)
 
 /*
- * LLVD_DI0_EN (RW)
+ * LVB_DI0_EN (RW)
  *
- * LLVB DI0 pixel bus enable
+ * LVB DI0 pixel bus enable
  */
-#define PIXELMUX_PIXMUX_LLVD_DI0_EN_MASK (0x200000UL)
-#define PIXELMUX_PIXMUX_LLVD_DI0_EN_SHIFT (21U)
-#define PIXELMUX_PIXMUX_LLVD_DI0_EN_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_LLVD_DI0_EN_SHIFT) & PIXELMUX_PIXMUX_LLVD_DI0_EN_MASK)
-#define PIXELMUX_PIXMUX_LLVD_DI0_EN_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_LLVD_DI0_EN_MASK) >> PIXELMUX_PIXMUX_LLVD_DI0_EN_SHIFT)
+#define PIXELMUX_PIXMUX_LVB_DI0_EN_MASK (0x200000UL)
+#define PIXELMUX_PIXMUX_LVB_DI0_EN_SHIFT (21U)
+#define PIXELMUX_PIXMUX_LVB_DI0_EN_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_LVB_DI0_EN_SHIFT) & PIXELMUX_PIXMUX_LVB_DI0_EN_MASK)
+#define PIXELMUX_PIXMUX_LVB_DI0_EN_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_LVB_DI0_EN_MASK) >> PIXELMUX_PIXMUX_LVB_DI0_EN_SHIFT)
 
 /*
- * LLVD_DI0_SEL (RW)
+ * LVB_DI0_SEL (RW)
  *
- * LLVB DI0 pixel bus selection
+ * LVB DI0 pixel bus selection
  * 1: LCDC1
  * 0: LCDC0
  */
-#define PIXELMUX_PIXMUX_LLVD_DI0_SEL_MASK (0x100000UL)
-#define PIXELMUX_PIXMUX_LLVD_DI0_SEL_SHIFT (20U)
-#define PIXELMUX_PIXMUX_LLVD_DI0_SEL_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_LLVD_DI0_SEL_SHIFT) & PIXELMUX_PIXMUX_LLVD_DI0_SEL_MASK)
-#define PIXELMUX_PIXMUX_LLVD_DI0_SEL_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_LLVD_DI0_SEL_MASK) >> PIXELMUX_PIXMUX_LLVD_DI0_SEL_SHIFT)
+#define PIXELMUX_PIXMUX_LVB_DI0_SEL_MASK (0x100000UL)
+#define PIXELMUX_PIXMUX_LVB_DI0_SEL_SHIFT (20U)
+#define PIXELMUX_PIXMUX_LVB_DI0_SEL_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_LVB_DI0_SEL_SHIFT) & PIXELMUX_PIXMUX_LVB_DI0_SEL_MASK)
+#define PIXELMUX_PIXMUX_LVB_DI0_SEL_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_LVB_DI0_SEL_MASK) >> PIXELMUX_PIXMUX_LVB_DI0_SEL_SHIFT)
 
 /*
  * DSI1_EN (RW)
@@ -248,26 +248,73 @@ typedef struct {
 #define PIXELMUX_PIXMUX_CAM0_SEL_SET(x) (((uint32_t)(x) << PIXELMUX_PIXMUX_CAM0_SEL_SHIFT) & PIXELMUX_PIXMUX_CAM0_SEL_MASK)
 #define PIXELMUX_PIXMUX_CAM0_SEL_GET(x) (((uint32_t)(x) & PIXELMUX_PIXMUX_CAM0_SEL_MASK) >> PIXELMUX_PIXMUX_CAM0_SEL_SHIFT)
 
-/* Bitfield definition for register: MISC */
+/* Bitfield definition for register array: DSI_SETTING */
 /*
- * LLVB_DI1_CTL (RW)
+ * DSI_DATA_ENABLE (RW)
  *
- * LLVB DI1 optional general purpose control which is usually unused by display
+ * DSI pixel data type enable:
+ * Bit0: RGB565_CFG1
+ * Bit1: RGB565_CFG2
+ * Bit2: RGB565_CFG3
+ * Bit3: RGB666_CFG1
+ * Bit4: RGB666_CFG2
+ * Bit5: RGB888
+ * Bit6: RGB_10BIT
+ * Bit7: RGB_12BIT, no support
+ * Bit8: YUV422_12BIT, no support
+ * Bit9: YUV422_10BIT, no support
+ * Bit10: YUV422_8BIT, no support
+ * Bit11:YUV420_8BIT,no support
+ * others: Reserved
  */
-#define PIXELMUX_MISC_LLVB_DI1_CTL_MASK (0x2U)
-#define PIXELMUX_MISC_LLVB_DI1_CTL_SHIFT (1U)
-#define PIXELMUX_MISC_LLVB_DI1_CTL_SET(x) (((uint32_t)(x) << PIXELMUX_MISC_LLVB_DI1_CTL_SHIFT) & PIXELMUX_MISC_LLVB_DI1_CTL_MASK)
-#define PIXELMUX_MISC_LLVB_DI1_CTL_GET(x) (((uint32_t)(x) & PIXELMUX_MISC_LLVB_DI1_CTL_MASK) >> PIXELMUX_MISC_LLVB_DI1_CTL_SHIFT)
+#define PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_MASK (0xFFFF0000UL)
+#define PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_SHIFT (16U)
+#define PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_SET(x) (((uint32_t)(x) << PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_SHIFT) & PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_MASK)
+#define PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_GET(x) (((uint32_t)(x) & PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_MASK) >> PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_SHIFT)
 
 /*
- * LLVB_DI0_CTL (RW)
+ * DSI_DATA_TYPE (RW)
  *
- * LLVB DI0 optional general purpose control which is usually unused by display
+ * DSI input pixel data type:
+ * ‘h0: RGB565_CFG1
+ * ‘h1: RGB565_CFG2
+ * ‘h2: RGB565_CFG3
+ * ‘h3: RGB666_CFG1
+ * ‘h4: RGB666_CFG2
+ * ‘h5: RGB888
+ * ‘h6: RGB_10BIT
+ * ‘h7: RGB_12BIT, no support
+ * ‘h8:YUV422_12BIT,no support
+ * ‘h9: YUV422_10BIT, no support
+ * ‘ha: YUV422_8BIT, no support
+ * ‘hb: YUV420_8BIT,no support
+ * ‘hc~’hf: Reserved
  */
-#define PIXELMUX_MISC_LLVB_DI0_CTL_MASK (0x1U)
-#define PIXELMUX_MISC_LLVB_DI0_CTL_SHIFT (0U)
-#define PIXELMUX_MISC_LLVB_DI0_CTL_SET(x) (((uint32_t)(x) << PIXELMUX_MISC_LLVB_DI0_CTL_SHIFT) & PIXELMUX_MISC_LLVB_DI0_CTL_MASK)
-#define PIXELMUX_MISC_LLVB_DI0_CTL_GET(x) (((uint32_t)(x) & PIXELMUX_MISC_LLVB_DI0_CTL_MASK) >> PIXELMUX_MISC_LLVB_DI0_CTL_SHIFT)
+#define PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_MASK (0xFU)
+#define PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_SHIFT (0U)
+#define PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_SET(x) (((uint32_t)(x) << PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_SHIFT) & PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_MASK)
+#define PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_GET(x) (((uint32_t)(x) & PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_MASK) >> PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_SHIFT)
+
+/* Bitfield definition for register: MISC */
+/*
+ * LVB_DI1_CTL (RW)
+ *
+ * LVB DI1 optional general purpose control which is usually unused by display
+ */
+#define PIXELMUX_MISC_LVB_DI1_CTL_MASK (0x2U)
+#define PIXELMUX_MISC_LVB_DI1_CTL_SHIFT (1U)
+#define PIXELMUX_MISC_LVB_DI1_CTL_SET(x) (((uint32_t)(x) << PIXELMUX_MISC_LVB_DI1_CTL_SHIFT) & PIXELMUX_MISC_LVB_DI1_CTL_MASK)
+#define PIXELMUX_MISC_LVB_DI1_CTL_GET(x) (((uint32_t)(x) & PIXELMUX_MISC_LVB_DI1_CTL_MASK) >> PIXELMUX_MISC_LVB_DI1_CTL_SHIFT)
+
+/*
+ * LVB_DI0_CTL (RW)
+ *
+ * LVB DI0 optional general purpose control which is usually unused by display
+ */
+#define PIXELMUX_MISC_LVB_DI0_CTL_MASK (0x1U)
+#define PIXELMUX_MISC_LVB_DI0_CTL_SHIFT (0U)
+#define PIXELMUX_MISC_LVB_DI0_CTL_SET(x) (((uint32_t)(x) << PIXELMUX_MISC_LVB_DI0_CTL_SHIFT) & PIXELMUX_MISC_LVB_DI0_CTL_MASK)
+#define PIXELMUX_MISC_LVB_DI0_CTL_GET(x) (((uint32_t)(x) & PIXELMUX_MISC_LVB_DI0_CTL_MASK) >> PIXELMUX_MISC_LVB_DI0_CTL_SHIFT)
 
 /* Bitfield definition for register: GPR_WR_D0 */
 /*
@@ -434,7 +481,10 @@ typedef struct {
 /*
  * JPEG_CTRL (RW)
  *
- * bit0: select cam0;  bit1: select cam1;  bit2: select jpeg;   bit3: select pdma
+ * bit0: select cam0;
+ * bit1: select cam1;
+ * bit2: select jpeg;
+ * bit3: select pdma
  */
 #define PIXELMUX_GPR_WR_D1_JPEG_CTRL_MASK (0xF000000UL)
 #define PIXELMUX_GPR_WR_D1_JPEG_CTRL_SHIFT (24U)
@@ -444,7 +494,10 @@ typedef struct {
 /*
  * PDMA_P1_CTRL (RW)
  *
- * bit0: select cam0;  bit1: select cam1;  bit2: select jpeg;   bit3: select pdma
+ * bit0: select cam0;
+ * bit1: select cam1;
+ * bit2: select jpeg;
+ * bit3: select pdma
  */
 #define PIXELMUX_GPR_WR_D1_PDMA_P1_CTRL_MASK (0xF00000UL)
 #define PIXELMUX_GPR_WR_D1_PDMA_P1_CTRL_SHIFT (20U)
@@ -454,7 +507,10 @@ typedef struct {
 /*
  * PDMA_P0_CTRL (RW)
  *
- * bit0: select cam0;  bit1: select cam1;  bit2: select jpeg;   bit3: select pdma
+ * bit0: select cam0;
+ * bit1: select cam1;
+ * bit2: select jpeg;
+ * bit3: select pdma
  */
 #define PIXELMUX_GPR_WR_D1_PDMA_P0_CTRL_MASK (0xF0000UL)
 #define PIXELMUX_GPR_WR_D1_PDMA_P0_CTRL_SHIFT (16U)
@@ -464,7 +520,10 @@ typedef struct {
 /*
  * LCDC1_P1_CTRL (RW)
  *
- * bit0: select cam0;  bit1: select cam1;  bit2: select jpeg;   bit3: select pdma
+ * bit0: select cam0;
+ * bit1: select cam1;
+ * bit2: select jpeg;
+ * bit3: select pdma
  */
 #define PIXELMUX_GPR_WR_D1_LCDC1_P1_CTRL_MASK (0xF000U)
 #define PIXELMUX_GPR_WR_D1_LCDC1_P1_CTRL_SHIFT (12U)
@@ -474,7 +533,10 @@ typedef struct {
 /*
  * LCDC1_P0_CTRL (RW)
  *
- * bit0: select cam0;  bit1: select cam1;  bit2: select jpeg;   bit3: select pdma
+ * bit0: select cam0;
+ * bit1: select cam1;
+ * bit2: select jpeg;
+ * bit3: select pdma
  */
 #define PIXELMUX_GPR_WR_D1_LCDC1_P0_CTRL_MASK (0xF00U)
 #define PIXELMUX_GPR_WR_D1_LCDC1_P0_CTRL_SHIFT (8U)
@@ -484,7 +546,10 @@ typedef struct {
 /*
  * LCDC0_P1_CTRL (RW)
  *
- * bit0: select cam0;  bit1: select cam1;  bit2: select jpeg;   bit3: select pdma
+ * bit0: select cam0;
+ * bit1: select cam1;
+ * bit2: select jpeg;
+ * bit3: select pdma
  */
 #define PIXELMUX_GPR_WR_D1_LCDC0_P1_CTRL_MASK (0xF0U)
 #define PIXELMUX_GPR_WR_D1_LCDC0_P1_CTRL_SHIFT (4U)
@@ -494,7 +559,10 @@ typedef struct {
 /*
  * LCDC0_P0_CTRL (RW)
  *
- * bit0: select cam0;  bit1: select cam1;  bit2: select jpeg;   bit3: select pdma
+ * bit0: select cam0;
+ * bit1: select cam1;
+ * bit2: select jpeg;
+ * bit3: select pdma
  */
 #define PIXELMUX_GPR_WR_D1_LCDC0_P0_CTRL_MASK (0xFU)
 #define PIXELMUX_GPR_WR_D1_LCDC0_P0_CTRL_SHIFT (0U)
@@ -1273,7 +1341,10 @@ typedef struct {
 /*
  * TX_PHY1_CTL_O (RO)
  *
- * {2'b0,tx_phy1_tx3_ctl_o,tx_phy1_tx2_ctl_o,tx_phy1_tx1_ctl_o,tx_phy1_tx0_ctl_o,tx_phy1_txck_ctl_o,tx_phy1_pll_dtest_o}
+ * {2'b0,
+ * tx_phy1_tx3_ctl_o,tx_phy1_tx2_ctl_o,
+ * tx_phy1_tx1_ctl_o,tx_phy1_tx0_ctl_o,
+ * tx_phy1_txck_ctl_o,tx_phy1_pll_dtest_o}
  */
 #define PIXELMUX_GPR_RO_D0_TX_PHY1_CTL_O_MASK (0xFF00U)
 #define PIXELMUX_GPR_RO_D0_TX_PHY1_CTL_O_SHIFT (8U)
@@ -1282,7 +1353,10 @@ typedef struct {
 /*
  * TX_PHY0_CTL_O (RO)
  *
- * {2'b0,tx_phy0_tx3_ctl_o,tx_phy0_tx2_ctl_o,tx_phy0_tx1_ctl_o,tx_phy0_tx0_ctl_o,tx_phy0_txck_ctl_o,tx_phy0_pll_dtest_o}
+ * {2'b0,
+ * tx_phy0_tx3_ctl_o,tx_phy0_tx2_ctl_o,
+ * tx_phy0_tx1_ctl_o,tx_phy0_tx0_ctl_o,
+ * tx_phy0_txck_ctl_o,tx_phy0_pll_dtest_o}
  */
 #define PIXELMUX_GPR_RO_D0_TX_PHY0_CTL_O_MASK (0xFFU)
 #define PIXELMUX_GPR_RO_D0_TX_PHY0_CTL_O_SHIFT (0U)
@@ -1777,6 +1851,10 @@ typedef struct {
 #define PIXELMUX_GPR_WR1_CLR_D0_GPR_WR1_CLR_DATA_GET(x) (((uint32_t)(x) & PIXELMUX_GPR_WR1_CLR_D0_GPR_WR1_CLR_DATA_MASK) >> PIXELMUX_GPR_WR1_CLR_D0_GPR_WR1_CLR_DATA_SHIFT)
 
 
+
+/* DSI_SETTING register group index macro definition */
+#define PIXELMUX_DSI_SETTING_DSI0_CFG (0UL)
+#define PIXELMUX_DSI_SETTING_DSI1_CFG (1UL)
 
 
 #endif /* HPM_PIXELMUX_H */

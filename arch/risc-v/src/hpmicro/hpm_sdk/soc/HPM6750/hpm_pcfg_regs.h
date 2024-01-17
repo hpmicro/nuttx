@@ -107,18 +107,6 @@ typedef struct {
 
 /* Bitfield definition for register: LDO1P1 */
 /*
- * ENABLE (RW)
- *
- * LDO enable
- * 0: turn off LDO
- * 1: turn on LDO
- */
-#define PCFG_LDO1P1_ENABLE_MASK (0x10000UL)
-#define PCFG_LDO1P1_ENABLE_SHIFT (16U)
-#define PCFG_LDO1P1_ENABLE_SET(x) (((uint32_t)(x) << PCFG_LDO1P1_ENABLE_SHIFT) & PCFG_LDO1P1_ENABLE_MASK)
-#define PCFG_LDO1P1_ENABLE_GET(x) (((uint32_t)(x) & PCFG_LDO1P1_ENABLE_MASK) >> PCFG_LDO1P1_ENABLE_SHIFT)
-
-/*
  * VOLT (RW)
  *
  * LDO output voltage in mV,  value valid through 700-1320, , step 20mV.  Hardware select voltage no less than target if not on valid steps, with maximum 1320mV.
@@ -240,7 +228,7 @@ typedef struct {
 #define PCFG_DCDC_PROT_ILIMIT_LP_GET(x) (((uint32_t)(x) & PCFG_DCDC_PROT_ILIMIT_LP_MASK) >> PCFG_DCDC_PROT_ILIMIT_LP_SHIFT)
 
 /*
- * OVERLOAD_LP (RW)
+ * OVERLOAD_LP (RO)
  *
  * over current in low power mode
  * 0: current is below setting
@@ -248,7 +236,6 @@ typedef struct {
  */
 #define PCFG_DCDC_PROT_OVERLOAD_LP_MASK (0x1000000UL)
 #define PCFG_DCDC_PROT_OVERLOAD_LP_SHIFT (24U)
-#define PCFG_DCDC_PROT_OVERLOAD_LP_SET(x) (((uint32_t)(x) << PCFG_DCDC_PROT_OVERLOAD_LP_SHIFT) & PCFG_DCDC_PROT_OVERLOAD_LP_MASK)
 #define PCFG_DCDC_PROT_OVERLOAD_LP_GET(x) (((uint32_t)(x) & PCFG_DCDC_PROT_OVERLOAD_LP_MASK) >> PCFG_DCDC_PROT_OVERLOAD_LP_SHIFT)
 
 /*

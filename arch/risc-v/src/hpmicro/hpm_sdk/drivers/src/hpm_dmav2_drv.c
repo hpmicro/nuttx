@@ -32,8 +32,8 @@ hpm_stat_t dma_setup_channel(DMAV2_Type *ptr, uint8_t ch_num, dma_channel_config
 
     dma_clear_transfer_status(ptr, ch_num);
     tmp = DMAV2_CHCTRL_CTRL_INFINITELOOP_SET(ch->en_infiniteloop)
-        | DMAV2_CHCTRL_CTRL_HANDSHAKEOPT_SET(ch->en_handshake_trans_all_data)
-        | DMAV2_CHCTRL_CTRL_BURSTOPT_SET(ch->en_burst_using_new_trans_count)
+        | DMAV2_CHCTRL_CTRL_HANDSHAKEOPT_SET(ch->handshake_opt)
+        | DMAV2_CHCTRL_CTRL_BURSTOPT_SET(ch->burst_opt)
         | DMAV2_CHCTRL_CTRL_PRIORITY_SET(ch->priority)
         | DMAV2_CHCTRL_CTRL_SRCBURSTSIZE_SET(ch->src_burst_size)
         | DMAV2_CHCTRL_CTRL_SRCWIDTH_SET(ch->src_width)
@@ -54,10 +54,11 @@ hpm_stat_t dma_setup_channel(DMAV2_Type *ptr, uint8_t ch_num, dma_channel_config
 
 void dma_default_channel_config(DMAV2_Type *ptr, dma_channel_config_t *ch)
 {
+    (void) ptr;
     ch->en_infiniteloop = false;
-    ch->en_handshake_trans_all_data = false;
-    ch->en_burst_using_new_trans_count = false;
-    ch->priority = 0;
+    ch->handshake_opt = DMA_HANDSHAKE_OPT_ONE_BURST;
+    ch->burst_opt = DMA_SRC_BURST_OPT_STANDAND_SIZE;
+    ch->priority = DMA_CHANNEL_PRIORITY_LOW;
     ch->src_mode = DMA_HANDSHAKE_MODE_NORMAL;
     ch->dst_mode = DMA_HANDSHAKE_MODE_NORMAL;
     ch->src_burst_size = DMA_NUM_TRANSFER_PER_BURST_1T;
@@ -69,6 +70,7 @@ void dma_default_channel_config(DMAV2_Type *ptr, dma_channel_config_t *ch)
 
 hpm_stat_t dma_config_linked_descriptor(DMAV2_Type *ptr, dma_linked_descriptor_t *descriptor, uint8_t ch_num, dma_channel_config_t *config)
 {
+    (void) ptr;
     uint32_t tmp;
 
     if ((config->dst_width > DMA_SOC_TRANSFER_WIDTH_MAX(ptr))
@@ -91,8 +93,8 @@ hpm_stat_t dma_config_linked_descriptor(DMAV2_Type *ptr, dma_linked_descriptor_t
     descriptor->req_ctrl = DMAV2_CHCTRL_CHANREQCTRL_SRCREQSEL_SET(ch_num) | DMAV2_CHCTRL_CHANREQCTRL_DSTREQSEL_SET(ch_num);
 
     tmp = DMAV2_CHCTRL_CTRL_INFINITELOOP_SET(false)
-        | DMAV2_CHCTRL_CTRL_HANDSHAKEOPT_SET(config->en_handshake_trans_all_data)
-        | DMAV2_CHCTRL_CTRL_BURSTOPT_SET(config->en_burst_using_new_trans_count)
+        | DMAV2_CHCTRL_CTRL_HANDSHAKEOPT_SET(config->handshake_opt)
+        | DMAV2_CHCTRL_CTRL_BURSTOPT_SET(config->burst_opt)
         | DMAV2_CHCTRL_CTRL_PRIORITY_SET(config->priority)
         | DMAV2_CHCTRL_CTRL_SRCBURSTSIZE_SET(config->src_burst_size)
         | DMAV2_CHCTRL_CTRL_SRCWIDTH_SET(config->src_width)
@@ -114,14 +116,14 @@ hpm_stat_t dma_start_memcpy(DMAV2_Type *ptr, uint8_t ch_num,
 {
     hpm_stat_t stat = status_success;
     uint32_t width, count;
-    int32_t burst_size;
+    uint32_t burst_size;
     dma_channel_config_t config = {0};
     dma_default_channel_config(ptr, &config);
 
     /* burst size checking (1-byte burst length will cause heavy overhead */
     if (!burst_len_in_byte || burst_len_in_byte == 1 || burst_len_in_byte > size
         || burst_len_in_byte >
-            ((1 << DMA_SOC_TRANSFER_WIDTH_MAX(ptr)) << DMA_SOC_TRANSFER_PER_BURST_MAX(ptr))) {
+            (uint32_t) ((1 << DMA_SOC_TRANSFER_WIDTH_MAX(ptr)) << DMA_SOC_TRANSFER_PER_BURST_MAX(ptr))) {
         return status_invalid_argument;
     }
 
@@ -172,6 +174,7 @@ hpm_stat_t dma_start_memcpy(DMAV2_Type *ptr, uint8_t ch_num,
 
 void dma_default_handshake_config(DMAV2_Type *ptr, dma_handshake_config_t *config)
 {
+    (void) ptr;
     memset(config, 0, sizeof(dma_handshake_config_t));
     config->en_infiniteloop = false;
     config->interrupt_mask = DMA_INTERRUPT_MASK_HALF_TC;

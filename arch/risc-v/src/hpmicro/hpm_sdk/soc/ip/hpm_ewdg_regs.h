@@ -11,9 +11,9 @@
 
 typedef struct {
     __RW uint32_t CTRL0;                       /* 0x0: wdog ctrl register 0
-Note: Parith check is required once writing to this register. The result should be zero by modular two additon of all bits */
+Note: Parity check is required once writing to this register. The result should be zero by modular two addition of all bits */
     __RW uint32_t CTRL1;                       /* 0x4: wdog ctrl register 1
-Note: Parith check is required once writing to this register. The result should be zero by modular two additon of all bits */
+Note: Parity check is required once writing to this register. The result should be zero by modular two addition of all bits */
     __RW uint32_t OT_INT_VAL;                  /* 0x8: wdog timeout interrupt counter value */
     __RW uint32_t OT_RST_VAL;                  /* 0xC: wdog timeout reset counter value */
     __W  uint32_t WDT_REFRESH_REG;             /* 0x10: wdog refresh register */
@@ -43,7 +43,7 @@ Note: Parith check is required once writing to this register. The result should 
  *
  * clock divider, the clock divider works as 2 ^ div_value for wdt counter
  */
-#define EWDG_CTRL0_DIV_VALUE_MASK (0x1E000000UL)
+#define EWDG_CTRL0_DIV_VALUE_MASK (0xE000000UL)
 #define EWDG_CTRL0_DIV_VALUE_SHIFT (25U)
 #define EWDG_CTRL0_DIV_VALUE_SET(x) (((uint32_t)(x) << EWDG_CTRL0_DIV_VALUE_SHIFT) & EWDG_CTRL0_DIV_VALUE_MASK)
 #define EWDG_CTRL0_DIV_VALUE_GET(x) (((uint32_t)(x) & EWDG_CTRL0_DIV_VALUE_MASK) >> EWDG_CTRL0_DIV_VALUE_SHIFT)
@@ -61,10 +61,10 @@ Note: Parith check is required once writing to this register. The result should 
 /*
  * WIN_LOWER (RW)
  *
- * Once window mode is opened, the lower couner value to refresh wdt
+ * Once window mode is opened, the lower counter value to refresh wdt
  * 00: 4/8 overtime value
  * 01: 5/8 of overtime value
- * 10: 6/8 of overtime vlaue
+ * 10: 6/8 of overtime value
  * 11: 7/8 of overtime value
  */
 #define EWDG_CTRL0_WIN_LOWER_MASK (0xC00000UL)
@@ -169,11 +169,11 @@ Note: Parith check is required once writing to this register. The result should 
 /*
  * REF_FAIL_RST_EN (RW)
  *
- * Refresh violation will triger an interrupt.
+ * Refresh violation will trigger an reset.
  * These event will be taken as a refresh violation:
  * 1) Not refresh in the window once window mode is enabled
  * 2) Not unlock refresh firstly if unlock is required
- * 3) Not refresh in the required time after unlock, once refresh unlock ovetime is enabled.
+ * 3) Not refresh in the required time after unlock, once refresh unlock overtime is enabled.
  * 4) Not write the required word to refresh wdt.
  */
 #define EWDG_CTRL1_REF_FAIL_RST_EN_MASK (0x800000UL)
@@ -184,7 +184,7 @@ Note: Parith check is required once writing to this register. The result should 
 /*
  * REF_FAIL_INT_EN (RW)
  *
- * Refresh violation will triger an interrupt
+ * Refresh violation will trigger an interrupt
  */
 #define EWDG_CTRL1_REF_FAIL_INT_EN_MASK (0x400000UL)
 #define EWDG_CTRL1_REF_FAIL_INT_EN_SHIFT (22U)
@@ -275,8 +275,8 @@ Note: Parith check is required once writing to this register. The result should 
 /*
  * PARITY_FAIL_RST_EN (RW)
  *
- * Parith error will trigger a reset
- * A parith check is required once writing to ctrl0 and ctrl1 register. The result should be zero by modular two additon of all bits
+ * Parity error will trigger a reset
+ * A parity check is required once writing to ctrl0 and ctrl1 register. The result should be zero by modular two addition of all bits
  */
 #define EWDG_CTRL1_PARITY_FAIL_RST_EN_MASK (0x8U)
 #define EWDG_CTRL1_PARITY_FAIL_RST_EN_SHIFT (3U)
@@ -286,7 +286,7 @@ Note: Parith check is required once writing to this register. The result should 
 /*
  * PARITY_FAIL_INT_EN (RW)
  *
- * Parith error will trigger a interrupt
+ * Parity error will trigger a interrupt
  */
 #define EWDG_CTRL1_PARITY_FAIL_INT_EN_MASK (0x4U)
 #define EWDG_CTRL1_PARITY_FAIL_INT_EN_SHIFT (2U)
@@ -297,7 +297,7 @@ Note: Parith check is required once writing to this register. The result should 
 /*
  * OT_INT_VAL (RW)
  *
- * WDT timetout interrupt value
+ * WDT timeout interrupt value
  */
 #define EWDG_OT_INT_VAL_OT_INT_VAL_MASK (0xFFFFU)
 #define EWDG_OT_INT_VAL_OT_INT_VAL_SHIFT (0U)
@@ -308,7 +308,7 @@ Note: Parith check is required once writing to this register. The result should 
 /*
  * OT_RST_VAL (RW)
  *
- * WDT timetout reset value
+ * WDT timeout reset value
  */
 #define EWDG_OT_RST_VAL_OT_RST_VAL_MASK (0xFFFFU)
 #define EWDG_OT_RST_VAL_OT_RST_VAL_SHIFT (0U)
@@ -418,7 +418,7 @@ Note: Parith check is required once writing to this register. The result should 
 /*
  * UPD_PSD (RW)
  *
- * The password of unlocking register udpate
+ * The password of unlocking register update
  */
 #define EWDG_CFG_PROT_UPD_PSD_MASK (0xFFFFU)
 #define EWDG_CFG_PROT_UPD_PSD_SHIFT (0U)

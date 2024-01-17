@@ -36,7 +36,7 @@
 #define BOARD_APP_UART_IRQ  IRQn_UART0
 #else
 #ifndef BOARD_APP_UART_IRQ
-#warning no IRQ specified for applicaiton uart
+#warning no IRQ specified for application uart
 #endif
 #endif
 
@@ -45,6 +45,7 @@
 #define BOARD_APP_UART_RX_DMA_REQ HPM_DMA_SRC_UART0_RX
 #define BOARD_APP_UART_TX_DMA_REQ HPM_DMA_SRC_UART0_TX
 
+#if !defined(CONFIG_NDEBUG_CONSOLE) || !CONFIG_NDEBUG_CONSOLE
 #ifndef BOARD_CONSOLE_TYPE
 #define BOARD_CONSOLE_TYPE CONSOLE_TYPE_UART
 #endif
@@ -60,6 +61,7 @@
 #endif
 #endif
 #define BOARD_CONSOLE_BAUDRATE (115200UL)
+#endif
 #endif
 
 #define BOARD_FREEMASTER_UART_BASE HPM_UART0
@@ -118,6 +120,11 @@
 #define BOARD_APP_I2C_DMA HPM_HDMA
 #define BOARD_APP_I2C_DMAMUX HPM_DMAMUX
 #define BOARD_APP_I2C_DMA_SRC HPM_DMA_SRC_I2C0
+#define BOARD_I2C_GPIO_CTRL           HPM_GPIO0
+#define BOARD_I2C_SCL_GPIO_INDEX      GPIO_DO_GPIOC
+#define BOARD_I2C_SCL_GPIO_PIN        13
+#define BOARD_I2C_SDA_GPIO_INDEX      GPIO_DO_GPIOC
+#define BOARD_I2C_SDA_GPIO_PIN        14
 
 /* ACMP desction */
 #define BOARD_ACMP HPM_ACMP
@@ -205,17 +212,27 @@
 #define BOARD_ENET_RMII                 HPM_ENET0
 #define BOARD_ENET_RMII_INT_REF_CLK     (1U)
 #define BOARD_ENET_RMII_PTP_CLOCK       (clock_ptp0)
+#define BOARD_ENET_RMII_PPS0_PINOUT     (1)
 
 /* ADC section */
-#define BOARD_APP_ADC16_NAME "ADC0"
-#define BOARD_APP_ADC16_BASE HPM_ADC0
-#define BOARD_APP_ADC16_IRQn IRQn_ADC0
-#define BOARD_APP_ADC16_CH_1                     (13U)
+#define BOARD_APP_ADC16_NAME            "ADC0"
+#define BOARD_APP_ADC16_BASE            HPM_ADC0
+#define BOARD_APP_ADC16_IRQn            IRQn_ADC0
+#define BOARD_APP_ADC16_CH_1            (13U)
+#define BOARD_APP_ADC16_CLK_NAME        (clock_adc0)
+
+#define BOARD_APP_ADC16_HW_TRIG_SRC     HPM_PWM0
+#define BOARD_APP_ADC16_HW_TRGM         HPM_TRGM0
+#define BOARD_APP_ADC16_HW_TRGM_IN      HPM_TRGM0_INPUT_SRC_PWM0_CH8REF
+#define BOARD_APP_ADC16_HW_TRGM_OUT_SEQ TRGM_TRGOCFG_ADC0_STRGI
+#define BOARD_APP_ADC16_HW_TRGM_OUT_PMT TRGM_TRGOCFG_ADCX_PTRGI0A
+
+#define BOARD_APP_ADC16_PMT_TRIG_CH     ADC16_CONFIG_TRG0A
 
 /* DAC section */
-#define BOARD_DAC_BASE       HPM_DAC
-#define BOARD_DAC_IRQn       IRQn_DAC
-#define BOARD_DAC_CLOCK_NAME clock_dac0
+#define BOARD_DAC_BASE              HPM_DAC
+#define BOARD_DAC_IRQn              IRQn_DAC
+#define BOARD_APP_DAC_CLOCK_NAME    clock_dac0
 
 /* CAN section */
 #define BOARD_APP_CAN_BASE                       HPM_CAN1
@@ -235,14 +252,15 @@
 
 /* SDXC section */
 #define BOARD_APP_SDCARD_SDXC_BASE                  (HPM_SDXC0)
+#define BOARD_APP_SDCARD_SUPPORT_3V3                (1)
 #define BOARD_APP_SDCARD_SUPPORT_1V8                (0)
+#define BOARD_APP_SDCARD_SUPPORT_4BIT               (1)
 #define BOARD_APP_SDCARD_SUPPORT_CARD_DETECTION     (1)
-#define BOARD_APP_SDCARD_CARD_DETECTION_USING_GPIO  (0)
-#if BOARD_APP_SDCARD_CARD_DETECTION_USING_GPIO
-#define BOARD_APP_SDCARD_CARD_DETECTION_GPIO        NULL
-#define BOARD_APP_SDCARD_CARD_DETECTION_GPIO_INDEX  0
-#define BOARD_APP_SDCARD_CARD_DETECTION_PIN_INDEX   0
-#endif
+#define BOARD_APP_EMMC_SDXC_BASE                    (HPM_SDXC0)
+#define BOARD_APP_EMMC_SUPPORT_3V3                  (1)
+#define BOARD_APP_EMMC_SUPPORT_1V8                  (0)
+#define BOARD_APP_EMMC_SUPPORT_4BIT                 (1)
+#define BOARD_APP_EMMC_HOST_USING_IRQ               (0)
 
 /* USB section */
 #define BOARD_USB0_ID_PORT       (HPM_GPIO0)
@@ -267,6 +285,8 @@
 #define BOARD_BLDCPWM_CMP_INDEX_3         (3U)
 #define BOARD_BLDCPWM_CMP_INDEX_4         (4U)
 #define BOARD_BLDCPWM_CMP_INDEX_5         (5U)
+#define BOARD_BLDCPWM_CMP_INDEX_6         (6U)
+#define BOARD_BLDCPWM_CMP_INDEX_7         (7U)
 #define BOARD_BLDCPWM_CMP_TRIG_CMP        (20U)
 
 /*HALL define*/
@@ -311,7 +331,7 @@
 #define BOARD_BLDC_ADC_CH_V                    (12U)
 #define BOARD_BLDC_ADC_CH_W                    (5U)
 #define BOARD_BLDC_ADC_IRQn                    IRQn_ADC1
-#define BOARD_BLDC_ADC_SEQ_DMA_SIZE_IN_4BYTES  (40U)
+#define BOARD_BLDC_ADC_PMT_DMA_SIZE_IN_4BYTES  (ADC_SOC_PMT_MAX_DMA_BUFF_LEN_IN_4BYTES)
 #define BOARD_BLDC_ADC_TRG                    ADC16_CONFIG_TRG0A
 #define BOARD_BLDC_ADC_PREEMPT_TRIG_LEN        (1U)
 #define BOARD_BLDC_PWM_TRIG_CMP_INDEX          (8U)
@@ -342,6 +362,12 @@
 #ifndef BOARD_SHOW_BANNER
 #define BOARD_SHOW_BANNER 1
 #endif
+
+/* FreeRTOS Definitions */
+#define BOARD_FREERTOS_TIMER                    HPM_GPTMR1
+#define BOARD_FREERTOS_TIMER_CHANNEL            1
+#define BOARD_FREERTOS_TIMER_IRQ                IRQn_GPTMR1
+#define BOARD_FREERTOS_TIMER_CLK_NAME           clock_gptmr1
 
 #if defined(__cplusplus)
 extern "C" {
@@ -374,7 +400,7 @@ void board_init_clock(void);
 
 uint32_t board_init_spi_clock(SPI_Type *ptr);
 
-uint32_t board_init_adc16_clock(ADC16_Type *ptr);
+uint32_t board_init_adc16_clock(ADC16_Type *ptr, bool clk_src_ahb);
 
 uint32_t board_init_dac_clock(DAC_Type *ptr, bool clk_src_ahb);
 
@@ -389,8 +415,7 @@ uint32_t board_init_i2s_clock(I2S_Type *ptr);
 uint32_t board_init_pdm_clock(void);
 uint32_t board_init_dao_clock(void);
 
-void board_init_sd_pins(SDXC_Type *ptr);
-uint32_t board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq);
+uint32_t board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq, bool need_inverse);
 void board_sd_switch_pins_to_1v8(SDXC_Type *ptr);
 bool board_sd_detect_card(SDXC_Type *ptr);
 

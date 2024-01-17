@@ -14,7 +14,9 @@ typedef struct {
     __RW uint32_t N_LANES;                     /* 0x4: the number of active lanes */
     __RW uint32_t CSI2_RESETN;                 /* 0x8: the internal logic of the controller goes into the reset state when active */
     __R  uint32_t INT_ST_MAIN;                 /* 0xC: contains the stateus of individual interrupt sources */
-    __R  uint8_t  RESERVED0[28];               /* 0x10 - 0x2B: Reserved */
+    __RW uint32_t DATA_IDS_1;                  /* 0x10: programs data type fields for data ID monitors */
+    __RW uint32_t DATA_IDS_2;                  /* 0x14: programs data type fields for data ID monitors */
+    __R  uint8_t  RESERVED0[20];               /* 0x18 - 0x2B: Reserved */
     __R  uint32_t INT_ST_AP_MAIN;              /* 0x2C: contains the status of individual interrupt sources */
     __R  uint8_t  RESERVED1[16];               /* 0x30 - 0x3F: Reserved */
     __RW uint32_t PHY_SHUTDOWNZ;               /* 0x40: controls the phy shutdown mode */
@@ -214,6 +216,88 @@ typedef struct {
 #define MIPI_CSI_INT_ST_MAIN_STATUS_INT_PHY_FATAL_MASK (0x1U)
 #define MIPI_CSI_INT_ST_MAIN_STATUS_INT_PHY_FATAL_SHIFT (0U)
 #define MIPI_CSI_INT_ST_MAIN_STATUS_INT_PHY_FATAL_GET(x) (((uint32_t)(x) & MIPI_CSI_INT_ST_MAIN_STATUS_INT_PHY_FATAL_MASK) >> MIPI_CSI_INT_ST_MAIN_STATUS_INT_PHY_FATAL_SHIFT)
+
+/* Bitfield definition for register: DATA_IDS_1 */
+/*
+ * DI3_DT (RW)
+ *
+ * data type for programmed data ID 3
+ */
+#define MIPI_CSI_DATA_IDS_1_DI3_DT_MASK (0x3F000000UL)
+#define MIPI_CSI_DATA_IDS_1_DI3_DT_SHIFT (24U)
+#define MIPI_CSI_DATA_IDS_1_DI3_DT_SET(x) (((uint32_t)(x) << MIPI_CSI_DATA_IDS_1_DI3_DT_SHIFT) & MIPI_CSI_DATA_IDS_1_DI3_DT_MASK)
+#define MIPI_CSI_DATA_IDS_1_DI3_DT_GET(x) (((uint32_t)(x) & MIPI_CSI_DATA_IDS_1_DI3_DT_MASK) >> MIPI_CSI_DATA_IDS_1_DI3_DT_SHIFT)
+
+/*
+ * DI2_DT (RW)
+ *
+ * data type for programmed data ID 2
+ */
+#define MIPI_CSI_DATA_IDS_1_DI2_DT_MASK (0x3F0000UL)
+#define MIPI_CSI_DATA_IDS_1_DI2_DT_SHIFT (16U)
+#define MIPI_CSI_DATA_IDS_1_DI2_DT_SET(x) (((uint32_t)(x) << MIPI_CSI_DATA_IDS_1_DI2_DT_SHIFT) & MIPI_CSI_DATA_IDS_1_DI2_DT_MASK)
+#define MIPI_CSI_DATA_IDS_1_DI2_DT_GET(x) (((uint32_t)(x) & MIPI_CSI_DATA_IDS_1_DI2_DT_MASK) >> MIPI_CSI_DATA_IDS_1_DI2_DT_SHIFT)
+
+/*
+ * DI1_DT (RW)
+ *
+ * data type for programmed data ID 1
+ */
+#define MIPI_CSI_DATA_IDS_1_DI1_DT_MASK (0x3F00U)
+#define MIPI_CSI_DATA_IDS_1_DI1_DT_SHIFT (8U)
+#define MIPI_CSI_DATA_IDS_1_DI1_DT_SET(x) (((uint32_t)(x) << MIPI_CSI_DATA_IDS_1_DI1_DT_SHIFT) & MIPI_CSI_DATA_IDS_1_DI1_DT_MASK)
+#define MIPI_CSI_DATA_IDS_1_DI1_DT_GET(x) (((uint32_t)(x) & MIPI_CSI_DATA_IDS_1_DI1_DT_MASK) >> MIPI_CSI_DATA_IDS_1_DI1_DT_SHIFT)
+
+/*
+ * DI0_DT (RW)
+ *
+ * data type for programmed data ID 0
+ */
+#define MIPI_CSI_DATA_IDS_1_DI0_DT_MASK (0x3FU)
+#define MIPI_CSI_DATA_IDS_1_DI0_DT_SHIFT (0U)
+#define MIPI_CSI_DATA_IDS_1_DI0_DT_SET(x) (((uint32_t)(x) << MIPI_CSI_DATA_IDS_1_DI0_DT_SHIFT) & MIPI_CSI_DATA_IDS_1_DI0_DT_MASK)
+#define MIPI_CSI_DATA_IDS_1_DI0_DT_GET(x) (((uint32_t)(x) & MIPI_CSI_DATA_IDS_1_DI0_DT_MASK) >> MIPI_CSI_DATA_IDS_1_DI0_DT_SHIFT)
+
+/* Bitfield definition for register: DATA_IDS_2 */
+/*
+ * DI7_DT (RW)
+ *
+ * data type for programmed data ID 7
+ */
+#define MIPI_CSI_DATA_IDS_2_DI7_DT_MASK (0x3F000000UL)
+#define MIPI_CSI_DATA_IDS_2_DI7_DT_SHIFT (24U)
+#define MIPI_CSI_DATA_IDS_2_DI7_DT_SET(x) (((uint32_t)(x) << MIPI_CSI_DATA_IDS_2_DI7_DT_SHIFT) & MIPI_CSI_DATA_IDS_2_DI7_DT_MASK)
+#define MIPI_CSI_DATA_IDS_2_DI7_DT_GET(x) (((uint32_t)(x) & MIPI_CSI_DATA_IDS_2_DI7_DT_MASK) >> MIPI_CSI_DATA_IDS_2_DI7_DT_SHIFT)
+
+/*
+ * DI6_DT (RW)
+ *
+ * data type for programmed data ID 6
+ */
+#define MIPI_CSI_DATA_IDS_2_DI6_DT_MASK (0x3F0000UL)
+#define MIPI_CSI_DATA_IDS_2_DI6_DT_SHIFT (16U)
+#define MIPI_CSI_DATA_IDS_2_DI6_DT_SET(x) (((uint32_t)(x) << MIPI_CSI_DATA_IDS_2_DI6_DT_SHIFT) & MIPI_CSI_DATA_IDS_2_DI6_DT_MASK)
+#define MIPI_CSI_DATA_IDS_2_DI6_DT_GET(x) (((uint32_t)(x) & MIPI_CSI_DATA_IDS_2_DI6_DT_MASK) >> MIPI_CSI_DATA_IDS_2_DI6_DT_SHIFT)
+
+/*
+ * DI5_DT (RW)
+ *
+ * data type for programmed data ID 5
+ */
+#define MIPI_CSI_DATA_IDS_2_DI5_DT_MASK (0x3F00U)
+#define MIPI_CSI_DATA_IDS_2_DI5_DT_SHIFT (8U)
+#define MIPI_CSI_DATA_IDS_2_DI5_DT_SET(x) (((uint32_t)(x) << MIPI_CSI_DATA_IDS_2_DI5_DT_SHIFT) & MIPI_CSI_DATA_IDS_2_DI5_DT_MASK)
+#define MIPI_CSI_DATA_IDS_2_DI5_DT_GET(x) (((uint32_t)(x) & MIPI_CSI_DATA_IDS_2_DI5_DT_MASK) >> MIPI_CSI_DATA_IDS_2_DI5_DT_SHIFT)
+
+/*
+ * DI4_DT (RW)
+ *
+ * data type for programmed data ID 4
+ */
+#define MIPI_CSI_DATA_IDS_2_DI4_DT_MASK (0x3FU)
+#define MIPI_CSI_DATA_IDS_2_DI4_DT_SHIFT (0U)
+#define MIPI_CSI_DATA_IDS_2_DI4_DT_SET(x) (((uint32_t)(x) << MIPI_CSI_DATA_IDS_2_DI4_DT_SHIFT) & MIPI_CSI_DATA_IDS_2_DI4_DT_MASK)
+#define MIPI_CSI_DATA_IDS_2_DI4_DT_GET(x) (((uint32_t)(x) & MIPI_CSI_DATA_IDS_2_DI4_DT_MASK) >> MIPI_CSI_DATA_IDS_2_DI4_DT_SHIFT)
 
 /* Bitfield definition for register: INT_ST_AP_MAIN */
 /*

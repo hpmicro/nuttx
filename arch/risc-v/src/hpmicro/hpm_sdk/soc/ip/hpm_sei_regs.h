@@ -12,74 +12,74 @@
 typedef struct {
     struct {
         struct {
-            __RW uint32_t ENG_CTRL;            /* 0x0: Engine control register */
-            __RW uint32_t ENG_CFG;             /* 0x4: Pointer configuration register */
-            __RW uint32_t ENG_WDG;             /* 0x8: Watch dog configuration register */
+            __RW uint32_t CTRL;                /* 0x0: Engine control register */
+            __RW uint32_t PTR_CFG;             /* 0x4: Pointer configuration register */
+            __RW uint32_t WDG_CFG;             /* 0x8: Watch dog configuration register */
             __R  uint8_t  RESERVED0[4];        /* 0xC - 0xF: Reserved */
-            __R  uint32_t ENG_EXE;             /* 0x10: Execution status */
-            __R  uint32_t ENG_PTR;             /* 0x14: Execution pointer */
-            __R  uint32_t ENG_INST;            /* 0x18: Execution instruction */
-            __R  uint32_t ENG_STS;             /* 0x1C: Execution status */
+            __R  uint32_t EXE_STA;             /* 0x10: Execution status */
+            __R  uint32_t EXE_PTR;             /* 0x14: Execution pointer */
+            __R  uint32_t EXE_INST;            /* 0x18: Execution instruction */
+            __R  uint32_t WDG_STA;             /* 0x1C: Watch dog status */
         } ENGINE;
         struct {
-            __RW uint32_t TRX_CTRL;            /* 0x20: Transceiver control register */
-            __RW uint32_t TRX_TYPE_CFG;        /* 0x24: Transceiver configuration register */
-            __RW uint32_t TRX_BAUD_CFG;        /* 0x28: Transceiver baud rate register */
-            __RW uint32_t TRX_DATA_CFG;        /* 0x2C: Transceiver data timing configuration */
-            __RW uint32_t TRX_CLK_CFG;         /* 0x30: Transceiver clock timing configuration */
+            __RW uint32_t CTRL;                /* 0x20: Transceiver control register */
+            __RW uint32_t TYPE_CFG;            /* 0x24: Transceiver configuration register */
+            __RW uint32_t BAUD_CFG;            /* 0x28: Transceiver baud rate register */
+            __RW uint32_t DATA_CFG;            /* 0x2C: Transceiver data timing configuration */
+            __RW uint32_t CLK_CFG;             /* 0x30: Transceiver clock timing configuration */
             __R  uint8_t  RESERVED0[4];        /* 0x34 - 0x37: Reserved */
-            __R  uint32_t TRX_PIN;             /* 0x38: Transceiver pin status */
-            __R  uint32_t TRX_STATE;           /* 0x3C:  */
+            __R  uint32_t PIN;                 /* 0x38: Transceiver pin status */
+            __R  uint32_t STATE;               /* 0x3C: FSM of asynchronous */
         } XCVR;
         struct {
-            __RW uint32_t TRG_IN_CFG;          /* 0x40: Trigger input configuration */
-            __W  uint32_t TRG_SW;              /* 0x44: Software trigger */
-            __RW uint32_t TRG_PRD_CFG;         /* 0x48: Period trigger configuration */
-            __RW uint32_t TRG_PRD;             /* 0x4C: Trigger period */
-            __RW uint32_t TRG_OUT_CFG;         /* 0x50: Trigger output configuration */
+            __RW uint32_t IN_CFG;              /* 0x40: Trigger input configuration */
+            __W  uint32_t SW;                  /* 0x44: Software trigger */
+            __RW uint32_t PRD_CFG;             /* 0x48: Period trigger configuration */
+            __RW uint32_t PRD;                 /* 0x4C: Trigger period */
+            __RW uint32_t OUT_CFG;             /* 0x50: Trigger output configuration */
             __R  uint8_t  RESERVED0[12];       /* 0x54 - 0x5F: Reserved */
-            __R  uint32_t TRG_PRD_STS;         /* 0x60: Period trigger status */
-            __R  uint32_t TRG_PRD_CNT;         /* 0x64: Period trigger counter */
+            __R  uint32_t PRD_STS;             /* 0x60: Period trigger status */
+            __R  uint32_t PRD_CNT;             /* 0x64: Period trigger counter */
             __R  uint8_t  RESERVED1[24];       /* 0x68 - 0x7F: Reserved */
-        } TRIGER;
+        } TRG;
         struct {
-            __RW uint32_t TRG_CMD[4];          /* 0x80 - 0x8C: Trigger command */
+            __RW uint32_t CMD[4];              /* 0x80 - 0x8C: Trigger command */
             __R  uint8_t  RESERVED0[16];       /* 0x90 - 0x9F: Reserved */
-            __R  uint32_t TRG_TIME[4];         /* 0xA0 - 0xAC: Trigger Time */
+            __R  uint32_t TIME[4];             /* 0xA0 - 0xAC: Trigger Time */
             __R  uint8_t  RESERVED1[16];       /* 0xB0 - 0xBF: Reserved */
         } TRG_TABLE;
         struct {
-            __RW uint32_t CMD_MODE;            /* 0xC0: command register mode */
-            __RW uint32_t CMD_IDX;             /* 0xC4: command register configuration */
-            __RW uint32_t CMD_GOLD;            /* 0xC8: Command gold value */
-            __RW uint32_t CMD_CRCINIT;         /* 0xCC: Command Initial value */
-            __RW uint32_t CMD_CRCPOLY;         /* 0xD0: Command CRC polymial */
+            __RW uint32_t MODE;                /* 0xC0: command register mode */
+            __RW uint32_t IDX;                 /* 0xC4: command register configuration */
+            __RW uint32_t GOLD;                /* 0xC8: Command gold value */
+            __RW uint32_t CRCINIT;             /* 0xCC: Command Initial value */
+            __RW uint32_t CRCPOLY;             /* 0xD0: Command CRC polymial */
             __R  uint8_t  RESERVED0[12];       /* 0xD4 - 0xDF: Reserved */
             __RW uint32_t CMD;                 /* 0xE0: command */
-            __RW uint32_t CMD_SET;             /* 0xE4: command bit set register */
-            __RW uint32_t CMD_CLR;             /* 0xE8: command bit clear register */
-            __RW uint32_t CMD_INV;             /* 0xEC: command bit invert register */
-            __R  uint32_t CMD_IN;              /* 0xF0: Commad input */
-            __R  uint32_t CMD_OUT;             /* 0xF4: Command output */
-            __RW uint32_t CMD_STS;             /* 0xF8: Command status */
+            __RW uint32_t SET;                 /* 0xE4: command bit set register */
+            __RW uint32_t CLR;                 /* 0xE8: command bit clear register */
+            __RW uint32_t INV;                 /* 0xEC: command bit invert register */
+            __R  uint32_t IN;                  /* 0xF0: Commad input */
+            __R  uint32_t OUT;                 /* 0xF4: Command output */
+            __RW uint32_t STS;                 /* 0xF8: Command status */
             __R  uint8_t  RESERVED1[4];        /* 0xFC - 0xFF: Reserved */
-        } COMMAND;
+        } CMD;
         struct {
-            __RW uint32_t CMD_MIN;             /* 0x100: command start value */
-            __RW uint32_t CMD_MAX;             /* 0x104: command end value */
-            __RW uint32_t CMD_MSK;             /* 0x108: command compare bit enable */
+            __RW uint32_t MIN;                 /* 0x100: command start value */
+            __RW uint32_t MAX;                 /* 0x104: command end value */
+            __RW uint32_t MSK;                 /* 0x108: command compare bit enable */
             __R  uint8_t  RESERVED0[4];        /* 0x10C - 0x10F: Reserved */
-            __RW uint32_t CMD_PTRA;            /* 0x110: command pointer 0 - 3 */
-            __RW uint32_t CMD_PTRB;            /* 0x114: command pointer 4 - 7 */
-            __RW uint32_t CMD_PTRC;            /* 0x118: command pointer 8 - 11 */
-            __RW uint32_t CMD_PTRD;            /* 0x11C: command pointer 12 - 15 */
-        } COMMAND_TABLE[8];
+            __RW uint32_t PTA;                 /* 0x110: command pointer 0 - 3 */
+            __RW uint32_t PTB;                 /* 0x114: command pointer 4 - 7 */
+            __RW uint32_t PTC;                 /* 0x118: command pointer 8 - 11 */
+            __RW uint32_t PTD;                 /* 0x11C: command pointer 12 - 15 */
+        } CMD_TABLE[8];
         struct {
-            __RW uint32_t TRAN_CFG[4];         /* 0x200 - 0x20C: Latch state transition configuration */
-            __RW uint32_t LAT_CFG;             /* 0x210: Latch configuration */
+            __RW uint32_t TRAN[4];             /* 0x200 - 0x20C: Latch state transition configuration */
+            __RW uint32_t CFG;                 /* 0x210: Latch configuration */
             __R  uint8_t  RESERVED0[4];        /* 0x214 - 0x217: Reserved */
-            __R  uint32_t LAT_TIME;            /* 0x218: Latch time */
-            __R  uint32_t LAT_STS;             /* 0x21C: Latch status */
+            __R  uint32_t TIME;                /* 0x218: Latch time */
+            __R  uint32_t STS;                 /* 0x21C: Latch status */
         } LATCH[4];
         struct {
             __RW uint32_t SMP_EN;              /* 0x280: Sample selection register */
@@ -109,7 +109,7 @@ typedef struct {
             __R  uint8_t  RESERVED2[4];        /* 0x2E0 - 0x2E3: Reserved */
             __R  uint32_t UPD_STS;             /* 0x2E4: Update status */
             __R  uint8_t  RESERVED3[24];       /* 0x2E8 - 0x2FF: Reserved */
-        } POSITION;
+        } POS;
         struct {
             __RW uint32_t INT_EN;              /* 0x300: Interrupt Enable */
             __W  uint32_t INT_FLAG;            /* 0x304: Interrupt flag */
@@ -124,25 +124,25 @@ typedef struct {
     } CTRL[13];
     __RW uint32_t INSTR[256];                  /* 0x3400 - 0x37FC: Instructions */
     struct {
-        __RW uint32_t DATA_MODE;               /* 0x3800:  */
-        __RW uint32_t DATA_IDX;                /* 0x3804: Data register bit index */
-        __RW uint32_t DATA_GOLD;               /* 0x3808: Gold data for data check */
-        __RW uint32_t DATA_CRCINIT;            /* 0x380C: CRC calculation initial vector */
-        __RW uint32_t DATA_CRCPOLY;            /* 0x3810: CRC calculation polynomial */
+        __RW uint32_t MODE;                    /* 0x3800:  */
+        __RW uint32_t IDX;                     /* 0x3804: Data register bit index */
+        __RW uint32_t GOLD;                    /* 0x3808: Gold data for data check */
+        __RW uint32_t CRCINIT;                 /* 0x380C: CRC calculation initial vector */
+        __RW uint32_t CRCPOLY;                 /* 0x3810: CRC calculation polynomial */
         __R  uint8_t  RESERVED0[12];           /* 0x3814 - 0x381F: Reserved */
         __RW uint32_t DATA;                    /* 0x3820: Data value */
-        __RW uint32_t DATA_SET;                /* 0x3824: Data bit set */
-        __RW uint32_t DATA_CLR;                /* 0x3828: Data bit clear */
-        __RW uint32_t DATA_INV;                /* 0x382C: Data bit invert */
-        __R  uint32_t DATA_IN;                 /* 0x3830: Data input */
-        __R  uint32_t DATA_OUT;                /* 0x3834: Data output */
-        __RW uint32_t DATA_STS;                /* 0x3838: Data status */
+        __RW uint32_t SET;                     /* 0x3824: Data bit set */
+        __RW uint32_t CLR;                     /* 0x3828: Data bit clear */
+        __RW uint32_t INV;                     /* 0x382C: Data bit invert */
+        __R  uint32_t IN;                      /* 0x3830: Data input */
+        __R  uint32_t OUT;                     /* 0x3834: Data output */
+        __RW uint32_t STS;                     /* 0x3838: Data status */
         __R  uint8_t  RESERVED1[4];            /* 0x383C - 0x383F: Reserved */
     } DAT[32];
 } SEI_Type;
 
 
-/* Bitfield definition for register of struct array CTRL: ENG_CTRL */
+/* Bitfield definition for register of struct array CTRL: CTRL */
 /*
  * WATCH (RW)
  *
@@ -150,10 +150,10 @@ typedef struct {
  * 0: Watch dog disabled
  * 1: Watch dog enabled
  */
-#define SEI_CTRL_ENGINE_ENG_CTRL_WATCH_MASK (0x1000000UL)
-#define SEI_CTRL_ENGINE_ENG_CTRL_WATCH_SHIFT (24U)
-#define SEI_CTRL_ENGINE_ENG_CTRL_WATCH_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CTRL_WATCH_SHIFT) & SEI_CTRL_ENGINE_ENG_CTRL_WATCH_MASK)
-#define SEI_CTRL_ENGINE_ENG_CTRL_WATCH_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CTRL_WATCH_MASK) >> SEI_CTRL_ENGINE_ENG_CTRL_WATCH_SHIFT)
+#define SEI_CTRL_ENGINE_CTRL_WATCH_MASK (0x1000000UL)
+#define SEI_CTRL_ENGINE_CTRL_WATCH_SHIFT (24U)
+#define SEI_CTRL_ENGINE_CTRL_WATCH_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_CTRL_WATCH_SHIFT) & SEI_CTRL_ENGINE_CTRL_WATCH_MASK)
+#define SEI_CTRL_ENGINE_CTRL_WATCH_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_CTRL_WATCH_MASK) >> SEI_CTRL_ENGINE_CTRL_WATCH_SHIFT)
 
 /*
  * ARMING (RW)
@@ -162,10 +162,10 @@ typedef struct {
  * 0: Execute on enable
  * 1: Wait trigger before exection after enabled
  */
-#define SEI_CTRL_ENGINE_ENG_CTRL_ARMING_MASK (0x10000UL)
-#define SEI_CTRL_ENGINE_ENG_CTRL_ARMING_SHIFT (16U)
-#define SEI_CTRL_ENGINE_ENG_CTRL_ARMING_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CTRL_ARMING_SHIFT) & SEI_CTRL_ENGINE_ENG_CTRL_ARMING_MASK)
-#define SEI_CTRL_ENGINE_ENG_CTRL_ARMING_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CTRL_ARMING_MASK) >> SEI_CTRL_ENGINE_ENG_CTRL_ARMING_SHIFT)
+#define SEI_CTRL_ENGINE_CTRL_ARMING_MASK (0x10000UL)
+#define SEI_CTRL_ENGINE_CTRL_ARMING_SHIFT (16U)
+#define SEI_CTRL_ENGINE_CTRL_ARMING_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_CTRL_ARMING_SHIFT) & SEI_CTRL_ENGINE_CTRL_ARMING_MASK)
+#define SEI_CTRL_ENGINE_CTRL_ARMING_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_CTRL_ARMING_MASK) >> SEI_CTRL_ENGINE_CTRL_ARMING_SHIFT)
 
 /*
  * EXCEPT (RW)
@@ -174,10 +174,10 @@ typedef struct {
  * 0: when timeout, pointer move to next instruction
  * 1: when timeout, pointer jump to timeout vector
  */
-#define SEI_CTRL_ENGINE_ENG_CTRL_EXCEPT_MASK (0x100U)
-#define SEI_CTRL_ENGINE_ENG_CTRL_EXCEPT_SHIFT (8U)
-#define SEI_CTRL_ENGINE_ENG_CTRL_EXCEPT_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CTRL_EXCEPT_SHIFT) & SEI_CTRL_ENGINE_ENG_CTRL_EXCEPT_MASK)
-#define SEI_CTRL_ENGINE_ENG_CTRL_EXCEPT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CTRL_EXCEPT_MASK) >> SEI_CTRL_ENGINE_ENG_CTRL_EXCEPT_SHIFT)
+#define SEI_CTRL_ENGINE_CTRL_EXCEPT_MASK (0x100U)
+#define SEI_CTRL_ENGINE_CTRL_EXCEPT_SHIFT (8U)
+#define SEI_CTRL_ENGINE_CTRL_EXCEPT_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_CTRL_EXCEPT_SHIFT) & SEI_CTRL_ENGINE_CTRL_EXCEPT_MASK)
+#define SEI_CTRL_ENGINE_CTRL_EXCEPT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_CTRL_EXCEPT_MASK) >> SEI_CTRL_ENGINE_CTRL_EXCEPT_SHIFT)
 
 /*
  * REWIND (RW)
@@ -186,10 +186,10 @@ typedef struct {
  * 0: run
  * 1: clean status and rewind
  */
-#define SEI_CTRL_ENGINE_ENG_CTRL_REWIND_MASK (0x10U)
-#define SEI_CTRL_ENGINE_ENG_CTRL_REWIND_SHIFT (4U)
-#define SEI_CTRL_ENGINE_ENG_CTRL_REWIND_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CTRL_REWIND_SHIFT) & SEI_CTRL_ENGINE_ENG_CTRL_REWIND_MASK)
-#define SEI_CTRL_ENGINE_ENG_CTRL_REWIND_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CTRL_REWIND_MASK) >> SEI_CTRL_ENGINE_ENG_CTRL_REWIND_SHIFT)
+#define SEI_CTRL_ENGINE_CTRL_REWIND_MASK (0x10U)
+#define SEI_CTRL_ENGINE_CTRL_REWIND_SHIFT (4U)
+#define SEI_CTRL_ENGINE_CTRL_REWIND_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_CTRL_REWIND_SHIFT) & SEI_CTRL_ENGINE_CTRL_REWIND_MASK)
+#define SEI_CTRL_ENGINE_CTRL_REWIND_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_CTRL_REWIND_MASK) >> SEI_CTRL_ENGINE_CTRL_REWIND_SHIFT)
 
 /*
  * ENABLE (RW)
@@ -198,12 +198,12 @@ typedef struct {
  * 0: disable
  * 1: enable
  */
-#define SEI_CTRL_ENGINE_ENG_CTRL_ENABLE_MASK (0x1U)
-#define SEI_CTRL_ENGINE_ENG_CTRL_ENABLE_SHIFT (0U)
-#define SEI_CTRL_ENGINE_ENG_CTRL_ENABLE_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CTRL_ENABLE_SHIFT) & SEI_CTRL_ENGINE_ENG_CTRL_ENABLE_MASK)
-#define SEI_CTRL_ENGINE_ENG_CTRL_ENABLE_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CTRL_ENABLE_MASK) >> SEI_CTRL_ENGINE_ENG_CTRL_ENABLE_SHIFT)
+#define SEI_CTRL_ENGINE_CTRL_ENABLE_MASK (0x1U)
+#define SEI_CTRL_ENGINE_CTRL_ENABLE_SHIFT (0U)
+#define SEI_CTRL_ENGINE_CTRL_ENABLE_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_CTRL_ENABLE_SHIFT) & SEI_CTRL_ENGINE_CTRL_ENABLE_MASK)
+#define SEI_CTRL_ENGINE_CTRL_ENABLE_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_CTRL_ENABLE_MASK) >> SEI_CTRL_ENGINE_CTRL_ENABLE_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: ENG_CFG */
+/* Bitfield definition for register of struct array CTRL: PTR_CFG */
 /*
  * DAT_CDM (RW)
  *
@@ -217,10 +217,10 @@ typedef struct {
  * 30: value 0 when send, ignore in receive
  * 31: value1 when send, ignore in receive
  */
-#define SEI_CTRL_ENGINE_ENG_CFG_DAT_CDM_MASK (0x1F000000UL)
-#define SEI_CTRL_ENGINE_ENG_CFG_DAT_CDM_SHIFT (24U)
-#define SEI_CTRL_ENGINE_ENG_CFG_DAT_CDM_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CFG_DAT_CDM_SHIFT) & SEI_CTRL_ENGINE_ENG_CFG_DAT_CDM_MASK)
-#define SEI_CTRL_ENGINE_ENG_CFG_DAT_CDM_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CFG_DAT_CDM_MASK) >> SEI_CTRL_ENGINE_ENG_CFG_DAT_CDM_SHIFT)
+#define SEI_CTRL_ENGINE_PTR_CFG_DAT_CDM_MASK (0x1F000000UL)
+#define SEI_CTRL_ENGINE_PTR_CFG_DAT_CDM_SHIFT (24U)
+#define SEI_CTRL_ENGINE_PTR_CFG_DAT_CDM_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_PTR_CFG_DAT_CDM_SHIFT) & SEI_CTRL_ENGINE_PTR_CFG_DAT_CDM_MASK)
+#define SEI_CTRL_ENGINE_PTR_CFG_DAT_CDM_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_PTR_CFG_DAT_CDM_MASK) >> SEI_CTRL_ENGINE_PTR_CFG_DAT_CDM_SHIFT)
 
 /*
  * DAT_BASE (RW)
@@ -232,43 +232,43 @@ typedef struct {
  * ...
  * 31: access index is 31 greater than instruction address
  */
-#define SEI_CTRL_ENGINE_ENG_CFG_DAT_BASE_MASK (0x1F0000UL)
-#define SEI_CTRL_ENGINE_ENG_CFG_DAT_BASE_SHIFT (16U)
-#define SEI_CTRL_ENGINE_ENG_CFG_DAT_BASE_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CFG_DAT_BASE_SHIFT) & SEI_CTRL_ENGINE_ENG_CFG_DAT_BASE_MASK)
-#define SEI_CTRL_ENGINE_ENG_CFG_DAT_BASE_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CFG_DAT_BASE_MASK) >> SEI_CTRL_ENGINE_ENG_CFG_DAT_BASE_SHIFT)
+#define SEI_CTRL_ENGINE_PTR_CFG_DAT_BASE_MASK (0x1F0000UL)
+#define SEI_CTRL_ENGINE_PTR_CFG_DAT_BASE_SHIFT (16U)
+#define SEI_CTRL_ENGINE_PTR_CFG_DAT_BASE_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_PTR_CFG_DAT_BASE_SHIFT) & SEI_CTRL_ENGINE_PTR_CFG_DAT_BASE_MASK)
+#define SEI_CTRL_ENGINE_PTR_CFG_DAT_BASE_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_PTR_CFG_DAT_BASE_MASK) >> SEI_CTRL_ENGINE_PTR_CFG_DAT_BASE_SHIFT)
 
 /*
  * POINTER_WDOG (RW)
  *
  * Pointer to the instruction that the program starts executing after the instruction timeout. The timeout is WDOG_TIME
  */
-#define SEI_CTRL_ENGINE_ENG_CFG_POINTER_WDOG_MASK (0xFF00U)
-#define SEI_CTRL_ENGINE_ENG_CFG_POINTER_WDOG_SHIFT (8U)
-#define SEI_CTRL_ENGINE_ENG_CFG_POINTER_WDOG_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CFG_POINTER_WDOG_SHIFT) & SEI_CTRL_ENGINE_ENG_CFG_POINTER_WDOG_MASK)
-#define SEI_CTRL_ENGINE_ENG_CFG_POINTER_WDOG_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CFG_POINTER_WDOG_MASK) >> SEI_CTRL_ENGINE_ENG_CFG_POINTER_WDOG_SHIFT)
+#define SEI_CTRL_ENGINE_PTR_CFG_POINTER_WDOG_MASK (0xFF00U)
+#define SEI_CTRL_ENGINE_PTR_CFG_POINTER_WDOG_SHIFT (8U)
+#define SEI_CTRL_ENGINE_PTR_CFG_POINTER_WDOG_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_PTR_CFG_POINTER_WDOG_SHIFT) & SEI_CTRL_ENGINE_PTR_CFG_POINTER_WDOG_MASK)
+#define SEI_CTRL_ENGINE_PTR_CFG_POINTER_WDOG_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_PTR_CFG_POINTER_WDOG_MASK) >> SEI_CTRL_ENGINE_PTR_CFG_POINTER_WDOG_SHIFT)
 
 /*
  * POINTER_INIT (RW)
  *
  * Initial execute pointer
  */
-#define SEI_CTRL_ENGINE_ENG_CFG_POINTER_INIT_MASK (0xFFU)
-#define SEI_CTRL_ENGINE_ENG_CFG_POINTER_INIT_SHIFT (0U)
-#define SEI_CTRL_ENGINE_ENG_CFG_POINTER_INIT_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_CFG_POINTER_INIT_SHIFT) & SEI_CTRL_ENGINE_ENG_CFG_POINTER_INIT_MASK)
-#define SEI_CTRL_ENGINE_ENG_CFG_POINTER_INIT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_CFG_POINTER_INIT_MASK) >> SEI_CTRL_ENGINE_ENG_CFG_POINTER_INIT_SHIFT)
+#define SEI_CTRL_ENGINE_PTR_CFG_POINTER_INIT_MASK (0xFFU)
+#define SEI_CTRL_ENGINE_PTR_CFG_POINTER_INIT_SHIFT (0U)
+#define SEI_CTRL_ENGINE_PTR_CFG_POINTER_INIT_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_PTR_CFG_POINTER_INIT_SHIFT) & SEI_CTRL_ENGINE_PTR_CFG_POINTER_INIT_MASK)
+#define SEI_CTRL_ENGINE_PTR_CFG_POINTER_INIT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_PTR_CFG_POINTER_INIT_MASK) >> SEI_CTRL_ENGINE_PTR_CFG_POINTER_INIT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: ENG_WDG */
+/* Bitfield definition for register of struct array CTRL: WDG_CFG */
 /*
  * WDOG_TIME (RW)
  *
  * Time out count for each instruction, counter in bit time.
  */
-#define SEI_CTRL_ENGINE_ENG_WDG_WDOG_TIME_MASK (0xFFFFU)
-#define SEI_CTRL_ENGINE_ENG_WDG_WDOG_TIME_SHIFT (0U)
-#define SEI_CTRL_ENGINE_ENG_WDG_WDOG_TIME_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_ENG_WDG_WDOG_TIME_SHIFT) & SEI_CTRL_ENGINE_ENG_WDG_WDOG_TIME_MASK)
-#define SEI_CTRL_ENGINE_ENG_WDG_WDOG_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_WDG_WDOG_TIME_MASK) >> SEI_CTRL_ENGINE_ENG_WDG_WDOG_TIME_SHIFT)
+#define SEI_CTRL_ENGINE_WDG_CFG_WDOG_TIME_MASK (0xFFFFU)
+#define SEI_CTRL_ENGINE_WDG_CFG_WDOG_TIME_SHIFT (0U)
+#define SEI_CTRL_ENGINE_WDG_CFG_WDOG_TIME_SET(x) (((uint32_t)(x) << SEI_CTRL_ENGINE_WDG_CFG_WDOG_TIME_SHIFT) & SEI_CTRL_ENGINE_WDG_CFG_WDOG_TIME_MASK)
+#define SEI_CTRL_ENGINE_WDG_CFG_WDOG_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_WDG_CFG_WDOG_TIME_MASK) >> SEI_CTRL_ENGINE_WDG_CFG_WDOG_TIME_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: ENG_EXE */
+/* Bitfield definition for register of struct array CTRL: EXE_STA */
 /*
  * TRIGERED (RO)
  *
@@ -276,9 +276,9 @@ typedef struct {
  * 0: Execution not triggered
  * 1: Execution triggered
  */
-#define SEI_CTRL_ENGINE_ENG_EXE_TRIGERED_MASK (0x100000UL)
-#define SEI_CTRL_ENGINE_ENG_EXE_TRIGERED_SHIFT (20U)
-#define SEI_CTRL_ENGINE_ENG_EXE_TRIGERED_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_EXE_TRIGERED_MASK) >> SEI_CTRL_ENGINE_ENG_EXE_TRIGERED_SHIFT)
+#define SEI_CTRL_ENGINE_EXE_STA_TRIGERED_MASK (0x100000UL)
+#define SEI_CTRL_ENGINE_EXE_STA_TRIGERED_SHIFT (20U)
+#define SEI_CTRL_ENGINE_EXE_STA_TRIGERED_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_EXE_STA_TRIGERED_MASK) >> SEI_CTRL_ENGINE_EXE_STA_TRIGERED_SHIFT)
 
 /*
  * ARMED (RO)
@@ -287,9 +287,9 @@ typedef struct {
  * 0: Not in waiting status
  * 1: In waiting status
  */
-#define SEI_CTRL_ENGINE_ENG_EXE_ARMED_MASK (0x10000UL)
-#define SEI_CTRL_ENGINE_ENG_EXE_ARMED_SHIFT (16U)
-#define SEI_CTRL_ENGINE_ENG_EXE_ARMED_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_EXE_ARMED_MASK) >> SEI_CTRL_ENGINE_ENG_EXE_ARMED_SHIFT)
+#define SEI_CTRL_ENGINE_EXE_STA_ARMED_MASK (0x10000UL)
+#define SEI_CTRL_ENGINE_EXE_STA_ARMED_SHIFT (16U)
+#define SEI_CTRL_ENGINE_EXE_STA_ARMED_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_EXE_STA_ARMED_MASK) >> SEI_CTRL_ENGINE_EXE_STA_ARMED_SHIFT)
 
 /*
  * EXPIRE (RO)
@@ -298,9 +298,9 @@ typedef struct {
  * 0: Not expired
  * 1: Expired
  */
-#define SEI_CTRL_ENGINE_ENG_EXE_EXPIRE_MASK (0x100U)
-#define SEI_CTRL_ENGINE_ENG_EXE_EXPIRE_SHIFT (8U)
-#define SEI_CTRL_ENGINE_ENG_EXE_EXPIRE_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_EXE_EXPIRE_MASK) >> SEI_CTRL_ENGINE_ENG_EXE_EXPIRE_SHIFT)
+#define SEI_CTRL_ENGINE_EXE_STA_EXPIRE_MASK (0x100U)
+#define SEI_CTRL_ENGINE_EXE_STA_EXPIRE_SHIFT (8U)
+#define SEI_CTRL_ENGINE_EXE_STA_EXPIRE_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_EXE_STA_EXPIRE_MASK) >> SEI_CTRL_ENGINE_EXE_STA_EXPIRE_SHIFT)
 
 /*
  * STALL (RO)
@@ -309,59 +309,59 @@ typedef struct {
  * 0: Program is executing
  * 1: Program finished
  */
-#define SEI_CTRL_ENGINE_ENG_EXE_STALL_MASK (0x1U)
-#define SEI_CTRL_ENGINE_ENG_EXE_STALL_SHIFT (0U)
-#define SEI_CTRL_ENGINE_ENG_EXE_STALL_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_EXE_STALL_MASK) >> SEI_CTRL_ENGINE_ENG_EXE_STALL_SHIFT)
+#define SEI_CTRL_ENGINE_EXE_STA_STALL_MASK (0x1U)
+#define SEI_CTRL_ENGINE_EXE_STA_STALL_SHIFT (0U)
+#define SEI_CTRL_ENGINE_EXE_STA_STALL_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_EXE_STA_STALL_MASK) >> SEI_CTRL_ENGINE_EXE_STA_STALL_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: ENG_PTR */
+/* Bitfield definition for register of struct array CTRL: EXE_PTR */
 /*
  * HALT_CNT (RO)
  *
  * Halt count in halt instrution
  */
-#define SEI_CTRL_ENGINE_ENG_PTR_HALT_CNT_MASK (0x1F000000UL)
-#define SEI_CTRL_ENGINE_ENG_PTR_HALT_CNT_SHIFT (24U)
-#define SEI_CTRL_ENGINE_ENG_PTR_HALT_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_PTR_HALT_CNT_MASK) >> SEI_CTRL_ENGINE_ENG_PTR_HALT_CNT_SHIFT)
+#define SEI_CTRL_ENGINE_EXE_PTR_HALT_CNT_MASK (0x1F000000UL)
+#define SEI_CTRL_ENGINE_EXE_PTR_HALT_CNT_SHIFT (24U)
+#define SEI_CTRL_ENGINE_EXE_PTR_HALT_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_EXE_PTR_HALT_CNT_MASK) >> SEI_CTRL_ENGINE_EXE_PTR_HALT_CNT_SHIFT)
 
 /*
  * BIT_CNT (RO)
  *
  * Bit count in send and receive instruction execution
  */
-#define SEI_CTRL_ENGINE_ENG_PTR_BIT_CNT_MASK (0x1F0000UL)
-#define SEI_CTRL_ENGINE_ENG_PTR_BIT_CNT_SHIFT (16U)
-#define SEI_CTRL_ENGINE_ENG_PTR_BIT_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_PTR_BIT_CNT_MASK) >> SEI_CTRL_ENGINE_ENG_PTR_BIT_CNT_SHIFT)
+#define SEI_CTRL_ENGINE_EXE_PTR_BIT_CNT_MASK (0x1F0000UL)
+#define SEI_CTRL_ENGINE_EXE_PTR_BIT_CNT_SHIFT (16U)
+#define SEI_CTRL_ENGINE_EXE_PTR_BIT_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_EXE_PTR_BIT_CNT_MASK) >> SEI_CTRL_ENGINE_EXE_PTR_BIT_CNT_SHIFT)
 
 /*
  * POINTER (RO)
  *
  * Current program pointer
  */
-#define SEI_CTRL_ENGINE_ENG_PTR_POINTER_MASK (0xFFU)
-#define SEI_CTRL_ENGINE_ENG_PTR_POINTER_SHIFT (0U)
-#define SEI_CTRL_ENGINE_ENG_PTR_POINTER_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_PTR_POINTER_MASK) >> SEI_CTRL_ENGINE_ENG_PTR_POINTER_SHIFT)
+#define SEI_CTRL_ENGINE_EXE_PTR_POINTER_MASK (0xFFU)
+#define SEI_CTRL_ENGINE_EXE_PTR_POINTER_SHIFT (0U)
+#define SEI_CTRL_ENGINE_EXE_PTR_POINTER_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_EXE_PTR_POINTER_MASK) >> SEI_CTRL_ENGINE_EXE_PTR_POINTER_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: ENG_INST */
+/* Bitfield definition for register of struct array CTRL: EXE_INST */
 /*
  * INST (RO)
  *
  * Current instruction
  */
-#define SEI_CTRL_ENGINE_ENG_INST_INST_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_ENGINE_ENG_INST_INST_SHIFT (0U)
-#define SEI_CTRL_ENGINE_ENG_INST_INST_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_INST_INST_MASK) >> SEI_CTRL_ENGINE_ENG_INST_INST_SHIFT)
+#define SEI_CTRL_ENGINE_EXE_INST_INST_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_ENGINE_EXE_INST_INST_SHIFT (0U)
+#define SEI_CTRL_ENGINE_EXE_INST_INST_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_EXE_INST_INST_MASK) >> SEI_CTRL_ENGINE_EXE_INST_INST_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: ENG_STS */
+/* Bitfield definition for register of struct array CTRL: WDG_STA */
 /*
  * WDOG_CNT (RO)
  *
  * Current watch dog counter value
  */
-#define SEI_CTRL_ENGINE_ENG_STS_WDOG_CNT_MASK (0xFFFFU)
-#define SEI_CTRL_ENGINE_ENG_STS_WDOG_CNT_SHIFT (0U)
-#define SEI_CTRL_ENGINE_ENG_STS_WDOG_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_ENG_STS_WDOG_CNT_MASK) >> SEI_CTRL_ENGINE_ENG_STS_WDOG_CNT_SHIFT)
+#define SEI_CTRL_ENGINE_WDG_STA_WDOG_CNT_MASK (0xFFFFU)
+#define SEI_CTRL_ENGINE_WDG_STA_WDOG_CNT_SHIFT (0U)
+#define SEI_CTRL_ENGINE_WDG_STA_WDOG_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_ENGINE_WDG_STA_WDOG_CNT_MASK) >> SEI_CTRL_ENGINE_WDG_STA_WDOG_CNT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRX_CTRL */
+/* Bitfield definition for register of struct array CTRL: CTRL */
 /*
  * TRISMP (RW)
  *
@@ -369,10 +369,10 @@ typedef struct {
  * 0: sample 1 time for data transition
  * 1: sample 3 times in receive and result in 2oo3
  */
-#define SEI_CTRL_XCVR_TRX_CTRL_TRISMP_MASK (0x1000U)
-#define SEI_CTRL_XCVR_TRX_CTRL_TRISMP_SHIFT (12U)
-#define SEI_CTRL_XCVR_TRX_CTRL_TRISMP_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_CTRL_TRISMP_SHIFT) & SEI_CTRL_XCVR_TRX_CTRL_TRISMP_MASK)
-#define SEI_CTRL_XCVR_TRX_CTRL_TRISMP_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_CTRL_TRISMP_MASK) >> SEI_CTRL_XCVR_TRX_CTRL_TRISMP_SHIFT)
+#define SEI_CTRL_XCVR_CTRL_TRISMP_MASK (0x1000U)
+#define SEI_CTRL_XCVR_CTRL_TRISMP_SHIFT (12U)
+#define SEI_CTRL_XCVR_CTRL_TRISMP_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_CTRL_TRISMP_SHIFT) & SEI_CTRL_XCVR_CTRL_TRISMP_MASK)
+#define SEI_CTRL_XCVR_CTRL_TRISMP_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_CTRL_TRISMP_MASK) >> SEI_CTRL_XCVR_CTRL_TRISMP_SHIFT)
 
 /*
  * PAR_CLR (WC)
@@ -381,10 +381,10 @@ typedef struct {
  * 0: no effect
  * 1: clear parity error
  */
-#define SEI_CTRL_XCVR_TRX_CTRL_PAR_CLR_MASK (0x100U)
-#define SEI_CTRL_XCVR_TRX_CTRL_PAR_CLR_SHIFT (8U)
-#define SEI_CTRL_XCVR_TRX_CTRL_PAR_CLR_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_CTRL_PAR_CLR_SHIFT) & SEI_CTRL_XCVR_TRX_CTRL_PAR_CLR_MASK)
-#define SEI_CTRL_XCVR_TRX_CTRL_PAR_CLR_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_CTRL_PAR_CLR_MASK) >> SEI_CTRL_XCVR_TRX_CTRL_PAR_CLR_SHIFT)
+#define SEI_CTRL_XCVR_CTRL_PAR_CLR_MASK (0x100U)
+#define SEI_CTRL_XCVR_CTRL_PAR_CLR_SHIFT (8U)
+#define SEI_CTRL_XCVR_CTRL_PAR_CLR_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_CTRL_PAR_CLR_SHIFT) & SEI_CTRL_XCVR_CTRL_PAR_CLR_MASK)
+#define SEI_CTRL_XCVR_CTRL_PAR_CLR_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_CTRL_PAR_CLR_MASK) >> SEI_CTRL_XCVR_CTRL_PAR_CLR_SHIFT)
 
 /*
  * RESTART (WC)
@@ -393,10 +393,10 @@ typedef struct {
  * 0: no effect
  * 1: reset tranceiver
  */
-#define SEI_CTRL_XCVR_TRX_CTRL_RESTART_MASK (0x10U)
-#define SEI_CTRL_XCVR_TRX_CTRL_RESTART_SHIFT (4U)
-#define SEI_CTRL_XCVR_TRX_CTRL_RESTART_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_CTRL_RESTART_SHIFT) & SEI_CTRL_XCVR_TRX_CTRL_RESTART_MASK)
-#define SEI_CTRL_XCVR_TRX_CTRL_RESTART_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_CTRL_RESTART_MASK) >> SEI_CTRL_XCVR_TRX_CTRL_RESTART_SHIFT)
+#define SEI_CTRL_XCVR_CTRL_RESTART_MASK (0x10U)
+#define SEI_CTRL_XCVR_CTRL_RESTART_SHIFT (4U)
+#define SEI_CTRL_XCVR_CTRL_RESTART_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_CTRL_RESTART_SHIFT) & SEI_CTRL_XCVR_CTRL_RESTART_MASK)
+#define SEI_CTRL_XCVR_CTRL_RESTART_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_CTRL_RESTART_MASK) >> SEI_CTRL_XCVR_CTRL_RESTART_SHIFT)
 
 /*
  * MODE (RW)
@@ -407,12 +407,12 @@ typedef struct {
  * 2: asynchronous mode
  * 3: asynchronous mode
  */
-#define SEI_CTRL_XCVR_TRX_CTRL_MODE_MASK (0x3U)
-#define SEI_CTRL_XCVR_TRX_CTRL_MODE_SHIFT (0U)
-#define SEI_CTRL_XCVR_TRX_CTRL_MODE_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_CTRL_MODE_SHIFT) & SEI_CTRL_XCVR_TRX_CTRL_MODE_MASK)
-#define SEI_CTRL_XCVR_TRX_CTRL_MODE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_CTRL_MODE_MASK) >> SEI_CTRL_XCVR_TRX_CTRL_MODE_SHIFT)
+#define SEI_CTRL_XCVR_CTRL_MODE_MASK (0x3U)
+#define SEI_CTRL_XCVR_CTRL_MODE_SHIFT (0U)
+#define SEI_CTRL_XCVR_CTRL_MODE_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_CTRL_MODE_SHIFT) & SEI_CTRL_XCVR_CTRL_MODE_MASK)
+#define SEI_CTRL_XCVR_CTRL_MODE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_CTRL_MODE_MASK) >> SEI_CTRL_XCVR_CTRL_MODE_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRX_TYPE_CFG */
+/* Bitfield definition for register of struct array CTRL: TYPE_CFG */
 /*
  * WAIT_LEN (RW)
  *
@@ -422,10 +422,10 @@ typedef struct {
  * ...
  * 255: 256 bit
  */
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_WAIT_LEN_MASK (0xFF000000UL)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_WAIT_LEN_SHIFT (24U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_WAIT_LEN_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_TYPE_CFG_WAIT_LEN_SHIFT) & SEI_CTRL_XCVR_TRX_TYPE_CFG_WAIT_LEN_MASK)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_WAIT_LEN_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_TYPE_CFG_WAIT_LEN_MASK) >> SEI_CTRL_XCVR_TRX_TYPE_CFG_WAIT_LEN_SHIFT)
+#define SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_MASK (0xFF000000UL)
+#define SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_SHIFT (24U)
+#define SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_SHIFT) & SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_MASK)
+#define SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_MASK) >> SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_SHIFT)
 
 /*
  * DATA_LEN (RW)
@@ -436,10 +436,10 @@ typedef struct {
  * ...
  * 31: 32 bit
  */
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DATA_LEN_MASK (0x1F0000UL)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DATA_LEN_SHIFT (16U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DATA_LEN_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_TYPE_CFG_DATA_LEN_SHIFT) & SEI_CTRL_XCVR_TRX_TYPE_CFG_DATA_LEN_MASK)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DATA_LEN_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_TYPE_CFG_DATA_LEN_MASK) >> SEI_CTRL_XCVR_TRX_TYPE_CFG_DATA_LEN_SHIFT)
+#define SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_MASK (0x1F0000UL)
+#define SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_SHIFT (16U)
+#define SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_SHIFT) & SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_MASK)
+#define SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_MASK) >> SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_SHIFT)
 
 /*
  * PAR_POL (RW)
@@ -448,10 +448,10 @@ typedef struct {
  * 0: even
  * 1: odd
  */
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_POL_MASK (0x200U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_POL_SHIFT (9U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_POL_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_POL_SHIFT) & SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_POL_MASK)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_POL_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_POL_MASK) >> SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_POL_SHIFT)
+#define SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_MASK (0x200U)
+#define SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_SHIFT (9U)
+#define SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_SHIFT) & SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_MASK)
+#define SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_MASK) >> SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_SHIFT)
 
 /*
  * PAR_EN (RW)
@@ -460,10 +460,10 @@ typedef struct {
  * 0: disable
  * 1: enable
  */
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_EN_MASK (0x100U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_EN_SHIFT (8U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_EN_SHIFT) & SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_EN_MASK)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_EN_MASK) >> SEI_CTRL_XCVR_TRX_TYPE_CFG_PAR_EN_SHIFT)
+#define SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_MASK (0x100U)
+#define SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_SHIFT (8U)
+#define SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_SHIFT) & SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_MASK)
+#define SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_MASK) >> SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_SHIFT)
 
 /*
  * DA_IDLEZ (RW)
@@ -472,10 +472,10 @@ typedef struct {
  * 0: output
  * 1: high-Z
  */
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEZ_MASK (0x8U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEZ_SHIFT (3U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEZ_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEZ_SHIFT) & SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEZ_MASK)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEZ_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEZ_MASK) >> SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEZ_SHIFT)
+#define SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEZ_MASK (0x8U)
+#define SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEZ_SHIFT (3U)
+#define SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEZ_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEZ_SHIFT) & SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEZ_MASK)
+#define SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEZ_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEZ_MASK) >> SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEZ_SHIFT)
 
 /*
  * CK_IDLEZ (RW)
@@ -484,10 +484,10 @@ typedef struct {
  * 0: output
  * 1: high-Z
  */
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEZ_MASK (0x4U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEZ_SHIFT (2U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEZ_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEZ_SHIFT) & SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEZ_MASK)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEZ_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEZ_MASK) >> SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEZ_SHIFT)
+#define SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEZ_MASK (0x4U)
+#define SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEZ_SHIFT (2U)
+#define SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEZ_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEZ_SHIFT) & SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEZ_MASK)
+#define SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEZ_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEZ_MASK) >> SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEZ_SHIFT)
 
 /*
  * DA_IDLEV (RW)
@@ -496,10 +496,10 @@ typedef struct {
  * 0: data'0'
  * 1: data'1'
  */
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEV_MASK (0x2U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEV_SHIFT (1U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEV_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEV_SHIFT) & SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEV_MASK)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEV_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEV_MASK) >> SEI_CTRL_XCVR_TRX_TYPE_CFG_DA_IDLEV_SHIFT)
+#define SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_MASK (0x2U)
+#define SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_SHIFT (1U)
+#define SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_SHIFT) & SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_MASK)
+#define SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_MASK) >> SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_SHIFT)
 
 /*
  * CK_IDLEV (RW)
@@ -508,75 +508,75 @@ typedef struct {
  * 0: data'0'
  * 1: data'1'
  */
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEV_MASK (0x1U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEV_SHIFT (0U)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEV_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEV_SHIFT) & SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEV_MASK)
-#define SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEV_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEV_MASK) >> SEI_CTRL_XCVR_TRX_TYPE_CFG_CK_IDLEV_SHIFT)
+#define SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEV_MASK (0x1U)
+#define SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEV_SHIFT (0U)
+#define SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEV_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEV_SHIFT) & SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEV_MASK)
+#define SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEV_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEV_MASK) >> SEI_CTRL_XCVR_TYPE_CFG_CK_IDLEV_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRX_BAUD_CFG */
+/* Bitfield definition for register of struct array CTRL: BAUD_CFG */
 /*
  * SYNC_POINT (RW)
  *
  * Baud synchronous time, minmum bit time
  */
-#define SEI_CTRL_XCVR_TRX_BAUD_CFG_SYNC_POINT_MASK (0xFFFF0000UL)
-#define SEI_CTRL_XCVR_TRX_BAUD_CFG_SYNC_POINT_SHIFT (16U)
-#define SEI_CTRL_XCVR_TRX_BAUD_CFG_SYNC_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_BAUD_CFG_SYNC_POINT_SHIFT) & SEI_CTRL_XCVR_TRX_BAUD_CFG_SYNC_POINT_MASK)
-#define SEI_CTRL_XCVR_TRX_BAUD_CFG_SYNC_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_BAUD_CFG_SYNC_POINT_MASK) >> SEI_CTRL_XCVR_TRX_BAUD_CFG_SYNC_POINT_SHIFT)
+#define SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_MASK (0xFFFF0000UL)
+#define SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_SHIFT (16U)
+#define SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_SHIFT) & SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_MASK)
+#define SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_MASK) >> SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_SHIFT)
 
 /*
  * BAUD_DIV (RW)
  *
  * Baud rate, bit time in system clock cycle
  */
-#define SEI_CTRL_XCVR_TRX_BAUD_CFG_BAUD_DIV_MASK (0xFFFFU)
-#define SEI_CTRL_XCVR_TRX_BAUD_CFG_BAUD_DIV_SHIFT (0U)
-#define SEI_CTRL_XCVR_TRX_BAUD_CFG_BAUD_DIV_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_BAUD_CFG_BAUD_DIV_SHIFT) & SEI_CTRL_XCVR_TRX_BAUD_CFG_BAUD_DIV_MASK)
-#define SEI_CTRL_XCVR_TRX_BAUD_CFG_BAUD_DIV_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_BAUD_CFG_BAUD_DIV_MASK) >> SEI_CTRL_XCVR_TRX_BAUD_CFG_BAUD_DIV_SHIFT)
+#define SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_MASK (0xFFFFU)
+#define SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_SHIFT (0U)
+#define SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_SHIFT) & SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_MASK)
+#define SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_MASK) >> SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRX_DATA_CFG */
+/* Bitfield definition for register of struct array CTRL: DATA_CFG */
 /*
  * TXD_POINT (RW)
  *
  * data transmit point  in system clcok cycle
  */
-#define SEI_CTRL_XCVR_TRX_DATA_CFG_TXD_POINT_MASK (0xFFFF0000UL)
-#define SEI_CTRL_XCVR_TRX_DATA_CFG_TXD_POINT_SHIFT (16U)
-#define SEI_CTRL_XCVR_TRX_DATA_CFG_TXD_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_DATA_CFG_TXD_POINT_SHIFT) & SEI_CTRL_XCVR_TRX_DATA_CFG_TXD_POINT_MASK)
-#define SEI_CTRL_XCVR_TRX_DATA_CFG_TXD_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_DATA_CFG_TXD_POINT_MASK) >> SEI_CTRL_XCVR_TRX_DATA_CFG_TXD_POINT_SHIFT)
+#define SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_MASK (0xFFFF0000UL)
+#define SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_SHIFT (16U)
+#define SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_SHIFT) & SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_MASK)
+#define SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_MASK) >> SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_SHIFT)
 
 /*
  * RXD_POINT (RW)
  *
  * data receive point in system clcok cycle
  */
-#define SEI_CTRL_XCVR_TRX_DATA_CFG_RXD_POINT_MASK (0xFFFFU)
-#define SEI_CTRL_XCVR_TRX_DATA_CFG_RXD_POINT_SHIFT (0U)
-#define SEI_CTRL_XCVR_TRX_DATA_CFG_RXD_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_DATA_CFG_RXD_POINT_SHIFT) & SEI_CTRL_XCVR_TRX_DATA_CFG_RXD_POINT_MASK)
-#define SEI_CTRL_XCVR_TRX_DATA_CFG_RXD_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_DATA_CFG_RXD_POINT_MASK) >> SEI_CTRL_XCVR_TRX_DATA_CFG_RXD_POINT_SHIFT)
+#define SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_MASK (0xFFFFU)
+#define SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_SHIFT (0U)
+#define SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_SHIFT) & SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_MASK)
+#define SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_MASK) >> SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRX_CLK_CFG */
+/* Bitfield definition for register of struct array CTRL: CLK_CFG */
 /*
  * CK1_POINT (RW)
  *
  * clock point 1 in system clcok cycle
  */
-#define SEI_CTRL_XCVR_TRX_CLK_CFG_CK1_POINT_MASK (0xFFFF0000UL)
-#define SEI_CTRL_XCVR_TRX_CLK_CFG_CK1_POINT_SHIFT (16U)
-#define SEI_CTRL_XCVR_TRX_CLK_CFG_CK1_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_CLK_CFG_CK1_POINT_SHIFT) & SEI_CTRL_XCVR_TRX_CLK_CFG_CK1_POINT_MASK)
-#define SEI_CTRL_XCVR_TRX_CLK_CFG_CK1_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_CLK_CFG_CK1_POINT_MASK) >> SEI_CTRL_XCVR_TRX_CLK_CFG_CK1_POINT_SHIFT)
+#define SEI_CTRL_XCVR_CLK_CFG_CK1_POINT_MASK (0xFFFF0000UL)
+#define SEI_CTRL_XCVR_CLK_CFG_CK1_POINT_SHIFT (16U)
+#define SEI_CTRL_XCVR_CLK_CFG_CK1_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_CLK_CFG_CK1_POINT_SHIFT) & SEI_CTRL_XCVR_CLK_CFG_CK1_POINT_MASK)
+#define SEI_CTRL_XCVR_CLK_CFG_CK1_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_CLK_CFG_CK1_POINT_MASK) >> SEI_CTRL_XCVR_CLK_CFG_CK1_POINT_SHIFT)
 
 /*
  * CK0_POINT (RW)
  *
  * clock point 0 in system clcok cycle
  */
-#define SEI_CTRL_XCVR_TRX_CLK_CFG_CK0_POINT_MASK (0xFFFFU)
-#define SEI_CTRL_XCVR_TRX_CLK_CFG_CK0_POINT_SHIFT (0U)
-#define SEI_CTRL_XCVR_TRX_CLK_CFG_CK0_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_TRX_CLK_CFG_CK0_POINT_SHIFT) & SEI_CTRL_XCVR_TRX_CLK_CFG_CK0_POINT_MASK)
-#define SEI_CTRL_XCVR_TRX_CLK_CFG_CK0_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_CLK_CFG_CK0_POINT_MASK) >> SEI_CTRL_XCVR_TRX_CLK_CFG_CK0_POINT_SHIFT)
+#define SEI_CTRL_XCVR_CLK_CFG_CK0_POINT_MASK (0xFFFFU)
+#define SEI_CTRL_XCVR_CLK_CFG_CK0_POINT_SHIFT (0U)
+#define SEI_CTRL_XCVR_CLK_CFG_CK0_POINT_SET(x) (((uint32_t)(x) << SEI_CTRL_XCVR_CLK_CFG_CK0_POINT_SHIFT) & SEI_CTRL_XCVR_CLK_CFG_CK0_POINT_MASK)
+#define SEI_CTRL_XCVR_CLK_CFG_CK0_POINT_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_CLK_CFG_CK0_POINT_MASK) >> SEI_CTRL_XCVR_CLK_CFG_CK0_POINT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRX_PIN */
+/* Bitfield definition for register of struct array CTRL: PIN */
 /*
  * OE_CK (RO)
  *
@@ -584,9 +584,9 @@ typedef struct {
  * 0: input
  * 1: output
  */
-#define SEI_CTRL_XCVR_TRX_PIN_OE_CK_MASK (0x4000000UL)
-#define SEI_CTRL_XCVR_TRX_PIN_OE_CK_SHIFT (26U)
-#define SEI_CTRL_XCVR_TRX_PIN_OE_CK_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_OE_CK_MASK) >> SEI_CTRL_XCVR_TRX_PIN_OE_CK_SHIFT)
+#define SEI_CTRL_XCVR_PIN_OE_CK_MASK (0x4000000UL)
+#define SEI_CTRL_XCVR_PIN_OE_CK_SHIFT (26U)
+#define SEI_CTRL_XCVR_PIN_OE_CK_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_OE_CK_MASK) >> SEI_CTRL_XCVR_PIN_OE_CK_SHIFT)
 
 /*
  * DI_CK (RO)
@@ -595,9 +595,9 @@ typedef struct {
  * 0: data 0
  * 1: data 1
  */
-#define SEI_CTRL_XCVR_TRX_PIN_DI_CK_MASK (0x2000000UL)
-#define SEI_CTRL_XCVR_TRX_PIN_DI_CK_SHIFT (25U)
-#define SEI_CTRL_XCVR_TRX_PIN_DI_CK_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_DI_CK_MASK) >> SEI_CTRL_XCVR_TRX_PIN_DI_CK_SHIFT)
+#define SEI_CTRL_XCVR_PIN_DI_CK_MASK (0x2000000UL)
+#define SEI_CTRL_XCVR_PIN_DI_CK_SHIFT (25U)
+#define SEI_CTRL_XCVR_PIN_DI_CK_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_DI_CK_MASK) >> SEI_CTRL_XCVR_PIN_DI_CK_SHIFT)
 
 /*
  * DO_CK (RO)
@@ -606,9 +606,9 @@ typedef struct {
  * 0: data 0
  * 1: data 1
  */
-#define SEI_CTRL_XCVR_TRX_PIN_DO_CK_MASK (0x1000000UL)
-#define SEI_CTRL_XCVR_TRX_PIN_DO_CK_SHIFT (24U)
-#define SEI_CTRL_XCVR_TRX_PIN_DO_CK_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_DO_CK_MASK) >> SEI_CTRL_XCVR_TRX_PIN_DO_CK_SHIFT)
+#define SEI_CTRL_XCVR_PIN_DO_CK_MASK (0x1000000UL)
+#define SEI_CTRL_XCVR_PIN_DO_CK_SHIFT (24U)
+#define SEI_CTRL_XCVR_PIN_DO_CK_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_DO_CK_MASK) >> SEI_CTRL_XCVR_PIN_DO_CK_SHIFT)
 
 /*
  * OE_RX (RO)
@@ -617,9 +617,9 @@ typedef struct {
  * 0: input
  * 1: output
  */
-#define SEI_CTRL_XCVR_TRX_PIN_OE_RX_MASK (0x40000UL)
-#define SEI_CTRL_XCVR_TRX_PIN_OE_RX_SHIFT (18U)
-#define SEI_CTRL_XCVR_TRX_PIN_OE_RX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_OE_RX_MASK) >> SEI_CTRL_XCVR_TRX_PIN_OE_RX_SHIFT)
+#define SEI_CTRL_XCVR_PIN_OE_RX_MASK (0x40000UL)
+#define SEI_CTRL_XCVR_PIN_OE_RX_SHIFT (18U)
+#define SEI_CTRL_XCVR_PIN_OE_RX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_OE_RX_MASK) >> SEI_CTRL_XCVR_PIN_OE_RX_SHIFT)
 
 /*
  * DI_RX (RO)
@@ -628,9 +628,9 @@ typedef struct {
  * 0: data 0
  * 1: data 1
  */
-#define SEI_CTRL_XCVR_TRX_PIN_DI_RX_MASK (0x20000UL)
-#define SEI_CTRL_XCVR_TRX_PIN_DI_RX_SHIFT (17U)
-#define SEI_CTRL_XCVR_TRX_PIN_DI_RX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_DI_RX_MASK) >> SEI_CTRL_XCVR_TRX_PIN_DI_RX_SHIFT)
+#define SEI_CTRL_XCVR_PIN_DI_RX_MASK (0x20000UL)
+#define SEI_CTRL_XCVR_PIN_DI_RX_SHIFT (17U)
+#define SEI_CTRL_XCVR_PIN_DI_RX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_DI_RX_MASK) >> SEI_CTRL_XCVR_PIN_DI_RX_SHIFT)
 
 /*
  * DO_RX (RO)
@@ -639,9 +639,9 @@ typedef struct {
  * 0: data 0
  * 1: data 1
  */
-#define SEI_CTRL_XCVR_TRX_PIN_DO_RX_MASK (0x10000UL)
-#define SEI_CTRL_XCVR_TRX_PIN_DO_RX_SHIFT (16U)
-#define SEI_CTRL_XCVR_TRX_PIN_DO_RX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_DO_RX_MASK) >> SEI_CTRL_XCVR_TRX_PIN_DO_RX_SHIFT)
+#define SEI_CTRL_XCVR_PIN_DO_RX_MASK (0x10000UL)
+#define SEI_CTRL_XCVR_PIN_DO_RX_SHIFT (16U)
+#define SEI_CTRL_XCVR_PIN_DO_RX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_DO_RX_MASK) >> SEI_CTRL_XCVR_PIN_DO_RX_SHIFT)
 
 /*
  * OE_DE (RO)
@@ -650,9 +650,9 @@ typedef struct {
  * 0: input
  * 1: output
  */
-#define SEI_CTRL_XCVR_TRX_PIN_OE_DE_MASK (0x400U)
-#define SEI_CTRL_XCVR_TRX_PIN_OE_DE_SHIFT (10U)
-#define SEI_CTRL_XCVR_TRX_PIN_OE_DE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_OE_DE_MASK) >> SEI_CTRL_XCVR_TRX_PIN_OE_DE_SHIFT)
+#define SEI_CTRL_XCVR_PIN_OE_DE_MASK (0x400U)
+#define SEI_CTRL_XCVR_PIN_OE_DE_SHIFT (10U)
+#define SEI_CTRL_XCVR_PIN_OE_DE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_OE_DE_MASK) >> SEI_CTRL_XCVR_PIN_OE_DE_SHIFT)
 
 /*
  * DI_DE (RO)
@@ -661,9 +661,9 @@ typedef struct {
  * 0: data 0
  * 1: data 1
  */
-#define SEI_CTRL_XCVR_TRX_PIN_DI_DE_MASK (0x200U)
-#define SEI_CTRL_XCVR_TRX_PIN_DI_DE_SHIFT (9U)
-#define SEI_CTRL_XCVR_TRX_PIN_DI_DE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_DI_DE_MASK) >> SEI_CTRL_XCVR_TRX_PIN_DI_DE_SHIFT)
+#define SEI_CTRL_XCVR_PIN_DI_DE_MASK (0x200U)
+#define SEI_CTRL_XCVR_PIN_DI_DE_SHIFT (9U)
+#define SEI_CTRL_XCVR_PIN_DI_DE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_DI_DE_MASK) >> SEI_CTRL_XCVR_PIN_DI_DE_SHIFT)
 
 /*
  * DO_DE (RO)
@@ -672,9 +672,9 @@ typedef struct {
  * 0: data 0
  * 1: data 1
  */
-#define SEI_CTRL_XCVR_TRX_PIN_DO_DE_MASK (0x100U)
-#define SEI_CTRL_XCVR_TRX_PIN_DO_DE_SHIFT (8U)
-#define SEI_CTRL_XCVR_TRX_PIN_DO_DE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_DO_DE_MASK) >> SEI_CTRL_XCVR_TRX_PIN_DO_DE_SHIFT)
+#define SEI_CTRL_XCVR_PIN_DO_DE_MASK (0x100U)
+#define SEI_CTRL_XCVR_PIN_DO_DE_SHIFT (8U)
+#define SEI_CTRL_XCVR_PIN_DO_DE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_DO_DE_MASK) >> SEI_CTRL_XCVR_PIN_DO_DE_SHIFT)
 
 /*
  * OE_TX (RO)
@@ -683,9 +683,9 @@ typedef struct {
  * 0: input
  * 1: output
  */
-#define SEI_CTRL_XCVR_TRX_PIN_OE_TX_MASK (0x4U)
-#define SEI_CTRL_XCVR_TRX_PIN_OE_TX_SHIFT (2U)
-#define SEI_CTRL_XCVR_TRX_PIN_OE_TX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_OE_TX_MASK) >> SEI_CTRL_XCVR_TRX_PIN_OE_TX_SHIFT)
+#define SEI_CTRL_XCVR_PIN_OE_TX_MASK (0x4U)
+#define SEI_CTRL_XCVR_PIN_OE_TX_SHIFT (2U)
+#define SEI_CTRL_XCVR_PIN_OE_TX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_OE_TX_MASK) >> SEI_CTRL_XCVR_PIN_OE_TX_SHIFT)
 
 /*
  * DI_TX (RO)
@@ -694,9 +694,9 @@ typedef struct {
  * 0: data 0
  * 1: data 1
  */
-#define SEI_CTRL_XCVR_TRX_PIN_DI_TX_MASK (0x2U)
-#define SEI_CTRL_XCVR_TRX_PIN_DI_TX_SHIFT (1U)
-#define SEI_CTRL_XCVR_TRX_PIN_DI_TX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_DI_TX_MASK) >> SEI_CTRL_XCVR_TRX_PIN_DI_TX_SHIFT)
+#define SEI_CTRL_XCVR_PIN_DI_TX_MASK (0x2U)
+#define SEI_CTRL_XCVR_PIN_DI_TX_SHIFT (1U)
+#define SEI_CTRL_XCVR_PIN_DI_TX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_DI_TX_MASK) >> SEI_CTRL_XCVR_PIN_DI_TX_SHIFT)
 
 /*
  * DO_TX (RO)
@@ -705,30 +705,30 @@ typedef struct {
  * 0: data 0
  * 1: data 1
  */
-#define SEI_CTRL_XCVR_TRX_PIN_DO_TX_MASK (0x1U)
-#define SEI_CTRL_XCVR_TRX_PIN_DO_TX_SHIFT (0U)
-#define SEI_CTRL_XCVR_TRX_PIN_DO_TX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_PIN_DO_TX_MASK) >> SEI_CTRL_XCVR_TRX_PIN_DO_TX_SHIFT)
+#define SEI_CTRL_XCVR_PIN_DO_TX_MASK (0x1U)
+#define SEI_CTRL_XCVR_PIN_DO_TX_SHIFT (0U)
+#define SEI_CTRL_XCVR_PIN_DO_TX_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_PIN_DO_TX_MASK) >> SEI_CTRL_XCVR_PIN_DO_TX_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRX_STATE */
+/* Bitfield definition for register of struct array CTRL: STATE */
 /*
  * RECV_STATE (RO)
  *
  * FSM of asynchronous receive
  */
-#define SEI_CTRL_XCVR_TRX_STATE_RECV_STATE_MASK (0x7000000UL)
-#define SEI_CTRL_XCVR_TRX_STATE_RECV_STATE_SHIFT (24U)
-#define SEI_CTRL_XCVR_TRX_STATE_RECV_STATE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_STATE_RECV_STATE_MASK) >> SEI_CTRL_XCVR_TRX_STATE_RECV_STATE_SHIFT)
+#define SEI_CTRL_XCVR_STATE_RECV_STATE_MASK (0x7000000UL)
+#define SEI_CTRL_XCVR_STATE_RECV_STATE_SHIFT (24U)
+#define SEI_CTRL_XCVR_STATE_RECV_STATE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_STATE_RECV_STATE_MASK) >> SEI_CTRL_XCVR_STATE_RECV_STATE_SHIFT)
 
 /*
  * SEND_STATE (RO)
  *
  * FSM of asynchronous transmit
  */
-#define SEI_CTRL_XCVR_TRX_STATE_SEND_STATE_MASK (0x70000UL)
-#define SEI_CTRL_XCVR_TRX_STATE_SEND_STATE_SHIFT (16U)
-#define SEI_CTRL_XCVR_TRX_STATE_SEND_STATE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_TRX_STATE_SEND_STATE_MASK) >> SEI_CTRL_XCVR_TRX_STATE_SEND_STATE_SHIFT)
+#define SEI_CTRL_XCVR_STATE_SEND_STATE_MASK (0x70000UL)
+#define SEI_CTRL_XCVR_STATE_SEND_STATE_SHIFT (16U)
+#define SEI_CTRL_XCVR_STATE_SEND_STATE_GET(x) (((uint32_t)(x) & SEI_CTRL_XCVR_STATE_SEND_STATE_MASK) >> SEI_CTRL_XCVR_STATE_SEND_STATE_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRG_IN_CFG */
+/* Bitfield definition for register of struct array CTRL: IN_CFG */
 /*
  * PRD_EN (RW)
  *
@@ -736,10 +736,10 @@ typedef struct {
  * 0: periodical trigger disabled
  * 1: periodical trigger enabled
  */
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_PRD_EN_MASK (0x800000UL)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_PRD_EN_SHIFT (23U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_PRD_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_IN_CFG_PRD_EN_SHIFT) & SEI_CTRL_TRIGER_TRG_IN_CFG_PRD_EN_MASK)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_PRD_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_IN_CFG_PRD_EN_MASK) >> SEI_CTRL_TRIGER_TRG_IN_CFG_PRD_EN_SHIFT)
+#define SEI_CTRL_TRG_IN_CFG_PRD_EN_MASK (0x800000UL)
+#define SEI_CTRL_TRG_IN_CFG_PRD_EN_SHIFT (23U)
+#define SEI_CTRL_TRG_IN_CFG_PRD_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_IN_CFG_PRD_EN_SHIFT) & SEI_CTRL_TRG_IN_CFG_PRD_EN_MASK)
+#define SEI_CTRL_TRG_IN_CFG_PRD_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_IN_CFG_PRD_EN_MASK) >> SEI_CTRL_TRG_IN_CFG_PRD_EN_SHIFT)
 
 /*
  * SYNC_SEL (RW)
@@ -750,10 +750,10 @@ typedef struct {
  * ...
  * 7: trigger in 7
  */
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_SYNC_SEL_MASK (0x70000UL)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_SYNC_SEL_SHIFT (16U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_SYNC_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_IN_CFG_SYNC_SEL_SHIFT) & SEI_CTRL_TRIGER_TRG_IN_CFG_SYNC_SEL_MASK)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_SYNC_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_IN_CFG_SYNC_SEL_MASK) >> SEI_CTRL_TRIGER_TRG_IN_CFG_SYNC_SEL_SHIFT)
+#define SEI_CTRL_TRG_IN_CFG_SYNC_SEL_MASK (0x70000UL)
+#define SEI_CTRL_TRG_IN_CFG_SYNC_SEL_SHIFT (16U)
+#define SEI_CTRL_TRG_IN_CFG_SYNC_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_IN_CFG_SYNC_SEL_SHIFT) & SEI_CTRL_TRG_IN_CFG_SYNC_SEL_MASK)
+#define SEI_CTRL_TRG_IN_CFG_SYNC_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_IN_CFG_SYNC_SEL_MASK) >> SEI_CTRL_TRG_IN_CFG_SYNC_SEL_SHIFT)
 
 /*
  * IN1_EN (RW)
@@ -762,10 +762,10 @@ typedef struct {
  * 0: disable trigger 1
  * 1: enable trigger 1
  */
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_EN_MASK (0x8000U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_EN_SHIFT (15U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_EN_SHIFT) & SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_EN_MASK)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_EN_MASK) >> SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_EN_SHIFT)
+#define SEI_CTRL_TRG_IN_CFG_IN1_EN_MASK (0x8000U)
+#define SEI_CTRL_TRG_IN_CFG_IN1_EN_SHIFT (15U)
+#define SEI_CTRL_TRG_IN_CFG_IN1_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_IN_CFG_IN1_EN_SHIFT) & SEI_CTRL_TRG_IN_CFG_IN1_EN_MASK)
+#define SEI_CTRL_TRG_IN_CFG_IN1_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_IN_CFG_IN1_EN_MASK) >> SEI_CTRL_TRG_IN_CFG_IN1_EN_SHIFT)
 
 /*
  * IN1_SEL (RW)
@@ -776,10 +776,10 @@ typedef struct {
  * ...
  * 7: trigger in 7
  */
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_SEL_MASK (0x700U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_SEL_SHIFT (8U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_SEL_SHIFT) & SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_SEL_MASK)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_SEL_MASK) >> SEI_CTRL_TRIGER_TRG_IN_CFG_IN1_SEL_SHIFT)
+#define SEI_CTRL_TRG_IN_CFG_IN1_SEL_MASK (0x700U)
+#define SEI_CTRL_TRG_IN_CFG_IN1_SEL_SHIFT (8U)
+#define SEI_CTRL_TRG_IN_CFG_IN1_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_IN_CFG_IN1_SEL_SHIFT) & SEI_CTRL_TRG_IN_CFG_IN1_SEL_MASK)
+#define SEI_CTRL_TRG_IN_CFG_IN1_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_IN_CFG_IN1_SEL_MASK) >> SEI_CTRL_TRG_IN_CFG_IN1_SEL_SHIFT)
 
 /*
  * IN0_EN (RW)
@@ -788,10 +788,10 @@ typedef struct {
  * 0: disable trigger 1
  * 1: enable trigger 1
  */
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_EN_MASK (0x80U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_EN_SHIFT (7U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_EN_SHIFT) & SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_EN_MASK)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_EN_MASK) >> SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_EN_SHIFT)
+#define SEI_CTRL_TRG_IN_CFG_IN0_EN_MASK (0x80U)
+#define SEI_CTRL_TRG_IN_CFG_IN0_EN_SHIFT (7U)
+#define SEI_CTRL_TRG_IN_CFG_IN0_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_IN_CFG_IN0_EN_SHIFT) & SEI_CTRL_TRG_IN_CFG_IN0_EN_MASK)
+#define SEI_CTRL_TRG_IN_CFG_IN0_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_IN_CFG_IN0_EN_MASK) >> SEI_CTRL_TRG_IN_CFG_IN0_EN_SHIFT)
 
 /*
  * IN0_SEL (RW)
@@ -802,12 +802,12 @@ typedef struct {
  * ...
  * 7: trigger in 7
  */
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_SEL_MASK (0x7U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_SEL_SHIFT (0U)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_SEL_SHIFT) & SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_SEL_MASK)
-#define SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_SEL_MASK) >> SEI_CTRL_TRIGER_TRG_IN_CFG_IN0_SEL_SHIFT)
+#define SEI_CTRL_TRG_IN_CFG_IN0_SEL_MASK (0x7U)
+#define SEI_CTRL_TRG_IN_CFG_IN0_SEL_SHIFT (0U)
+#define SEI_CTRL_TRG_IN_CFG_IN0_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_IN_CFG_IN0_SEL_SHIFT) & SEI_CTRL_TRG_IN_CFG_IN0_SEL_MASK)
+#define SEI_CTRL_TRG_IN_CFG_IN0_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_IN_CFG_IN0_SEL_MASK) >> SEI_CTRL_TRG_IN_CFG_IN0_SEL_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRG_SW */
+/* Bitfield definition for register of struct array CTRL: SW */
 /*
  * SOFT (WC)
  *
@@ -815,12 +815,12 @@ typedef struct {
  * 0: trigger source disabled
  * 1: trigger source enabled
  */
-#define SEI_CTRL_TRIGER_TRG_SW_SOFT_MASK (0x1U)
-#define SEI_CTRL_TRIGER_TRG_SW_SOFT_SHIFT (0U)
-#define SEI_CTRL_TRIGER_TRG_SW_SOFT_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_SW_SOFT_SHIFT) & SEI_CTRL_TRIGER_TRG_SW_SOFT_MASK)
-#define SEI_CTRL_TRIGER_TRG_SW_SOFT_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_SW_SOFT_MASK) >> SEI_CTRL_TRIGER_TRG_SW_SOFT_SHIFT)
+#define SEI_CTRL_TRG_SW_SOFT_MASK (0x1U)
+#define SEI_CTRL_TRG_SW_SOFT_SHIFT (0U)
+#define SEI_CTRL_TRG_SW_SOFT_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_SW_SOFT_SHIFT) & SEI_CTRL_TRG_SW_SOFT_MASK)
+#define SEI_CTRL_TRG_SW_SOFT_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_SW_SOFT_MASK) >> SEI_CTRL_TRG_SW_SOFT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRG_PRD_CFG */
+/* Bitfield definition for register of struct array CTRL: PRD_CFG */
 /*
  * ARMING (RW)
  *
@@ -828,10 +828,10 @@ typedef struct {
  * 0: Trigger directly
  * 1: Wait trigger source before period trigger
  */
-#define SEI_CTRL_TRIGER_TRG_PRD_CFG_ARMING_MASK (0x10000UL)
-#define SEI_CTRL_TRIGER_TRG_PRD_CFG_ARMING_SHIFT (16U)
-#define SEI_CTRL_TRIGER_TRG_PRD_CFG_ARMING_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_PRD_CFG_ARMING_SHIFT) & SEI_CTRL_TRIGER_TRG_PRD_CFG_ARMING_MASK)
-#define SEI_CTRL_TRIGER_TRG_PRD_CFG_ARMING_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_PRD_CFG_ARMING_MASK) >> SEI_CTRL_TRIGER_TRG_PRD_CFG_ARMING_SHIFT)
+#define SEI_CTRL_TRG_PRD_CFG_ARMING_MASK (0x10000UL)
+#define SEI_CTRL_TRG_PRD_CFG_ARMING_SHIFT (16U)
+#define SEI_CTRL_TRG_PRD_CFG_ARMING_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_PRD_CFG_ARMING_SHIFT) & SEI_CTRL_TRG_PRD_CFG_ARMING_MASK)
+#define SEI_CTRL_TRG_PRD_CFG_ARMING_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_PRD_CFG_ARMING_MASK) >> SEI_CTRL_TRG_PRD_CFG_ARMING_SHIFT)
 
 /*
  * SYNC (RW)
@@ -840,23 +840,23 @@ typedef struct {
  * 0: Not synchronous
  * 1: Synchronous every trigger source
  */
-#define SEI_CTRL_TRIGER_TRG_PRD_CFG_SYNC_MASK (0x1U)
-#define SEI_CTRL_TRIGER_TRG_PRD_CFG_SYNC_SHIFT (0U)
-#define SEI_CTRL_TRIGER_TRG_PRD_CFG_SYNC_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_PRD_CFG_SYNC_SHIFT) & SEI_CTRL_TRIGER_TRG_PRD_CFG_SYNC_MASK)
-#define SEI_CTRL_TRIGER_TRG_PRD_CFG_SYNC_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_PRD_CFG_SYNC_MASK) >> SEI_CTRL_TRIGER_TRG_PRD_CFG_SYNC_SHIFT)
+#define SEI_CTRL_TRG_PRD_CFG_SYNC_MASK (0x1U)
+#define SEI_CTRL_TRG_PRD_CFG_SYNC_SHIFT (0U)
+#define SEI_CTRL_TRG_PRD_CFG_SYNC_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_PRD_CFG_SYNC_SHIFT) & SEI_CTRL_TRG_PRD_CFG_SYNC_MASK)
+#define SEI_CTRL_TRG_PRD_CFG_SYNC_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_PRD_CFG_SYNC_MASK) >> SEI_CTRL_TRG_PRD_CFG_SYNC_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRG_PRD */
+/* Bitfield definition for register of struct array CTRL: PRD */
 /*
  * PERIOD (RW)
  *
  * Trigger period
  */
-#define SEI_CTRL_TRIGER_TRG_PRD_PERIOD_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_TRIGER_TRG_PRD_PERIOD_SHIFT (0U)
-#define SEI_CTRL_TRIGER_TRG_PRD_PERIOD_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_PRD_PERIOD_SHIFT) & SEI_CTRL_TRIGER_TRG_PRD_PERIOD_MASK)
-#define SEI_CTRL_TRIGER_TRG_PRD_PERIOD_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_PRD_PERIOD_MASK) >> SEI_CTRL_TRIGER_TRG_PRD_PERIOD_SHIFT)
+#define SEI_CTRL_TRG_PRD_PERIOD_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_TRG_PRD_PERIOD_SHIFT (0U)
+#define SEI_CTRL_TRG_PRD_PERIOD_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_PRD_PERIOD_SHIFT) & SEI_CTRL_TRG_PRD_PERIOD_MASK)
+#define SEI_CTRL_TRG_PRD_PERIOD_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_PRD_PERIOD_MASK) >> SEI_CTRL_TRG_PRD_PERIOD_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRG_OUT_CFG */
+/* Bitfield definition for register of struct array CTRL: OUT_CFG */
 /*
  * OUT3_EN (RW)
  *
@@ -864,10 +864,10 @@ typedef struct {
  * 0: disable trigger 3
  * 1: enable trigger 3
  */
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_EN_MASK (0x80000000UL)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_EN_SHIFT (31U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_EN_SHIFT) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_EN_MASK)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_EN_MASK) >> SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_EN_SHIFT)
+#define SEI_CTRL_TRG_OUT_CFG_OUT3_EN_MASK (0x80000000UL)
+#define SEI_CTRL_TRG_OUT_CFG_OUT3_EN_SHIFT (31U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT3_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_OUT_CFG_OUT3_EN_SHIFT) & SEI_CTRL_TRG_OUT_CFG_OUT3_EN_MASK)
+#define SEI_CTRL_TRG_OUT_CFG_OUT3_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_OUT_CFG_OUT3_EN_MASK) >> SEI_CTRL_TRG_OUT_CFG_OUT3_EN_SHIFT)
 
 /*
  * OUT3_SEL (RW)
@@ -878,10 +878,10 @@ typedef struct {
  * ...
  * 7: trigger out 7
  */
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_SEL_MASK (0x7000000UL)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_SEL_SHIFT (24U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_SEL_SHIFT) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_SEL_MASK)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_SEL_MASK) >> SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT3_SEL_SHIFT)
+#define SEI_CTRL_TRG_OUT_CFG_OUT3_SEL_MASK (0x7000000UL)
+#define SEI_CTRL_TRG_OUT_CFG_OUT3_SEL_SHIFT (24U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT3_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_OUT_CFG_OUT3_SEL_SHIFT) & SEI_CTRL_TRG_OUT_CFG_OUT3_SEL_MASK)
+#define SEI_CTRL_TRG_OUT_CFG_OUT3_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_OUT_CFG_OUT3_SEL_MASK) >> SEI_CTRL_TRG_OUT_CFG_OUT3_SEL_SHIFT)
 
 /*
  * OUT2_EN (RW)
@@ -890,10 +890,10 @@ typedef struct {
  * 0: disable trigger 2
  * 1: enable trigger 2
  */
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_EN_MASK (0x800000UL)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_EN_SHIFT (23U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_EN_SHIFT) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_EN_MASK)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_EN_MASK) >> SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_EN_SHIFT)
+#define SEI_CTRL_TRG_OUT_CFG_OUT2_EN_MASK (0x800000UL)
+#define SEI_CTRL_TRG_OUT_CFG_OUT2_EN_SHIFT (23U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT2_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_OUT_CFG_OUT2_EN_SHIFT) & SEI_CTRL_TRG_OUT_CFG_OUT2_EN_MASK)
+#define SEI_CTRL_TRG_OUT_CFG_OUT2_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_OUT_CFG_OUT2_EN_MASK) >> SEI_CTRL_TRG_OUT_CFG_OUT2_EN_SHIFT)
 
 /*
  * OUT2_SEL (RW)
@@ -904,10 +904,10 @@ typedef struct {
  * ...
  * 7: trigger out 7
  */
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_SEL_MASK (0x70000UL)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_SEL_SHIFT (16U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_SEL_SHIFT) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_SEL_MASK)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_SEL_MASK) >> SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT2_SEL_SHIFT)
+#define SEI_CTRL_TRG_OUT_CFG_OUT2_SEL_MASK (0x70000UL)
+#define SEI_CTRL_TRG_OUT_CFG_OUT2_SEL_SHIFT (16U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT2_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_OUT_CFG_OUT2_SEL_SHIFT) & SEI_CTRL_TRG_OUT_CFG_OUT2_SEL_MASK)
+#define SEI_CTRL_TRG_OUT_CFG_OUT2_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_OUT_CFG_OUT2_SEL_MASK) >> SEI_CTRL_TRG_OUT_CFG_OUT2_SEL_SHIFT)
 
 /*
  * OUT1_EN (RW)
@@ -916,10 +916,10 @@ typedef struct {
  * 0: disable trigger 1
  * 1: enable trigger 1
  */
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_EN_MASK (0x8000U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_EN_SHIFT (15U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_EN_SHIFT) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_EN_MASK)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_EN_MASK) >> SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_EN_SHIFT)
+#define SEI_CTRL_TRG_OUT_CFG_OUT1_EN_MASK (0x8000U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT1_EN_SHIFT (15U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT1_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_OUT_CFG_OUT1_EN_SHIFT) & SEI_CTRL_TRG_OUT_CFG_OUT1_EN_MASK)
+#define SEI_CTRL_TRG_OUT_CFG_OUT1_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_OUT_CFG_OUT1_EN_MASK) >> SEI_CTRL_TRG_OUT_CFG_OUT1_EN_SHIFT)
 
 /*
  * OUT1_SEL (RW)
@@ -930,10 +930,10 @@ typedef struct {
  * ...
  * 7: trigger out 7
  */
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_SEL_MASK (0x700U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_SEL_SHIFT (8U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_SEL_SHIFT) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_SEL_MASK)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_SEL_MASK) >> SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT1_SEL_SHIFT)
+#define SEI_CTRL_TRG_OUT_CFG_OUT1_SEL_MASK (0x700U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT1_SEL_SHIFT (8U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT1_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_OUT_CFG_OUT1_SEL_SHIFT) & SEI_CTRL_TRG_OUT_CFG_OUT1_SEL_MASK)
+#define SEI_CTRL_TRG_OUT_CFG_OUT1_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_OUT_CFG_OUT1_SEL_MASK) >> SEI_CTRL_TRG_OUT_CFG_OUT1_SEL_SHIFT)
 
 /*
  * OUT0_EN (RW)
@@ -942,10 +942,10 @@ typedef struct {
  * 0: disable trigger 1
  * 1: enable trigger 1
  */
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_EN_MASK (0x80U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_EN_SHIFT (7U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_EN_SHIFT) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_EN_MASK)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_EN_MASK) >> SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_EN_SHIFT)
+#define SEI_CTRL_TRG_OUT_CFG_OUT0_EN_MASK (0x80U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT0_EN_SHIFT (7U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT0_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_OUT_CFG_OUT0_EN_SHIFT) & SEI_CTRL_TRG_OUT_CFG_OUT0_EN_MASK)
+#define SEI_CTRL_TRG_OUT_CFG_OUT0_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_OUT_CFG_OUT0_EN_MASK) >> SEI_CTRL_TRG_OUT_CFG_OUT0_EN_SHIFT)
 
 /*
  * OUT0_SEL (RW)
@@ -956,12 +956,12 @@ typedef struct {
  * ...
  * 7: trigger out 7
  */
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_SEL_MASK (0x7U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_SEL_SHIFT (0U)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_SEL_SHIFT) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_SEL_MASK)
-#define SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_SEL_MASK) >> SEI_CTRL_TRIGER_TRG_OUT_CFG_OUT0_SEL_SHIFT)
+#define SEI_CTRL_TRG_OUT_CFG_OUT0_SEL_MASK (0x7U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT0_SEL_SHIFT (0U)
+#define SEI_CTRL_TRG_OUT_CFG_OUT0_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_OUT_CFG_OUT0_SEL_SHIFT) & SEI_CTRL_TRG_OUT_CFG_OUT0_SEL_MASK)
+#define SEI_CTRL_TRG_OUT_CFG_OUT0_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_OUT_CFG_OUT0_SEL_MASK) >> SEI_CTRL_TRG_OUT_CFG_OUT0_SEL_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRG_PRD_STS */
+/* Bitfield definition for register of struct array CTRL: PRD_STS */
 /*
  * TRIGERED (RO)
  *
@@ -969,9 +969,9 @@ typedef struct {
  * 0: Not triggered
  * 1: Triggered
  */
-#define SEI_CTRL_TRIGER_TRG_PRD_STS_TRIGERED_MASK (0x100000UL)
-#define SEI_CTRL_TRIGER_TRG_PRD_STS_TRIGERED_SHIFT (20U)
-#define SEI_CTRL_TRIGER_TRG_PRD_STS_TRIGERED_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_PRD_STS_TRIGERED_MASK) >> SEI_CTRL_TRIGER_TRG_PRD_STS_TRIGERED_SHIFT)
+#define SEI_CTRL_TRG_PRD_STS_TRIGERED_MASK (0x100000UL)
+#define SEI_CTRL_TRG_PRD_STS_TRIGERED_SHIFT (20U)
+#define SEI_CTRL_TRG_PRD_STS_TRIGERED_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_PRD_STS_TRIGERED_MASK) >> SEI_CTRL_TRG_PRD_STS_TRIGERED_SHIFT)
 
 /*
  * ARMED (RO)
@@ -980,42 +980,42 @@ typedef struct {
  * 0: Not in waiting status
  * 1: In waiting status
  */
-#define SEI_CTRL_TRIGER_TRG_PRD_STS_ARMED_MASK (0x10000UL)
-#define SEI_CTRL_TRIGER_TRG_PRD_STS_ARMED_SHIFT (16U)
-#define SEI_CTRL_TRIGER_TRG_PRD_STS_ARMED_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_PRD_STS_ARMED_MASK) >> SEI_CTRL_TRIGER_TRG_PRD_STS_ARMED_SHIFT)
+#define SEI_CTRL_TRG_PRD_STS_ARMED_MASK (0x10000UL)
+#define SEI_CTRL_TRG_PRD_STS_ARMED_SHIFT (16U)
+#define SEI_CTRL_TRG_PRD_STS_ARMED_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_PRD_STS_ARMED_MASK) >> SEI_CTRL_TRG_PRD_STS_ARMED_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRG_PRD_CNT */
+/* Bitfield definition for register of struct array CTRL: PRD_CNT */
 /*
  * PERIOD_CNT (RO)
  *
  * Trigger period counter
  */
-#define SEI_CTRL_TRIGER_TRG_PRD_CNT_PERIOD_CNT_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_TRIGER_TRG_PRD_CNT_PERIOD_CNT_SHIFT (0U)
-#define SEI_CTRL_TRIGER_TRG_PRD_CNT_PERIOD_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_TRIGER_TRG_PRD_CNT_PERIOD_CNT_MASK) >> SEI_CTRL_TRIGER_TRG_PRD_CNT_PERIOD_CNT_SHIFT)
+#define SEI_CTRL_TRG_PRD_CNT_PERIOD_CNT_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_TRG_PRD_CNT_PERIOD_CNT_SHIFT (0U)
+#define SEI_CTRL_TRG_PRD_CNT_PERIOD_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_PRD_CNT_PERIOD_CNT_MASK) >> SEI_CTRL_TRG_PRD_CNT_PERIOD_CNT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: COMMAND_TRIGGER0 */
+/* Bitfield definition for register of struct array CTRL: 0 */
 /*
  * CMD_TRIGGER0 (RW)
  *
  * Trigger command
  */
-#define SEI_CTRL_TRG_TABLE_TRG_CMD_CMD_TRIGGER0_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_TRG_TABLE_TRG_CMD_CMD_TRIGGER0_SHIFT (0U)
-#define SEI_CTRL_TRG_TABLE_TRG_CMD_CMD_TRIGGER0_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_TABLE_TRG_CMD_CMD_TRIGGER0_SHIFT) & SEI_CTRL_TRG_TABLE_TRG_CMD_CMD_TRIGGER0_MASK)
-#define SEI_CTRL_TRG_TABLE_TRG_CMD_CMD_TRIGGER0_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_TABLE_TRG_CMD_CMD_TRIGGER0_MASK) >> SEI_CTRL_TRG_TABLE_TRG_CMD_CMD_TRIGGER0_SHIFT)
+#define SEI_CTRL_TRG_TABLE_CMD_CMD_TRIGGER0_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_TRG_TABLE_CMD_CMD_TRIGGER0_SHIFT (0U)
+#define SEI_CTRL_TRG_TABLE_CMD_CMD_TRIGGER0_SET(x) (((uint32_t)(x) << SEI_CTRL_TRG_TABLE_CMD_CMD_TRIGGER0_SHIFT) & SEI_CTRL_TRG_TABLE_CMD_CMD_TRIGGER0_MASK)
+#define SEI_CTRL_TRG_TABLE_CMD_CMD_TRIGGER0_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_TABLE_CMD_CMD_TRIGGER0_MASK) >> SEI_CTRL_TRG_TABLE_CMD_CMD_TRIGGER0_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TIME_TRIGGER0 */
+/* Bitfield definition for register of struct array CTRL: 0 */
 /*
  * TRIGGER0_TIME (RO)
  *
  * Trigger time
  */
-#define SEI_CTRL_TRG_TABLE_TRG_TIME_TRIGGER0_TIME_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_TRG_TABLE_TRG_TIME_TRIGGER0_TIME_SHIFT (0U)
-#define SEI_CTRL_TRG_TABLE_TRG_TIME_TRIGGER0_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_TABLE_TRG_TIME_TRIGGER0_TIME_MASK) >> SEI_CTRL_TRG_TABLE_TRG_TIME_TRIGGER0_TIME_SHIFT)
+#define SEI_CTRL_TRG_TABLE_TIME_TRIGGER0_TIME_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_TRG_TABLE_TIME_TRIGGER0_TIME_SHIFT (0U)
+#define SEI_CTRL_TRG_TABLE_TIME_TRIGGER0_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_TRG_TABLE_TIME_TRIGGER0_TIME_MASK) >> SEI_CTRL_TRG_TABLE_TIME_TRIGGER0_TIME_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_MODE */
+/* Bitfield definition for register of struct array CTRL: MODE */
 /*
  * WLEN (RW)
  *
@@ -1025,10 +1025,10 @@ typedef struct {
  * ...
  * 31: 32 bit
  */
-#define SEI_CTRL_COMMAND_CMD_MODE_WLEN_MASK (0x1F0000UL)
-#define SEI_CTRL_COMMAND_CMD_MODE_WLEN_SHIFT (16U)
-#define SEI_CTRL_COMMAND_CMD_MODE_WLEN_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_MODE_WLEN_SHIFT) & SEI_CTRL_COMMAND_CMD_MODE_WLEN_MASK)
-#define SEI_CTRL_COMMAND_CMD_MODE_WLEN_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_MODE_WLEN_MASK) >> SEI_CTRL_COMMAND_CMD_MODE_WLEN_SHIFT)
+#define SEI_CTRL_CMD_MODE_WLEN_MASK (0x1F0000UL)
+#define SEI_CTRL_CMD_MODE_WLEN_SHIFT (16U)
+#define SEI_CTRL_CMD_MODE_WLEN_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_MODE_WLEN_SHIFT) & SEI_CTRL_CMD_MODE_WLEN_MASK)
+#define SEI_CTRL_CMD_MODE_WLEN_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_MODE_WLEN_MASK) >> SEI_CTRL_CMD_MODE_WLEN_SHIFT)
 
 /*
  * WORDER (RW)
@@ -1037,10 +1037,10 @@ typedef struct {
  * 0: sample as bit order
  * 1: different from bit order
  */
-#define SEI_CTRL_COMMAND_CMD_MODE_WORDER_MASK (0x800U)
-#define SEI_CTRL_COMMAND_CMD_MODE_WORDER_SHIFT (11U)
-#define SEI_CTRL_COMMAND_CMD_MODE_WORDER_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_MODE_WORDER_SHIFT) & SEI_CTRL_COMMAND_CMD_MODE_WORDER_MASK)
-#define SEI_CTRL_COMMAND_CMD_MODE_WORDER_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_MODE_WORDER_MASK) >> SEI_CTRL_COMMAND_CMD_MODE_WORDER_SHIFT)
+#define SEI_CTRL_CMD_MODE_WORDER_MASK (0x800U)
+#define SEI_CTRL_CMD_MODE_WORDER_SHIFT (11U)
+#define SEI_CTRL_CMD_MODE_WORDER_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_MODE_WORDER_SHIFT) & SEI_CTRL_CMD_MODE_WORDER_MASK)
+#define SEI_CTRL_CMD_MODE_WORDER_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_MODE_WORDER_MASK) >> SEI_CTRL_CMD_MODE_WORDER_SHIFT)
 
 /*
  * BORDER (RW)
@@ -1049,10 +1049,10 @@ typedef struct {
  * 0: LSB first
  * 1: MSB first
  */
-#define SEI_CTRL_COMMAND_CMD_MODE_BORDER_MASK (0x400U)
-#define SEI_CTRL_COMMAND_CMD_MODE_BORDER_SHIFT (10U)
-#define SEI_CTRL_COMMAND_CMD_MODE_BORDER_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_MODE_BORDER_SHIFT) & SEI_CTRL_COMMAND_CMD_MODE_BORDER_MASK)
-#define SEI_CTRL_COMMAND_CMD_MODE_BORDER_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_MODE_BORDER_MASK) >> SEI_CTRL_COMMAND_CMD_MODE_BORDER_SHIFT)
+#define SEI_CTRL_CMD_MODE_BORDER_MASK (0x400U)
+#define SEI_CTRL_CMD_MODE_BORDER_SHIFT (10U)
+#define SEI_CTRL_CMD_MODE_BORDER_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_MODE_BORDER_SHIFT) & SEI_CTRL_CMD_MODE_BORDER_MASK)
+#define SEI_CTRL_CMD_MODE_BORDER_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_MODE_BORDER_MASK) >> SEI_CTRL_CMD_MODE_BORDER_SHIFT)
 
 /*
  * SIGNED (RW)
@@ -1061,20 +1061,20 @@ typedef struct {
  * 0: unsigned value
  * 1: signed value
  */
-#define SEI_CTRL_COMMAND_CMD_MODE_SIGNED_MASK (0x200U)
-#define SEI_CTRL_COMMAND_CMD_MODE_SIGNED_SHIFT (9U)
-#define SEI_CTRL_COMMAND_CMD_MODE_SIGNED_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_MODE_SIGNED_SHIFT) & SEI_CTRL_COMMAND_CMD_MODE_SIGNED_MASK)
-#define SEI_CTRL_COMMAND_CMD_MODE_SIGNED_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_MODE_SIGNED_MASK) >> SEI_CTRL_COMMAND_CMD_MODE_SIGNED_SHIFT)
+#define SEI_CTRL_CMD_MODE_SIGNED_MASK (0x200U)
+#define SEI_CTRL_CMD_MODE_SIGNED_SHIFT (9U)
+#define SEI_CTRL_CMD_MODE_SIGNED_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_MODE_SIGNED_SHIFT) & SEI_CTRL_CMD_MODE_SIGNED_MASK)
+#define SEI_CTRL_CMD_MODE_SIGNED_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_MODE_SIGNED_MASK) >> SEI_CTRL_CMD_MODE_SIGNED_SHIFT)
 
 /*
  * REWIND (WC)
  *
  * Write 1 to rewind read/write pointer, this is a self clear bit
  */
-#define SEI_CTRL_COMMAND_CMD_MODE_REWIND_MASK (0x100U)
-#define SEI_CTRL_COMMAND_CMD_MODE_REWIND_SHIFT (8U)
-#define SEI_CTRL_COMMAND_CMD_MODE_REWIND_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_MODE_REWIND_SHIFT) & SEI_CTRL_COMMAND_CMD_MODE_REWIND_MASK)
-#define SEI_CTRL_COMMAND_CMD_MODE_REWIND_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_MODE_REWIND_MASK) >> SEI_CTRL_COMMAND_CMD_MODE_REWIND_SHIFT)
+#define SEI_CTRL_CMD_MODE_REWIND_MASK (0x100U)
+#define SEI_CTRL_CMD_MODE_REWIND_SHIFT (8U)
+#define SEI_CTRL_CMD_MODE_REWIND_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_MODE_REWIND_SHIFT) & SEI_CTRL_CMD_MODE_REWIND_MASK)
+#define SEI_CTRL_CMD_MODE_REWIND_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_MODE_REWIND_MASK) >> SEI_CTRL_CMD_MODE_REWIND_SHIFT)
 
 /*
  * MODE (RW)
@@ -1084,84 +1084,84 @@ typedef struct {
  * 1: check mode
  * 2: CRC mode
  */
-#define SEI_CTRL_COMMAND_CMD_MODE_MODE_MASK (0x3U)
-#define SEI_CTRL_COMMAND_CMD_MODE_MODE_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_MODE_MODE_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_MODE_MODE_SHIFT) & SEI_CTRL_COMMAND_CMD_MODE_MODE_MASK)
-#define SEI_CTRL_COMMAND_CMD_MODE_MODE_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_MODE_MODE_MASK) >> SEI_CTRL_COMMAND_CMD_MODE_MODE_SHIFT)
+#define SEI_CTRL_CMD_MODE_MODE_MASK (0x3U)
+#define SEI_CTRL_CMD_MODE_MODE_SHIFT (0U)
+#define SEI_CTRL_CMD_MODE_MODE_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_MODE_MODE_SHIFT) & SEI_CTRL_CMD_MODE_MODE_MASK)
+#define SEI_CTRL_CMD_MODE_MODE_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_MODE_MODE_MASK) >> SEI_CTRL_CMD_MODE_MODE_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_IDX */
+/* Bitfield definition for register of struct array CTRL: IDX */
 /*
  * LAST_BIT (RW)
  *
  * Last bit index for tranceive
  */
-#define SEI_CTRL_COMMAND_CMD_IDX_LAST_BIT_MASK (0x1F000000UL)
-#define SEI_CTRL_COMMAND_CMD_IDX_LAST_BIT_SHIFT (24U)
-#define SEI_CTRL_COMMAND_CMD_IDX_LAST_BIT_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_IDX_LAST_BIT_SHIFT) & SEI_CTRL_COMMAND_CMD_IDX_LAST_BIT_MASK)
-#define SEI_CTRL_COMMAND_CMD_IDX_LAST_BIT_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_IDX_LAST_BIT_MASK) >> SEI_CTRL_COMMAND_CMD_IDX_LAST_BIT_SHIFT)
+#define SEI_CTRL_CMD_IDX_LAST_BIT_MASK (0x1F000000UL)
+#define SEI_CTRL_CMD_IDX_LAST_BIT_SHIFT (24U)
+#define SEI_CTRL_CMD_IDX_LAST_BIT_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_IDX_LAST_BIT_SHIFT) & SEI_CTRL_CMD_IDX_LAST_BIT_MASK)
+#define SEI_CTRL_CMD_IDX_LAST_BIT_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_IDX_LAST_BIT_MASK) >> SEI_CTRL_CMD_IDX_LAST_BIT_SHIFT)
 
 /*
  * FIRST_BIT (RW)
  *
  * First bit index for tranceive
  */
-#define SEI_CTRL_COMMAND_CMD_IDX_FIRST_BIT_MASK (0x1F0000UL)
-#define SEI_CTRL_COMMAND_CMD_IDX_FIRST_BIT_SHIFT (16U)
-#define SEI_CTRL_COMMAND_CMD_IDX_FIRST_BIT_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_IDX_FIRST_BIT_SHIFT) & SEI_CTRL_COMMAND_CMD_IDX_FIRST_BIT_MASK)
-#define SEI_CTRL_COMMAND_CMD_IDX_FIRST_BIT_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_IDX_FIRST_BIT_MASK) >> SEI_CTRL_COMMAND_CMD_IDX_FIRST_BIT_SHIFT)
+#define SEI_CTRL_CMD_IDX_FIRST_BIT_MASK (0x1F0000UL)
+#define SEI_CTRL_CMD_IDX_FIRST_BIT_SHIFT (16U)
+#define SEI_CTRL_CMD_IDX_FIRST_BIT_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_IDX_FIRST_BIT_SHIFT) & SEI_CTRL_CMD_IDX_FIRST_BIT_MASK)
+#define SEI_CTRL_CMD_IDX_FIRST_BIT_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_IDX_FIRST_BIT_MASK) >> SEI_CTRL_CMD_IDX_FIRST_BIT_SHIFT)
 
 /*
  * MAX_BIT (RW)
  *
  * Highest bit index
  */
-#define SEI_CTRL_COMMAND_CMD_IDX_MAX_BIT_MASK (0x1F00U)
-#define SEI_CTRL_COMMAND_CMD_IDX_MAX_BIT_SHIFT (8U)
-#define SEI_CTRL_COMMAND_CMD_IDX_MAX_BIT_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_IDX_MAX_BIT_SHIFT) & SEI_CTRL_COMMAND_CMD_IDX_MAX_BIT_MASK)
-#define SEI_CTRL_COMMAND_CMD_IDX_MAX_BIT_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_IDX_MAX_BIT_MASK) >> SEI_CTRL_COMMAND_CMD_IDX_MAX_BIT_SHIFT)
+#define SEI_CTRL_CMD_IDX_MAX_BIT_MASK (0x1F00U)
+#define SEI_CTRL_CMD_IDX_MAX_BIT_SHIFT (8U)
+#define SEI_CTRL_CMD_IDX_MAX_BIT_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_IDX_MAX_BIT_SHIFT) & SEI_CTRL_CMD_IDX_MAX_BIT_MASK)
+#define SEI_CTRL_CMD_IDX_MAX_BIT_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_IDX_MAX_BIT_MASK) >> SEI_CTRL_CMD_IDX_MAX_BIT_SHIFT)
 
 /*
  * MIN_BIT (RW)
  *
  * Lowest bit index
  */
-#define SEI_CTRL_COMMAND_CMD_IDX_MIN_BIT_MASK (0x1FU)
-#define SEI_CTRL_COMMAND_CMD_IDX_MIN_BIT_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_IDX_MIN_BIT_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_IDX_MIN_BIT_SHIFT) & SEI_CTRL_COMMAND_CMD_IDX_MIN_BIT_MASK)
-#define SEI_CTRL_COMMAND_CMD_IDX_MIN_BIT_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_IDX_MIN_BIT_MASK) >> SEI_CTRL_COMMAND_CMD_IDX_MIN_BIT_SHIFT)
+#define SEI_CTRL_CMD_IDX_MIN_BIT_MASK (0x1FU)
+#define SEI_CTRL_CMD_IDX_MIN_BIT_SHIFT (0U)
+#define SEI_CTRL_CMD_IDX_MIN_BIT_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_IDX_MIN_BIT_SHIFT) & SEI_CTRL_CMD_IDX_MIN_BIT_MASK)
+#define SEI_CTRL_CMD_IDX_MIN_BIT_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_IDX_MIN_BIT_MASK) >> SEI_CTRL_CMD_IDX_MIN_BIT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_GOLD */
+/* Bitfield definition for register of struct array CTRL: GOLD */
 /*
  * GOLD_VALUE (RW)
  *
  * Gold value for check mode
  */
-#define SEI_CTRL_COMMAND_CMD_GOLD_GOLD_VALUE_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_GOLD_GOLD_VALUE_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_GOLD_GOLD_VALUE_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_GOLD_GOLD_VALUE_SHIFT) & SEI_CTRL_COMMAND_CMD_GOLD_GOLD_VALUE_MASK)
-#define SEI_CTRL_COMMAND_CMD_GOLD_GOLD_VALUE_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_GOLD_GOLD_VALUE_MASK) >> SEI_CTRL_COMMAND_CMD_GOLD_GOLD_VALUE_SHIFT)
+#define SEI_CTRL_CMD_GOLD_GOLD_VALUE_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_GOLD_GOLD_VALUE_SHIFT (0U)
+#define SEI_CTRL_CMD_GOLD_GOLD_VALUE_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_GOLD_GOLD_VALUE_SHIFT) & SEI_CTRL_CMD_GOLD_GOLD_VALUE_MASK)
+#define SEI_CTRL_CMD_GOLD_GOLD_VALUE_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_GOLD_GOLD_VALUE_MASK) >> SEI_CTRL_CMD_GOLD_GOLD_VALUE_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_CRCINIT */
+/* Bitfield definition for register of struct array CTRL: CRCINIT */
 /*
  * CRC_INIT (RW)
  *
  * CRC initial value
  */
-#define SEI_CTRL_COMMAND_CMD_CRCINIT_CRC_INIT_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_CRCINIT_CRC_INIT_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_CRCINIT_CRC_INIT_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_CRCINIT_CRC_INIT_SHIFT) & SEI_CTRL_COMMAND_CMD_CRCINIT_CRC_INIT_MASK)
-#define SEI_CTRL_COMMAND_CMD_CRCINIT_CRC_INIT_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_CRCINIT_CRC_INIT_MASK) >> SEI_CTRL_COMMAND_CMD_CRCINIT_CRC_INIT_SHIFT)
+#define SEI_CTRL_CMD_CRCINIT_CRC_INIT_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_CRCINIT_CRC_INIT_SHIFT (0U)
+#define SEI_CTRL_CMD_CRCINIT_CRC_INIT_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_CRCINIT_CRC_INIT_SHIFT) & SEI_CTRL_CMD_CRCINIT_CRC_INIT_MASK)
+#define SEI_CTRL_CMD_CRCINIT_CRC_INIT_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_CRCINIT_CRC_INIT_MASK) >> SEI_CTRL_CMD_CRCINIT_CRC_INIT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_CRCPOLY */
+/* Bitfield definition for register of struct array CTRL: CRCPOLY */
 /*
  * CRC_POLY (RW)
  *
  * CRC polymonial
  */
-#define SEI_CTRL_COMMAND_CMD_CRCPOLY_CRC_POLY_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_CRCPOLY_CRC_POLY_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_CRCPOLY_CRC_POLY_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_CRCPOLY_CRC_POLY_SHIFT) & SEI_CTRL_COMMAND_CMD_CRCPOLY_CRC_POLY_MASK)
-#define SEI_CTRL_COMMAND_CMD_CRCPOLY_CRC_POLY_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_CRCPOLY_CRC_POLY_MASK) >> SEI_CTRL_COMMAND_CMD_CRCPOLY_CRC_POLY_SHIFT)
+#define SEI_CTRL_CMD_CRCPOLY_CRC_POLY_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_CRCPOLY_CRC_POLY_SHIFT (0U)
+#define SEI_CTRL_CMD_CRCPOLY_CRC_POLY_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_CRCPOLY_CRC_POLY_SHIFT) & SEI_CTRL_CMD_CRCPOLY_CRC_POLY_MASK)
+#define SEI_CTRL_CMD_CRCPOLY_CRC_POLY_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_CRCPOLY_CRC_POLY_MASK) >> SEI_CTRL_CMD_CRCPOLY_CRC_POLY_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: CMD */
 /*
@@ -1169,322 +1169,308 @@ typedef struct {
  *
  * DATA
  */
-#define SEI_CTRL_COMMAND_CMD_DATA_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_DATA_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_DATA_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_DATA_SHIFT) & SEI_CTRL_COMMAND_CMD_DATA_MASK)
-#define SEI_CTRL_COMMAND_CMD_DATA_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_DATA_MASK) >> SEI_CTRL_COMMAND_CMD_DATA_SHIFT)
+#define SEI_CTRL_CMD_CMD_DATA_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_CMD_DATA_SHIFT (0U)
+#define SEI_CTRL_CMD_CMD_DATA_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_CMD_DATA_SHIFT) & SEI_CTRL_CMD_CMD_DATA_MASK)
+#define SEI_CTRL_CMD_CMD_DATA_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_CMD_DATA_MASK) >> SEI_CTRL_CMD_CMD_DATA_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_SET */
+/* Bitfield definition for register of struct array CTRL: SET */
 /*
  * DATA_SET (RW)
  *
  * DATA bit set
  */
-#define SEI_CTRL_COMMAND_CMD_SET_DATA_SET_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_SET_DATA_SET_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_SET_DATA_SET_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_SET_DATA_SET_SHIFT) & SEI_CTRL_COMMAND_CMD_SET_DATA_SET_MASK)
-#define SEI_CTRL_COMMAND_CMD_SET_DATA_SET_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_SET_DATA_SET_MASK) >> SEI_CTRL_COMMAND_CMD_SET_DATA_SET_SHIFT)
+#define SEI_CTRL_CMD_SET_DATA_SET_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_SET_DATA_SET_SHIFT (0U)
+#define SEI_CTRL_CMD_SET_DATA_SET_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_SET_DATA_SET_SHIFT) & SEI_CTRL_CMD_SET_DATA_SET_MASK)
+#define SEI_CTRL_CMD_SET_DATA_SET_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_SET_DATA_SET_MASK) >> SEI_CTRL_CMD_SET_DATA_SET_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_CLR */
+/* Bitfield definition for register of struct array CTRL: CLR */
 /*
  * DATA_CLR (RW)
  *
  * DATA bit clear
  */
-#define SEI_CTRL_COMMAND_CMD_CLR_DATA_CLR_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_CLR_DATA_CLR_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_CLR_DATA_CLR_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_CLR_DATA_CLR_SHIFT) & SEI_CTRL_COMMAND_CMD_CLR_DATA_CLR_MASK)
-#define SEI_CTRL_COMMAND_CMD_CLR_DATA_CLR_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_CLR_DATA_CLR_MASK) >> SEI_CTRL_COMMAND_CMD_CLR_DATA_CLR_SHIFT)
+#define SEI_CTRL_CMD_CLR_DATA_CLR_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_CLR_DATA_CLR_SHIFT (0U)
+#define SEI_CTRL_CMD_CLR_DATA_CLR_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_CLR_DATA_CLR_SHIFT) & SEI_CTRL_CMD_CLR_DATA_CLR_MASK)
+#define SEI_CTRL_CMD_CLR_DATA_CLR_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_CLR_DATA_CLR_MASK) >> SEI_CTRL_CMD_CLR_DATA_CLR_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_INV */
+/* Bitfield definition for register of struct array CTRL: INV */
 /*
  * DATA_TGL (RW)
  *
  * DATA bit toggle
  */
-#define SEI_CTRL_COMMAND_CMD_INV_DATA_TGL_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_INV_DATA_TGL_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_INV_DATA_TGL_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_CMD_INV_DATA_TGL_SHIFT) & SEI_CTRL_COMMAND_CMD_INV_DATA_TGL_MASK)
-#define SEI_CTRL_COMMAND_CMD_INV_DATA_TGL_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_INV_DATA_TGL_MASK) >> SEI_CTRL_COMMAND_CMD_INV_DATA_TGL_SHIFT)
+#define SEI_CTRL_CMD_INV_DATA_TGL_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_INV_DATA_TGL_SHIFT (0U)
+#define SEI_CTRL_CMD_INV_DATA_TGL_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_INV_DATA_TGL_SHIFT) & SEI_CTRL_CMD_INV_DATA_TGL_MASK)
+#define SEI_CTRL_CMD_INV_DATA_TGL_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_INV_DATA_TGL_MASK) >> SEI_CTRL_CMD_INV_DATA_TGL_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_IN */
+/* Bitfield definition for register of struct array CTRL: IN */
 /*
  * DATA_IN (RO)
  *
  * Commad input
  */
-#define SEI_CTRL_COMMAND_CMD_IN_DATA_IN_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_IN_DATA_IN_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_IN_DATA_IN_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_IN_DATA_IN_MASK) >> SEI_CTRL_COMMAND_CMD_IN_DATA_IN_SHIFT)
+#define SEI_CTRL_CMD_IN_DATA_IN_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_IN_DATA_IN_SHIFT (0U)
+#define SEI_CTRL_CMD_IN_DATA_IN_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_IN_DATA_IN_MASK) >> SEI_CTRL_CMD_IN_DATA_IN_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_OUT */
+/* Bitfield definition for register of struct array CTRL: OUT */
 /*
  * DATA_OUT (RO)
  *
  * Command output
  */
-#define SEI_CTRL_COMMAND_CMD_OUT_DATA_OUT_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_CMD_OUT_DATA_OUT_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_OUT_DATA_OUT_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_OUT_DATA_OUT_MASK) >> SEI_CTRL_COMMAND_CMD_OUT_DATA_OUT_SHIFT)
+#define SEI_CTRL_CMD_OUT_DATA_OUT_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_OUT_DATA_OUT_SHIFT (0U)
+#define SEI_CTRL_CMD_OUT_DATA_OUT_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_OUT_DATA_OUT_MASK) >> SEI_CTRL_CMD_OUT_DATA_OUT_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_STS */
+/* Bitfield definition for register of struct array CTRL: STS */
 /*
  * CRC_IDX (RO)
  *
  * CRC index
  */
-#define SEI_CTRL_COMMAND_CMD_STS_CRC_IDX_MASK (0x1F000000UL)
-#define SEI_CTRL_COMMAND_CMD_STS_CRC_IDX_SHIFT (24U)
-#define SEI_CTRL_COMMAND_CMD_STS_CRC_IDX_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_STS_CRC_IDX_MASK) >> SEI_CTRL_COMMAND_CMD_STS_CRC_IDX_SHIFT)
+#define SEI_CTRL_CMD_STS_CRC_IDX_MASK (0x1F000000UL)
+#define SEI_CTRL_CMD_STS_CRC_IDX_SHIFT (24U)
+#define SEI_CTRL_CMD_STS_CRC_IDX_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_STS_CRC_IDX_MASK) >> SEI_CTRL_CMD_STS_CRC_IDX_SHIFT)
 
 /*
  * WORD_IDX (RO)
  *
  * Word index
  */
-#define SEI_CTRL_COMMAND_CMD_STS_WORD_IDX_MASK (0x1F0000UL)
-#define SEI_CTRL_COMMAND_CMD_STS_WORD_IDX_SHIFT (16U)
-#define SEI_CTRL_COMMAND_CMD_STS_WORD_IDX_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_STS_WORD_IDX_MASK) >> SEI_CTRL_COMMAND_CMD_STS_WORD_IDX_SHIFT)
+#define SEI_CTRL_CMD_STS_WORD_IDX_MASK (0x1F0000UL)
+#define SEI_CTRL_CMD_STS_WORD_IDX_SHIFT (16U)
+#define SEI_CTRL_CMD_STS_WORD_IDX_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_STS_WORD_IDX_MASK) >> SEI_CTRL_CMD_STS_WORD_IDX_SHIFT)
 
 /*
  * WORD_CNT (RO)
  *
  * Word counter
  */
-#define SEI_CTRL_COMMAND_CMD_STS_WORD_CNT_MASK (0x1F00U)
-#define SEI_CTRL_COMMAND_CMD_STS_WORD_CNT_SHIFT (8U)
-#define SEI_CTRL_COMMAND_CMD_STS_WORD_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_STS_WORD_CNT_MASK) >> SEI_CTRL_COMMAND_CMD_STS_WORD_CNT_SHIFT)
+#define SEI_CTRL_CMD_STS_WORD_CNT_MASK (0x1F00U)
+#define SEI_CTRL_CMD_STS_WORD_CNT_SHIFT (8U)
+#define SEI_CTRL_CMD_STS_WORD_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_STS_WORD_CNT_MASK) >> SEI_CTRL_CMD_STS_WORD_CNT_SHIFT)
 
 /*
  * BIT_IDX (RO)
  *
  * Bit index
  */
-#define SEI_CTRL_COMMAND_CMD_STS_BIT_IDX_MASK (0x1FU)
-#define SEI_CTRL_COMMAND_CMD_STS_BIT_IDX_SHIFT (0U)
-#define SEI_CTRL_COMMAND_CMD_STS_BIT_IDX_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_CMD_STS_BIT_IDX_MASK) >> SEI_CTRL_COMMAND_CMD_STS_BIT_IDX_SHIFT)
+#define SEI_CTRL_CMD_STS_BIT_IDX_MASK (0x1FU)
+#define SEI_CTRL_CMD_STS_BIT_IDX_SHIFT (0U)
+#define SEI_CTRL_CMD_STS_BIT_IDX_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_STS_BIT_IDX_MASK) >> SEI_CTRL_CMD_STS_BIT_IDX_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_MIN */
+/* Bitfield definition for register of struct array CTRL: MIN */
 /*
  * CMD_MIN (RW)
  *
  * minimum command value
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_MIN_CMD_MIN_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MIN_CMD_MIN_SHIFT (0U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MIN_CMD_MIN_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_MIN_CMD_MIN_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_MIN_CMD_MIN_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MIN_CMD_MIN_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_MIN_CMD_MIN_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_MIN_CMD_MIN_SHIFT)
+#define SEI_CTRL_CMD_TABLE_MIN_CMD_MIN_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_TABLE_MIN_CMD_MIN_SHIFT (0U)
+#define SEI_CTRL_CMD_TABLE_MIN_CMD_MIN_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_MIN_CMD_MIN_SHIFT) & SEI_CTRL_CMD_TABLE_MIN_CMD_MIN_MASK)
+#define SEI_CTRL_CMD_TABLE_MIN_CMD_MIN_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_MIN_CMD_MIN_MASK) >> SEI_CTRL_CMD_TABLE_MIN_CMD_MIN_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_MAX */
+/* Bitfield definition for register of struct array CTRL: MAX */
 /*
  * CMD_MAX (RW)
  *
  * maximum command value
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_MAX_CMD_MAX_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MAX_CMD_MAX_SHIFT (0U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MAX_CMD_MAX_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_MAX_CMD_MAX_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_MAX_CMD_MAX_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MAX_CMD_MAX_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_MAX_CMD_MAX_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_MAX_CMD_MAX_SHIFT)
+#define SEI_CTRL_CMD_TABLE_MAX_CMD_MAX_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_TABLE_MAX_CMD_MAX_SHIFT (0U)
+#define SEI_CTRL_CMD_TABLE_MAX_CMD_MAX_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_MAX_CMD_MAX_SHIFT) & SEI_CTRL_CMD_TABLE_MAX_CMD_MAX_MASK)
+#define SEI_CTRL_CMD_TABLE_MAX_CMD_MAX_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_MAX_CMD_MAX_MASK) >> SEI_CTRL_CMD_TABLE_MAX_CMD_MAX_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_MSK */
+/* Bitfield definition for register of struct array CTRL: MSK */
 /*
  * CMD_MASK (RW)
  *
  * compare mask
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_MSK_CMD_MASK_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MSK_CMD_MASK_SHIFT (0U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MSK_CMD_MASK_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_MSK_CMD_MASK_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_MSK_CMD_MASK_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_MSK_CMD_MASK_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_MSK_CMD_MASK_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_MSK_CMD_MASK_SHIFT)
+#define SEI_CTRL_CMD_TABLE_MSK_CMD_MASK_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_CMD_TABLE_MSK_CMD_MASK_SHIFT (0U)
+#define SEI_CTRL_CMD_TABLE_MSK_CMD_MASK_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_MSK_CMD_MASK_SHIFT) & SEI_CTRL_CMD_TABLE_MSK_CMD_MASK_MASK)
+#define SEI_CTRL_CMD_TABLE_MSK_CMD_MASK_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_MSK_CMD_MASK_MASK) >> SEI_CTRL_CMD_TABLE_MSK_CMD_MASK_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_PTRA */
+/* Bitfield definition for register of struct array CTRL: PTA */
 /*
  * PTR3 (RW)
  *
  * pointer3
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR3_MASK (0xFF000000UL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR3_SHIFT (24U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR3_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR3_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR3_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR3_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR3_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR3_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR3_MASK (0xFF000000UL)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR3_SHIFT (24U)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR3_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTA_PTR3_SHIFT) & SEI_CTRL_CMD_TABLE_PTA_PTR3_MASK)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR3_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTA_PTR3_MASK) >> SEI_CTRL_CMD_TABLE_PTA_PTR3_SHIFT)
 
 /*
  * PTR2 (RW)
  *
  * pointer2
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR2_MASK (0xFF0000UL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR2_SHIFT (16U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR2_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR2_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR2_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR2_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR2_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR2_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR2_MASK (0xFF0000UL)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR2_SHIFT (16U)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR2_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTA_PTR2_SHIFT) & SEI_CTRL_CMD_TABLE_PTA_PTR2_MASK)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR2_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTA_PTR2_MASK) >> SEI_CTRL_CMD_TABLE_PTA_PTR2_SHIFT)
 
 /*
  * PTR1 (RW)
  *
  * pointer1
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR1_MASK (0xFF00U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR1_SHIFT (8U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR1_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR1_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR1_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR1_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR1_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR1_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR1_MASK (0xFF00U)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR1_SHIFT (8U)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR1_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTA_PTR1_SHIFT) & SEI_CTRL_CMD_TABLE_PTA_PTR1_MASK)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR1_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTA_PTR1_MASK) >> SEI_CTRL_CMD_TABLE_PTA_PTR1_SHIFT)
 
 /*
  * PTR0 (RW)
  *
  * pointer0
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR0_MASK (0xFFU)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR0_SHIFT (0U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR0_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR0_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR0_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR0_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR0_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRA_PTR0_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR0_MASK (0xFFU)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR0_SHIFT (0U)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR0_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTA_PTR0_SHIFT) & SEI_CTRL_CMD_TABLE_PTA_PTR0_MASK)
+#define SEI_CTRL_CMD_TABLE_PTA_PTR0_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTA_PTR0_MASK) >> SEI_CTRL_CMD_TABLE_PTA_PTR0_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_PTRB */
+/* Bitfield definition for register of struct array CTRL: PTB */
 /*
  * PTR7 (RW)
  *
  * pointer7
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR7_MASK (0xFF000000UL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR7_SHIFT (24U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR7_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR7_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR7_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR7_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR7_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR7_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR7_MASK (0xFF000000UL)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR7_SHIFT (24U)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR7_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTB_PTR7_SHIFT) & SEI_CTRL_CMD_TABLE_PTB_PTR7_MASK)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR7_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTB_PTR7_MASK) >> SEI_CTRL_CMD_TABLE_PTB_PTR7_SHIFT)
 
 /*
  * PTR6 (RW)
  *
  * pointer6
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR6_MASK (0xFF0000UL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR6_SHIFT (16U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR6_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR6_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR6_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR6_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR6_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR6_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR6_MASK (0xFF0000UL)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR6_SHIFT (16U)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR6_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTB_PTR6_SHIFT) & SEI_CTRL_CMD_TABLE_PTB_PTR6_MASK)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR6_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTB_PTR6_MASK) >> SEI_CTRL_CMD_TABLE_PTB_PTR6_SHIFT)
 
 /*
  * PTR5 (RW)
  *
  * pointer5
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR5_MASK (0xFF00U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR5_SHIFT (8U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR5_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR5_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR5_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR5_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR5_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR5_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR5_MASK (0xFF00U)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR5_SHIFT (8U)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR5_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTB_PTR5_SHIFT) & SEI_CTRL_CMD_TABLE_PTB_PTR5_MASK)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR5_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTB_PTR5_MASK) >> SEI_CTRL_CMD_TABLE_PTB_PTR5_SHIFT)
 
 /*
  * PTR4 (RW)
  *
  * pointer4
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR4_MASK (0xFFU)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR4_SHIFT (0U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR4_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR4_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR4_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR4_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR4_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRB_PTR4_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR4_MASK (0xFFU)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR4_SHIFT (0U)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR4_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTB_PTR4_SHIFT) & SEI_CTRL_CMD_TABLE_PTB_PTR4_MASK)
+#define SEI_CTRL_CMD_TABLE_PTB_PTR4_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTB_PTR4_MASK) >> SEI_CTRL_CMD_TABLE_PTB_PTR4_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_PTRC */
+/* Bitfield definition for register of struct array CTRL: PTC */
 /*
  * PTR11 (RW)
  *
  * pointer11
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR11_MASK (0xFF000000UL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR11_SHIFT (24U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR11_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR11_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR11_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR11_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR11_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR11_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR11_MASK (0xFF000000UL)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR11_SHIFT (24U)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR11_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTC_PTR11_SHIFT) & SEI_CTRL_CMD_TABLE_PTC_PTR11_MASK)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR11_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTC_PTR11_MASK) >> SEI_CTRL_CMD_TABLE_PTC_PTR11_SHIFT)
 
 /*
  * PTR10 (RW)
  *
  * pointer10
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR10_MASK (0xFF0000UL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR10_SHIFT (16U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR10_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR10_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR10_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR10_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR10_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR10_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR10_MASK (0xFF0000UL)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR10_SHIFT (16U)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR10_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTC_PTR10_SHIFT) & SEI_CTRL_CMD_TABLE_PTC_PTR10_MASK)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR10_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTC_PTR10_MASK) >> SEI_CTRL_CMD_TABLE_PTC_PTR10_SHIFT)
 
 /*
  * PTR9 (RW)
  *
  * pointer9
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR9_MASK (0xFF00U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR9_SHIFT (8U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR9_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR9_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR9_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR9_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR9_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR9_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR9_MASK (0xFF00U)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR9_SHIFT (8U)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR9_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTC_PTR9_SHIFT) & SEI_CTRL_CMD_TABLE_PTC_PTR9_MASK)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR9_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTC_PTR9_MASK) >> SEI_CTRL_CMD_TABLE_PTC_PTR9_SHIFT)
 
 /*
  * PTR8 (RW)
  *
  * pointer8
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR8_MASK (0xFFU)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR8_SHIFT (0U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR8_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR8_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR8_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR8_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR8_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRC_PTR8_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR8_MASK (0xFFU)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR8_SHIFT (0U)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR8_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTC_PTR8_SHIFT) & SEI_CTRL_CMD_TABLE_PTC_PTR8_MASK)
+#define SEI_CTRL_CMD_TABLE_PTC_PTR8_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTC_PTR8_MASK) >> SEI_CTRL_CMD_TABLE_PTC_PTR8_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: CMD_PTRD */
+/* Bitfield definition for register of struct array CTRL: PTD */
 /*
  * PTR15 (RW)
  *
  * pointer15
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR15_MASK (0xFF000000UL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR15_SHIFT (24U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR15_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR15_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR15_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR15_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR15_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR15_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR15_MASK (0xFF000000UL)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR15_SHIFT (24U)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR15_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTD_PTR15_SHIFT) & SEI_CTRL_CMD_TABLE_PTD_PTR15_MASK)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR15_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTD_PTR15_MASK) >> SEI_CTRL_CMD_TABLE_PTD_PTR15_SHIFT)
 
 /*
  * PTR14 (RW)
  *
  * pointer14
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR14_MASK (0xFF0000UL)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR14_SHIFT (16U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR14_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR14_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR14_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR14_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR14_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR14_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR14_MASK (0xFF0000UL)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR14_SHIFT (16U)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR14_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTD_PTR14_SHIFT) & SEI_CTRL_CMD_TABLE_PTD_PTR14_MASK)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR14_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTD_PTR14_MASK) >> SEI_CTRL_CMD_TABLE_PTD_PTR14_SHIFT)
 
 /*
  * PTR13 (RW)
  *
  * pointer13
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR13_MASK (0xFF00U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR13_SHIFT (8U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR13_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR13_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR13_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR13_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR13_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR13_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR13_MASK (0xFF00U)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR13_SHIFT (8U)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR13_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTD_PTR13_SHIFT) & SEI_CTRL_CMD_TABLE_PTD_PTR13_MASK)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR13_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTD_PTR13_MASK) >> SEI_CTRL_CMD_TABLE_PTD_PTR13_SHIFT)
 
 /*
  * PTR12 (RW)
  *
  * pointer12
  */
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR12_MASK (0xFFU)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR12_SHIFT (0U)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR12_SET(x) (((uint32_t)(x) << SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR12_SHIFT) & SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR12_MASK)
-#define SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR12_GET(x) (((uint32_t)(x) & SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR12_MASK) >> SEI_CTRL_COMMAND_TABLE_CMD_PTRD_PTR12_SHIFT)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR12_MASK (0xFFU)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR12_SHIFT (0U)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR12_SET(x) (((uint32_t)(x) << SEI_CTRL_CMD_TABLE_PTD_PTR12_SHIFT) & SEI_CTRL_CMD_TABLE_PTD_PTR12_MASK)
+#define SEI_CTRL_CMD_TABLE_PTD_PTR12_GET(x) (((uint32_t)(x) & SEI_CTRL_CMD_TABLE_PTD_PTR12_MASK) >> SEI_CTRL_CMD_TABLE_PTD_PTR12_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: TRAN_0_1 */
+/* Bitfield definition for register of struct array CTRL: 0_1 */
 /*
  * POINTER (RW)
  *
  * pointer
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_POINTER_MASK (0xFF000000UL)
-#define SEI_CTRL_LATCH_TRAN_CFG_POINTER_SHIFT (24U)
-#define SEI_CTRL_LATCH_TRAN_CFG_POINTER_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_POINTER_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_POINTER_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_POINTER_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_POINTER_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_POINTER_SHIFT)
-
-/*
- * STATE (RW)
- *
- * enable state by set bit
- * 1: state0
- * 2: state1
- * 4: state2
- * 8: state3
- */
-#define SEI_CTRL_LATCH_TRAN_CFG_STATE_MASK (0xF00000UL)
-#define SEI_CTRL_LATCH_TRAN_CFG_STATE_SHIFT (20U)
-#define SEI_CTRL_LATCH_TRAN_CFG_STATE_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_STATE_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_STATE_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_STATE_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_STATE_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_STATE_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_POINTER_MASK (0xFF000000UL)
+#define SEI_CTRL_LATCH_TRAN_POINTER_SHIFT (24U)
+#define SEI_CTRL_LATCH_TRAN_POINTER_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_POINTER_SHIFT) & SEI_CTRL_LATCH_TRAN_POINTER_MASK)
+#define SEI_CTRL_LATCH_TRAN_POINTER_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_POINTER_MASK) >> SEI_CTRL_LATCH_TRAN_POINTER_SHIFT)
 
 /*
  * CFG_TM (RW)
@@ -1495,24 +1481,10 @@ typedef struct {
  * 2: rise
  * 3: fall
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_TM_MASK (0x30000UL)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_TM_SHIFT (16U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_TM_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_CFG_TM_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_CFG_TM_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_TM_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_CFG_TM_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_CFG_TM_SHIFT)
-
-/*
- * CFG_RXD (RW)
- *
- * data received
- * 0: high
- * 1: low
- * 2: rise
- * 3: fall
- */
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_RXD_MASK (0xC000U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_RXD_SHIFT (14U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_RXD_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_CFG_RXD_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_CFG_RXD_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_RXD_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_CFG_RXD_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_CFG_RXD_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_CFG_TM_MASK (0x30000UL)
+#define SEI_CTRL_LATCH_TRAN_CFG_TM_SHIFT (16U)
+#define SEI_CTRL_LATCH_TRAN_CFG_TM_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_TM_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_TM_MASK)
+#define SEI_CTRL_LATCH_TRAN_CFG_TM_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_TM_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_TM_SHIFT)
 
 /*
  * CFG_TXD (RW)
@@ -1523,10 +1495,10 @@ typedef struct {
  * 2: rise
  * 3: fall
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_TXD_MASK (0x3000U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_TXD_SHIFT (12U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_TXD_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_CFG_TXD_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_CFG_TXD_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_TXD_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_CFG_TXD_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_CFG_TXD_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_CFG_TXD_MASK (0x3000U)
+#define SEI_CTRL_LATCH_TRAN_CFG_TXD_SHIFT (12U)
+#define SEI_CTRL_LATCH_TRAN_CFG_TXD_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_TXD_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_TXD_MASK)
+#define SEI_CTRL_LATCH_TRAN_CFG_TXD_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_TXD_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_TXD_SHIFT)
 
 /*
  * CFG_CLK (RW)
@@ -1537,10 +1509,10 @@ typedef struct {
  * 2: rise
  * 3: fall
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_CLK_MASK (0xC00U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_CLK_SHIFT (10U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_CLK_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_CFG_CLK_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_CFG_CLK_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_CLK_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_CFG_CLK_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_CFG_CLK_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_CFG_CLK_MASK (0xC00U)
+#define SEI_CTRL_LATCH_TRAN_CFG_CLK_SHIFT (10U)
+#define SEI_CTRL_LATCH_TRAN_CFG_CLK_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_CLK_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_CLK_MASK)
+#define SEI_CTRL_LATCH_TRAN_CFG_CLK_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_CLK_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_CLK_SHIFT)
 
 /*
  * CFG_PTR (RW)
@@ -1551,62 +1523,52 @@ typedef struct {
  * 2:entry
  * 3:leave
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_PTR_MASK (0x300U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_PTR_SHIFT (8U)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_PTR_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_CFG_PTR_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_CFG_PTR_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_CFG_PTR_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_CFG_PTR_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_CFG_PTR_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_CFG_PTR_MASK (0x300U)
+#define SEI_CTRL_LATCH_TRAN_CFG_PTR_SHIFT (8U)
+#define SEI_CTRL_LATCH_TRAN_CFG_PTR_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_PTR_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_PTR_MASK)
+#define SEI_CTRL_LATCH_TRAN_CFG_PTR_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_PTR_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_PTR_SHIFT)
 
 /*
  * OV_TM (RW)
  *
  * override timeout check
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_TM_MASK (0x10U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_TM_SHIFT (4U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_TM_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_OV_TM_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_OV_TM_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_TM_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_OV_TM_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_OV_TM_SHIFT)
-
-/*
- * OV_RXD (RW)
- *
- * override RX data check
- */
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_RXD_MASK (0x8U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_RXD_SHIFT (3U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_RXD_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_OV_RXD_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_OV_RXD_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_RXD_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_OV_RXD_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_OV_RXD_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_OV_TM_MASK (0x10U)
+#define SEI_CTRL_LATCH_TRAN_OV_TM_SHIFT (4U)
+#define SEI_CTRL_LATCH_TRAN_OV_TM_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_OV_TM_SHIFT) & SEI_CTRL_LATCH_TRAN_OV_TM_MASK)
+#define SEI_CTRL_LATCH_TRAN_OV_TM_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_OV_TM_MASK) >> SEI_CTRL_LATCH_TRAN_OV_TM_SHIFT)
 
 /*
  * OV_TXD (RW)
  *
  * override TX data check
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_TXD_MASK (0x4U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_TXD_SHIFT (2U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_TXD_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_OV_TXD_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_OV_TXD_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_TXD_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_OV_TXD_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_OV_TXD_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_OV_TXD_MASK (0x4U)
+#define SEI_CTRL_LATCH_TRAN_OV_TXD_SHIFT (2U)
+#define SEI_CTRL_LATCH_TRAN_OV_TXD_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_OV_TXD_SHIFT) & SEI_CTRL_LATCH_TRAN_OV_TXD_MASK)
+#define SEI_CTRL_LATCH_TRAN_OV_TXD_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_OV_TXD_MASK) >> SEI_CTRL_LATCH_TRAN_OV_TXD_SHIFT)
 
 /*
  * OV_CLK (RW)
  *
  * override clock check
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_CLK_MASK (0x2U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_CLK_SHIFT (1U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_CLK_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_OV_CLK_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_OV_CLK_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_CLK_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_OV_CLK_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_OV_CLK_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_OV_CLK_MASK (0x2U)
+#define SEI_CTRL_LATCH_TRAN_OV_CLK_SHIFT (1U)
+#define SEI_CTRL_LATCH_TRAN_OV_CLK_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_OV_CLK_SHIFT) & SEI_CTRL_LATCH_TRAN_OV_CLK_MASK)
+#define SEI_CTRL_LATCH_TRAN_OV_CLK_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_OV_CLK_MASK) >> SEI_CTRL_LATCH_TRAN_OV_CLK_SHIFT)
 
 /*
  * OV_PTR (RW)
  *
  * override pointer check
  */
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_PTR_MASK (0x1U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_PTR_SHIFT (0U)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_PTR_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_CFG_OV_PTR_SHIFT) & SEI_CTRL_LATCH_TRAN_CFG_OV_PTR_MASK)
-#define SEI_CTRL_LATCH_TRAN_CFG_OV_PTR_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_CFG_OV_PTR_MASK) >> SEI_CTRL_LATCH_TRAN_CFG_OV_PTR_SHIFT)
+#define SEI_CTRL_LATCH_TRAN_OV_PTR_MASK (0x1U)
+#define SEI_CTRL_LATCH_TRAN_OV_PTR_SHIFT (0U)
+#define SEI_CTRL_LATCH_TRAN_OV_PTR_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_TRAN_OV_PTR_SHIFT) & SEI_CTRL_LATCH_TRAN_OV_PTR_MASK)
+#define SEI_CTRL_LATCH_TRAN_OV_PTR_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TRAN_OV_PTR_MASK) >> SEI_CTRL_LATCH_TRAN_OV_PTR_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: LAT_CFG */
+/* Bitfield definition for register of struct array CTRL: CFG */
 /*
  * EN (RW)
  *
@@ -1614,10 +1576,10 @@ typedef struct {
  * 0: disable
  * 1: enable
  */
-#define SEI_CTRL_LATCH_LAT_CFG_EN_MASK (0x80000000UL)
-#define SEI_CTRL_LATCH_LAT_CFG_EN_SHIFT (31U)
-#define SEI_CTRL_LATCH_LAT_CFG_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_LAT_CFG_EN_SHIFT) & SEI_CTRL_LATCH_LAT_CFG_EN_MASK)
-#define SEI_CTRL_LATCH_LAT_CFG_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_LAT_CFG_EN_MASK) >> SEI_CTRL_LATCH_LAT_CFG_EN_SHIFT)
+#define SEI_CTRL_LATCH_CFG_EN_MASK (0x80000000UL)
+#define SEI_CTRL_LATCH_CFG_EN_SHIFT (31U)
+#define SEI_CTRL_LATCH_CFG_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_CFG_EN_SHIFT) & SEI_CTRL_LATCH_CFG_EN_MASK)
+#define SEI_CTRL_LATCH_CFG_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_CFG_EN_MASK) >> SEI_CTRL_LATCH_CFG_EN_SHIFT)
 
 /*
  * SELECT (RW)
@@ -1628,49 +1590,49 @@ typedef struct {
  * 2: state2-state3
  * 3: state3-state0
  */
-#define SEI_CTRL_LATCH_LAT_CFG_SELECT_MASK (0x7000000UL)
-#define SEI_CTRL_LATCH_LAT_CFG_SELECT_SHIFT (24U)
-#define SEI_CTRL_LATCH_LAT_CFG_SELECT_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_LAT_CFG_SELECT_SHIFT) & SEI_CTRL_LATCH_LAT_CFG_SELECT_MASK)
-#define SEI_CTRL_LATCH_LAT_CFG_SELECT_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_LAT_CFG_SELECT_MASK) >> SEI_CTRL_LATCH_LAT_CFG_SELECT_SHIFT)
+#define SEI_CTRL_LATCH_CFG_SELECT_MASK (0x7000000UL)
+#define SEI_CTRL_LATCH_CFG_SELECT_SHIFT (24U)
+#define SEI_CTRL_LATCH_CFG_SELECT_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_CFG_SELECT_SHIFT) & SEI_CTRL_LATCH_CFG_SELECT_MASK)
+#define SEI_CTRL_LATCH_CFG_SELECT_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_CFG_SELECT_MASK) >> SEI_CTRL_LATCH_CFG_SELECT_SHIFT)
 
 /*
  * DELAY (RW)
  *
  * Delay in system clock cycle, for state transition
  */
-#define SEI_CTRL_LATCH_LAT_CFG_DELAY_MASK (0xFFFFU)
-#define SEI_CTRL_LATCH_LAT_CFG_DELAY_SHIFT (0U)
-#define SEI_CTRL_LATCH_LAT_CFG_DELAY_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_LAT_CFG_DELAY_SHIFT) & SEI_CTRL_LATCH_LAT_CFG_DELAY_MASK)
-#define SEI_CTRL_LATCH_LAT_CFG_DELAY_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_LAT_CFG_DELAY_MASK) >> SEI_CTRL_LATCH_LAT_CFG_DELAY_SHIFT)
+#define SEI_CTRL_LATCH_CFG_DELAY_MASK (0xFFFFU)
+#define SEI_CTRL_LATCH_CFG_DELAY_SHIFT (0U)
+#define SEI_CTRL_LATCH_CFG_DELAY_SET(x) (((uint32_t)(x) << SEI_CTRL_LATCH_CFG_DELAY_SHIFT) & SEI_CTRL_LATCH_CFG_DELAY_MASK)
+#define SEI_CTRL_LATCH_CFG_DELAY_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_CFG_DELAY_MASK) >> SEI_CTRL_LATCH_CFG_DELAY_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: LAT_TIME */
+/* Bitfield definition for register of struct array CTRL: TIME */
 /*
  * LAT_TIME (RO)
  *
  * Latch time
  */
-#define SEI_CTRL_LATCH_LAT_TIME_LAT_TIME_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_LATCH_LAT_TIME_LAT_TIME_SHIFT (0U)
-#define SEI_CTRL_LATCH_LAT_TIME_LAT_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_LAT_TIME_LAT_TIME_MASK) >> SEI_CTRL_LATCH_LAT_TIME_LAT_TIME_SHIFT)
+#define SEI_CTRL_LATCH_TIME_LAT_TIME_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_LATCH_TIME_LAT_TIME_SHIFT (0U)
+#define SEI_CTRL_LATCH_TIME_LAT_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_TIME_LAT_TIME_MASK) >> SEI_CTRL_LATCH_TIME_LAT_TIME_SHIFT)
 
-/* Bitfield definition for register of struct array CTRL: LAT_STS */
+/* Bitfield definition for register of struct array CTRL: STS */
 /*
  * STATE (RO)
  *
  * State
  */
-#define SEI_CTRL_LATCH_LAT_STS_STATE_MASK (0x7000000UL)
-#define SEI_CTRL_LATCH_LAT_STS_STATE_SHIFT (24U)
-#define SEI_CTRL_LATCH_LAT_STS_STATE_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_LAT_STS_STATE_MASK) >> SEI_CTRL_LATCH_LAT_STS_STATE_SHIFT)
+#define SEI_CTRL_LATCH_STS_STATE_MASK (0x7000000UL)
+#define SEI_CTRL_LATCH_STS_STATE_SHIFT (24U)
+#define SEI_CTRL_LATCH_STS_STATE_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_STS_STATE_MASK) >> SEI_CTRL_LATCH_STS_STATE_SHIFT)
 
 /*
  * LAT_CNT (RO)
  *
  * Latch counter
  */
-#define SEI_CTRL_LATCH_LAT_STS_LAT_CNT_MASK (0xFFFFU)
-#define SEI_CTRL_LATCH_LAT_STS_LAT_CNT_SHIFT (0U)
-#define SEI_CTRL_LATCH_LAT_STS_LAT_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_LAT_STS_LAT_CNT_MASK) >> SEI_CTRL_LATCH_LAT_STS_LAT_CNT_SHIFT)
+#define SEI_CTRL_LATCH_STS_LAT_CNT_MASK (0xFFFFU)
+#define SEI_CTRL_LATCH_STS_LAT_CNT_SHIFT (0U)
+#define SEI_CTRL_LATCH_STS_LAT_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_LATCH_STS_LAT_CNT_MASK) >> SEI_CTRL_LATCH_STS_LAT_CNT_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_EN */
 /*
@@ -1678,80 +1640,80 @@ typedef struct {
  *
  * Position include acceleration
  */
-#define SEI_CTRL_POSITION_SMP_EN_ACC_EN_MASK (0x80000000UL)
-#define SEI_CTRL_POSITION_SMP_EN_ACC_EN_SHIFT (31U)
-#define SEI_CTRL_POSITION_SMP_EN_ACC_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_EN_ACC_EN_SHIFT) & SEI_CTRL_POSITION_SMP_EN_ACC_EN_MASK)
-#define SEI_CTRL_POSITION_SMP_EN_ACC_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_EN_ACC_EN_MASK) >> SEI_CTRL_POSITION_SMP_EN_ACC_EN_SHIFT)
+#define SEI_CTRL_POS_SMP_EN_ACC_EN_MASK (0x80000000UL)
+#define SEI_CTRL_POS_SMP_EN_ACC_EN_SHIFT (31U)
+#define SEI_CTRL_POS_SMP_EN_ACC_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_EN_ACC_EN_SHIFT) & SEI_CTRL_POS_SMP_EN_ACC_EN_MASK)
+#define SEI_CTRL_POS_SMP_EN_ACC_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_EN_ACC_EN_MASK) >> SEI_CTRL_POS_SMP_EN_ACC_EN_SHIFT)
 
 /*
  * ACC_SEL (RW)
  *
  * Data register for acceleration transfer
  */
-#define SEI_CTRL_POSITION_SMP_EN_ACC_SEL_MASK (0x1F000000UL)
-#define SEI_CTRL_POSITION_SMP_EN_ACC_SEL_SHIFT (24U)
-#define SEI_CTRL_POSITION_SMP_EN_ACC_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_EN_ACC_SEL_SHIFT) & SEI_CTRL_POSITION_SMP_EN_ACC_SEL_MASK)
-#define SEI_CTRL_POSITION_SMP_EN_ACC_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_EN_ACC_SEL_MASK) >> SEI_CTRL_POSITION_SMP_EN_ACC_SEL_SHIFT)
+#define SEI_CTRL_POS_SMP_EN_ACC_SEL_MASK (0x1F000000UL)
+#define SEI_CTRL_POS_SMP_EN_ACC_SEL_SHIFT (24U)
+#define SEI_CTRL_POS_SMP_EN_ACC_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_EN_ACC_SEL_SHIFT) & SEI_CTRL_POS_SMP_EN_ACC_SEL_MASK)
+#define SEI_CTRL_POS_SMP_EN_ACC_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_EN_ACC_SEL_MASK) >> SEI_CTRL_POS_SMP_EN_ACC_SEL_SHIFT)
 
 /*
  * SPD_EN (RW)
  *
  * Position include speed
  */
-#define SEI_CTRL_POSITION_SMP_EN_SPD_EN_MASK (0x800000UL)
-#define SEI_CTRL_POSITION_SMP_EN_SPD_EN_SHIFT (23U)
-#define SEI_CTRL_POSITION_SMP_EN_SPD_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_EN_SPD_EN_SHIFT) & SEI_CTRL_POSITION_SMP_EN_SPD_EN_MASK)
-#define SEI_CTRL_POSITION_SMP_EN_SPD_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_EN_SPD_EN_MASK) >> SEI_CTRL_POSITION_SMP_EN_SPD_EN_SHIFT)
+#define SEI_CTRL_POS_SMP_EN_SPD_EN_MASK (0x800000UL)
+#define SEI_CTRL_POS_SMP_EN_SPD_EN_SHIFT (23U)
+#define SEI_CTRL_POS_SMP_EN_SPD_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_EN_SPD_EN_SHIFT) & SEI_CTRL_POS_SMP_EN_SPD_EN_MASK)
+#define SEI_CTRL_POS_SMP_EN_SPD_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_EN_SPD_EN_MASK) >> SEI_CTRL_POS_SMP_EN_SPD_EN_SHIFT)
 
 /*
  * SPD_SEL (RW)
  *
  * Data register for speed transfer
  */
-#define SEI_CTRL_POSITION_SMP_EN_SPD_SEL_MASK (0x1F0000UL)
-#define SEI_CTRL_POSITION_SMP_EN_SPD_SEL_SHIFT (16U)
-#define SEI_CTRL_POSITION_SMP_EN_SPD_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_EN_SPD_SEL_SHIFT) & SEI_CTRL_POSITION_SMP_EN_SPD_SEL_MASK)
-#define SEI_CTRL_POSITION_SMP_EN_SPD_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_EN_SPD_SEL_MASK) >> SEI_CTRL_POSITION_SMP_EN_SPD_SEL_SHIFT)
+#define SEI_CTRL_POS_SMP_EN_SPD_SEL_MASK (0x1F0000UL)
+#define SEI_CTRL_POS_SMP_EN_SPD_SEL_SHIFT (16U)
+#define SEI_CTRL_POS_SMP_EN_SPD_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_EN_SPD_SEL_SHIFT) & SEI_CTRL_POS_SMP_EN_SPD_SEL_MASK)
+#define SEI_CTRL_POS_SMP_EN_SPD_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_EN_SPD_SEL_MASK) >> SEI_CTRL_POS_SMP_EN_SPD_SEL_SHIFT)
 
 /*
  * REV_EN (RW)
  *
  * Position include revolution
  */
-#define SEI_CTRL_POSITION_SMP_EN_REV_EN_MASK (0x8000U)
-#define SEI_CTRL_POSITION_SMP_EN_REV_EN_SHIFT (15U)
-#define SEI_CTRL_POSITION_SMP_EN_REV_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_EN_REV_EN_SHIFT) & SEI_CTRL_POSITION_SMP_EN_REV_EN_MASK)
-#define SEI_CTRL_POSITION_SMP_EN_REV_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_EN_REV_EN_MASK) >> SEI_CTRL_POSITION_SMP_EN_REV_EN_SHIFT)
+#define SEI_CTRL_POS_SMP_EN_REV_EN_MASK (0x8000U)
+#define SEI_CTRL_POS_SMP_EN_REV_EN_SHIFT (15U)
+#define SEI_CTRL_POS_SMP_EN_REV_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_EN_REV_EN_SHIFT) & SEI_CTRL_POS_SMP_EN_REV_EN_MASK)
+#define SEI_CTRL_POS_SMP_EN_REV_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_EN_REV_EN_MASK) >> SEI_CTRL_POS_SMP_EN_REV_EN_SHIFT)
 
 /*
  * REV_SEL (RW)
  *
  * Data register for revolution transfer
  */
-#define SEI_CTRL_POSITION_SMP_EN_REV_SEL_MASK (0x1F00U)
-#define SEI_CTRL_POSITION_SMP_EN_REV_SEL_SHIFT (8U)
-#define SEI_CTRL_POSITION_SMP_EN_REV_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_EN_REV_SEL_SHIFT) & SEI_CTRL_POSITION_SMP_EN_REV_SEL_MASK)
-#define SEI_CTRL_POSITION_SMP_EN_REV_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_EN_REV_SEL_MASK) >> SEI_CTRL_POSITION_SMP_EN_REV_SEL_SHIFT)
+#define SEI_CTRL_POS_SMP_EN_REV_SEL_MASK (0x1F00U)
+#define SEI_CTRL_POS_SMP_EN_REV_SEL_SHIFT (8U)
+#define SEI_CTRL_POS_SMP_EN_REV_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_EN_REV_SEL_SHIFT) & SEI_CTRL_POS_SMP_EN_REV_SEL_MASK)
+#define SEI_CTRL_POS_SMP_EN_REV_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_EN_REV_SEL_MASK) >> SEI_CTRL_POS_SMP_EN_REV_SEL_SHIFT)
 
 /*
  * POS_EN (RW)
  *
  * Position include position
  */
-#define SEI_CTRL_POSITION_SMP_EN_POS_EN_MASK (0x80U)
-#define SEI_CTRL_POSITION_SMP_EN_POS_EN_SHIFT (7U)
-#define SEI_CTRL_POSITION_SMP_EN_POS_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_EN_POS_EN_SHIFT) & SEI_CTRL_POSITION_SMP_EN_POS_EN_MASK)
-#define SEI_CTRL_POSITION_SMP_EN_POS_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_EN_POS_EN_MASK) >> SEI_CTRL_POSITION_SMP_EN_POS_EN_SHIFT)
+#define SEI_CTRL_POS_SMP_EN_POS_EN_MASK (0x80U)
+#define SEI_CTRL_POS_SMP_EN_POS_EN_SHIFT (7U)
+#define SEI_CTRL_POS_SMP_EN_POS_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_EN_POS_EN_SHIFT) & SEI_CTRL_POS_SMP_EN_POS_EN_MASK)
+#define SEI_CTRL_POS_SMP_EN_POS_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_EN_POS_EN_MASK) >> SEI_CTRL_POS_SMP_EN_POS_EN_SHIFT)
 
 /*
  * POS_SEL (RW)
  *
  * Data register for position transfer
  */
-#define SEI_CTRL_POSITION_SMP_EN_POS_SEL_MASK (0x1FU)
-#define SEI_CTRL_POSITION_SMP_EN_POS_SEL_SHIFT (0U)
-#define SEI_CTRL_POSITION_SMP_EN_POS_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_EN_POS_SEL_SHIFT) & SEI_CTRL_POSITION_SMP_EN_POS_SEL_MASK)
-#define SEI_CTRL_POSITION_SMP_EN_POS_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_EN_POS_SEL_MASK) >> SEI_CTRL_POSITION_SMP_EN_POS_SEL_SHIFT)
+#define SEI_CTRL_POS_SMP_EN_POS_SEL_MASK (0x1FU)
+#define SEI_CTRL_POS_SMP_EN_POS_SEL_SHIFT (0U)
+#define SEI_CTRL_POS_SMP_EN_POS_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_EN_POS_SEL_SHIFT) & SEI_CTRL_POS_SMP_EN_POS_SEL_MASK)
+#define SEI_CTRL_POS_SMP_EN_POS_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_EN_POS_SEL_MASK) >> SEI_CTRL_POS_SMP_EN_POS_SEL_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_CFG */
 /*
@@ -1761,10 +1723,10 @@ typedef struct {
  * 0: Sample during windows time
  * 1: Close sample window after first sample
  */
-#define SEI_CTRL_POSITION_SMP_CFG_ONCE_MASK (0x1000000UL)
-#define SEI_CTRL_POSITION_SMP_CFG_ONCE_SHIFT (24U)
-#define SEI_CTRL_POSITION_SMP_CFG_ONCE_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_CFG_ONCE_SHIFT) & SEI_CTRL_POSITION_SMP_CFG_ONCE_MASK)
-#define SEI_CTRL_POSITION_SMP_CFG_ONCE_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_CFG_ONCE_MASK) >> SEI_CTRL_POSITION_SMP_CFG_ONCE_SHIFT)
+#define SEI_CTRL_POS_SMP_CFG_ONCE_MASK (0x1000000UL)
+#define SEI_CTRL_POS_SMP_CFG_ONCE_SHIFT (24U)
+#define SEI_CTRL_POS_SMP_CFG_ONCE_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_CFG_ONCE_SHIFT) & SEI_CTRL_POS_SMP_CFG_ONCE_MASK)
+#define SEI_CTRL_POS_SMP_CFG_ONCE_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_CFG_ONCE_MASK) >> SEI_CTRL_POS_SMP_CFG_ONCE_SHIFT)
 
 /*
  * LAT_SEL (RW)
@@ -1775,20 +1737,20 @@ typedef struct {
  * 2: latch 2
  * 3: latch 3
  */
-#define SEI_CTRL_POSITION_SMP_CFG_LAT_SEL_MASK (0x30000UL)
-#define SEI_CTRL_POSITION_SMP_CFG_LAT_SEL_SHIFT (16U)
-#define SEI_CTRL_POSITION_SMP_CFG_LAT_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_CFG_LAT_SEL_SHIFT) & SEI_CTRL_POSITION_SMP_CFG_LAT_SEL_MASK)
-#define SEI_CTRL_POSITION_SMP_CFG_LAT_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_CFG_LAT_SEL_MASK) >> SEI_CTRL_POSITION_SMP_CFG_LAT_SEL_SHIFT)
+#define SEI_CTRL_POS_SMP_CFG_LAT_SEL_MASK (0x30000UL)
+#define SEI_CTRL_POS_SMP_CFG_LAT_SEL_SHIFT (16U)
+#define SEI_CTRL_POS_SMP_CFG_LAT_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_CFG_LAT_SEL_SHIFT) & SEI_CTRL_POS_SMP_CFG_LAT_SEL_MASK)
+#define SEI_CTRL_POS_SMP_CFG_LAT_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_CFG_LAT_SEL_MASK) >> SEI_CTRL_POS_SMP_CFG_LAT_SEL_SHIFT)
 
 /*
  * WINDOW (RW)
  *
  * Sample window, in clock cycle
  */
-#define SEI_CTRL_POSITION_SMP_CFG_WINDOW_MASK (0xFFFFU)
-#define SEI_CTRL_POSITION_SMP_CFG_WINDOW_SHIFT (0U)
-#define SEI_CTRL_POSITION_SMP_CFG_WINDOW_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_CFG_WINDOW_SHIFT) & SEI_CTRL_POSITION_SMP_CFG_WINDOW_MASK)
-#define SEI_CTRL_POSITION_SMP_CFG_WINDOW_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_CFG_WINDOW_MASK) >> SEI_CTRL_POSITION_SMP_CFG_WINDOW_SHIFT)
+#define SEI_CTRL_POS_SMP_CFG_WINDOW_MASK (0xFFFFU)
+#define SEI_CTRL_POS_SMP_CFG_WINDOW_SHIFT (0U)
+#define SEI_CTRL_POS_SMP_CFG_WINDOW_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_CFG_WINDOW_SHIFT) & SEI_CTRL_POS_SMP_CFG_WINDOW_MASK)
+#define SEI_CTRL_POS_SMP_CFG_WINDOW_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_CFG_WINDOW_MASK) >> SEI_CTRL_POS_SMP_CFG_WINDOW_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_DAT */
 /*
@@ -1796,10 +1758,10 @@ typedef struct {
  *
  * Data register sampled, each bit represent a data register
  */
-#define SEI_CTRL_POSITION_SMP_DAT_DAT_SEL_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_SMP_DAT_DAT_SEL_SHIFT (0U)
-#define SEI_CTRL_POSITION_SMP_DAT_DAT_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_DAT_DAT_SEL_SHIFT) & SEI_CTRL_POSITION_SMP_DAT_DAT_SEL_MASK)
-#define SEI_CTRL_POSITION_SMP_DAT_DAT_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_DAT_DAT_SEL_MASK) >> SEI_CTRL_POSITION_SMP_DAT_DAT_SEL_SHIFT)
+#define SEI_CTRL_POS_SMP_DAT_DAT_SEL_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_SMP_DAT_DAT_SEL_SHIFT (0U)
+#define SEI_CTRL_POS_SMP_DAT_DAT_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_DAT_DAT_SEL_SHIFT) & SEI_CTRL_POS_SMP_DAT_DAT_SEL_MASK)
+#define SEI_CTRL_POS_SMP_DAT_DAT_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_DAT_DAT_SEL_MASK) >> SEI_CTRL_POS_SMP_DAT_DAT_SEL_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_POS */
 /*
@@ -1807,10 +1769,10 @@ typedef struct {
  *
  * Sample override position
  */
-#define SEI_CTRL_POSITION_SMP_POS_POS_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_SMP_POS_POS_SHIFT (0U)
-#define SEI_CTRL_POSITION_SMP_POS_POS_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_POS_POS_SHIFT) & SEI_CTRL_POSITION_SMP_POS_POS_MASK)
-#define SEI_CTRL_POSITION_SMP_POS_POS_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_POS_POS_MASK) >> SEI_CTRL_POSITION_SMP_POS_POS_SHIFT)
+#define SEI_CTRL_POS_SMP_POS_POS_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_SMP_POS_POS_SHIFT (0U)
+#define SEI_CTRL_POS_SMP_POS_POS_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_POS_POS_SHIFT) & SEI_CTRL_POS_SMP_POS_POS_MASK)
+#define SEI_CTRL_POS_SMP_POS_POS_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_POS_POS_MASK) >> SEI_CTRL_POS_SMP_POS_POS_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_REV */
 /*
@@ -1818,10 +1780,10 @@ typedef struct {
  *
  * Sample override revolution
  */
-#define SEI_CTRL_POSITION_SMP_REV_REV_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_SMP_REV_REV_SHIFT (0U)
-#define SEI_CTRL_POSITION_SMP_REV_REV_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_REV_REV_SHIFT) & SEI_CTRL_POSITION_SMP_REV_REV_MASK)
-#define SEI_CTRL_POSITION_SMP_REV_REV_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_REV_REV_MASK) >> SEI_CTRL_POSITION_SMP_REV_REV_SHIFT)
+#define SEI_CTRL_POS_SMP_REV_REV_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_SMP_REV_REV_SHIFT (0U)
+#define SEI_CTRL_POS_SMP_REV_REV_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_REV_REV_SHIFT) & SEI_CTRL_POS_SMP_REV_REV_MASK)
+#define SEI_CTRL_POS_SMP_REV_REV_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_REV_REV_MASK) >> SEI_CTRL_POS_SMP_REV_REV_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_SPD */
 /*
@@ -1829,10 +1791,10 @@ typedef struct {
  *
  * Sample override speed
  */
-#define SEI_CTRL_POSITION_SMP_SPD_SPD_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_SMP_SPD_SPD_SHIFT (0U)
-#define SEI_CTRL_POSITION_SMP_SPD_SPD_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_SPD_SPD_SHIFT) & SEI_CTRL_POSITION_SMP_SPD_SPD_MASK)
-#define SEI_CTRL_POSITION_SMP_SPD_SPD_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_SPD_SPD_MASK) >> SEI_CTRL_POSITION_SMP_SPD_SPD_SHIFT)
+#define SEI_CTRL_POS_SMP_SPD_SPD_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_SMP_SPD_SPD_SHIFT (0U)
+#define SEI_CTRL_POS_SMP_SPD_SPD_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_SPD_SPD_SHIFT) & SEI_CTRL_POS_SMP_SPD_SPD_MASK)
+#define SEI_CTRL_POS_SMP_SPD_SPD_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_SPD_SPD_MASK) >> SEI_CTRL_POS_SMP_SPD_SPD_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_ACC */
 /*
@@ -1840,10 +1802,10 @@ typedef struct {
  *
  * Sample override accelerate
  */
-#define SEI_CTRL_POSITION_SMP_ACC_ACC_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_SMP_ACC_ACC_SHIFT (0U)
-#define SEI_CTRL_POSITION_SMP_ACC_ACC_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_SMP_ACC_ACC_SHIFT) & SEI_CTRL_POSITION_SMP_ACC_ACC_MASK)
-#define SEI_CTRL_POSITION_SMP_ACC_ACC_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_ACC_ACC_MASK) >> SEI_CTRL_POSITION_SMP_ACC_ACC_SHIFT)
+#define SEI_CTRL_POS_SMP_ACC_ACC_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_SMP_ACC_ACC_SHIFT (0U)
+#define SEI_CTRL_POS_SMP_ACC_ACC_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_SMP_ACC_ACC_SHIFT) & SEI_CTRL_POS_SMP_ACC_ACC_MASK)
+#define SEI_CTRL_POS_SMP_ACC_ACC_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_ACC_ACC_MASK) >> SEI_CTRL_POS_SMP_ACC_ACC_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_EN */
 /*
@@ -1851,93 +1813,93 @@ typedef struct {
  *
  * Position include acceleration
  */
-#define SEI_CTRL_POSITION_UPD_EN_ACC_EN_MASK (0x80000000UL)
-#define SEI_CTRL_POSITION_UPD_EN_ACC_EN_SHIFT (31U)
-#define SEI_CTRL_POSITION_UPD_EN_ACC_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_EN_ACC_EN_SHIFT) & SEI_CTRL_POSITION_UPD_EN_ACC_EN_MASK)
-#define SEI_CTRL_POSITION_UPD_EN_ACC_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_EN_ACC_EN_MASK) >> SEI_CTRL_POSITION_UPD_EN_ACC_EN_SHIFT)
+#define SEI_CTRL_POS_UPD_EN_ACC_EN_MASK (0x80000000UL)
+#define SEI_CTRL_POS_UPD_EN_ACC_EN_SHIFT (31U)
+#define SEI_CTRL_POS_UPD_EN_ACC_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_EN_ACC_EN_SHIFT) & SEI_CTRL_POS_UPD_EN_ACC_EN_MASK)
+#define SEI_CTRL_POS_UPD_EN_ACC_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_EN_ACC_EN_MASK) >> SEI_CTRL_POS_UPD_EN_ACC_EN_SHIFT)
 
 /*
  * ACC_SEL (RW)
  *
  * Data register for acceleration transfer
  */
-#define SEI_CTRL_POSITION_UPD_EN_ACC_SEL_MASK (0x1F000000UL)
-#define SEI_CTRL_POSITION_UPD_EN_ACC_SEL_SHIFT (24U)
-#define SEI_CTRL_POSITION_UPD_EN_ACC_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_EN_ACC_SEL_SHIFT) & SEI_CTRL_POSITION_UPD_EN_ACC_SEL_MASK)
-#define SEI_CTRL_POSITION_UPD_EN_ACC_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_EN_ACC_SEL_MASK) >> SEI_CTRL_POSITION_UPD_EN_ACC_SEL_SHIFT)
+#define SEI_CTRL_POS_UPD_EN_ACC_SEL_MASK (0x1F000000UL)
+#define SEI_CTRL_POS_UPD_EN_ACC_SEL_SHIFT (24U)
+#define SEI_CTRL_POS_UPD_EN_ACC_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_EN_ACC_SEL_SHIFT) & SEI_CTRL_POS_UPD_EN_ACC_SEL_MASK)
+#define SEI_CTRL_POS_UPD_EN_ACC_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_EN_ACC_SEL_MASK) >> SEI_CTRL_POS_UPD_EN_ACC_SEL_SHIFT)
 
 /*
  * SPD_EN (RW)
  *
  * Position include speed
  */
-#define SEI_CTRL_POSITION_UPD_EN_SPD_EN_MASK (0x800000UL)
-#define SEI_CTRL_POSITION_UPD_EN_SPD_EN_SHIFT (23U)
-#define SEI_CTRL_POSITION_UPD_EN_SPD_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_EN_SPD_EN_SHIFT) & SEI_CTRL_POSITION_UPD_EN_SPD_EN_MASK)
-#define SEI_CTRL_POSITION_UPD_EN_SPD_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_EN_SPD_EN_MASK) >> SEI_CTRL_POSITION_UPD_EN_SPD_EN_SHIFT)
+#define SEI_CTRL_POS_UPD_EN_SPD_EN_MASK (0x800000UL)
+#define SEI_CTRL_POS_UPD_EN_SPD_EN_SHIFT (23U)
+#define SEI_CTRL_POS_UPD_EN_SPD_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_EN_SPD_EN_SHIFT) & SEI_CTRL_POS_UPD_EN_SPD_EN_MASK)
+#define SEI_CTRL_POS_UPD_EN_SPD_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_EN_SPD_EN_MASK) >> SEI_CTRL_POS_UPD_EN_SPD_EN_SHIFT)
 
 /*
  * SPD_SEL (RW)
  *
  * Data register for speed transfer
  */
-#define SEI_CTRL_POSITION_UPD_EN_SPD_SEL_MASK (0x1F0000UL)
-#define SEI_CTRL_POSITION_UPD_EN_SPD_SEL_SHIFT (16U)
-#define SEI_CTRL_POSITION_UPD_EN_SPD_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_EN_SPD_SEL_SHIFT) & SEI_CTRL_POSITION_UPD_EN_SPD_SEL_MASK)
-#define SEI_CTRL_POSITION_UPD_EN_SPD_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_EN_SPD_SEL_MASK) >> SEI_CTRL_POSITION_UPD_EN_SPD_SEL_SHIFT)
+#define SEI_CTRL_POS_UPD_EN_SPD_SEL_MASK (0x1F0000UL)
+#define SEI_CTRL_POS_UPD_EN_SPD_SEL_SHIFT (16U)
+#define SEI_CTRL_POS_UPD_EN_SPD_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_EN_SPD_SEL_SHIFT) & SEI_CTRL_POS_UPD_EN_SPD_SEL_MASK)
+#define SEI_CTRL_POS_UPD_EN_SPD_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_EN_SPD_SEL_MASK) >> SEI_CTRL_POS_UPD_EN_SPD_SEL_SHIFT)
 
 /*
  * REV_EN (RW)
  *
  * Position include revolution
  */
-#define SEI_CTRL_POSITION_UPD_EN_REV_EN_MASK (0x8000U)
-#define SEI_CTRL_POSITION_UPD_EN_REV_EN_SHIFT (15U)
-#define SEI_CTRL_POSITION_UPD_EN_REV_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_EN_REV_EN_SHIFT) & SEI_CTRL_POSITION_UPD_EN_REV_EN_MASK)
-#define SEI_CTRL_POSITION_UPD_EN_REV_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_EN_REV_EN_MASK) >> SEI_CTRL_POSITION_UPD_EN_REV_EN_SHIFT)
+#define SEI_CTRL_POS_UPD_EN_REV_EN_MASK (0x8000U)
+#define SEI_CTRL_POS_UPD_EN_REV_EN_SHIFT (15U)
+#define SEI_CTRL_POS_UPD_EN_REV_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_EN_REV_EN_SHIFT) & SEI_CTRL_POS_UPD_EN_REV_EN_MASK)
+#define SEI_CTRL_POS_UPD_EN_REV_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_EN_REV_EN_MASK) >> SEI_CTRL_POS_UPD_EN_REV_EN_SHIFT)
 
 /*
  * REV_SEL (RW)
  *
  * Data register for revolution transfer
  */
-#define SEI_CTRL_POSITION_UPD_EN_REV_SEL_MASK (0x1F00U)
-#define SEI_CTRL_POSITION_UPD_EN_REV_SEL_SHIFT (8U)
-#define SEI_CTRL_POSITION_UPD_EN_REV_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_EN_REV_SEL_SHIFT) & SEI_CTRL_POSITION_UPD_EN_REV_SEL_MASK)
-#define SEI_CTRL_POSITION_UPD_EN_REV_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_EN_REV_SEL_MASK) >> SEI_CTRL_POSITION_UPD_EN_REV_SEL_SHIFT)
+#define SEI_CTRL_POS_UPD_EN_REV_SEL_MASK (0x1F00U)
+#define SEI_CTRL_POS_UPD_EN_REV_SEL_SHIFT (8U)
+#define SEI_CTRL_POS_UPD_EN_REV_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_EN_REV_SEL_SHIFT) & SEI_CTRL_POS_UPD_EN_REV_SEL_MASK)
+#define SEI_CTRL_POS_UPD_EN_REV_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_EN_REV_SEL_MASK) >> SEI_CTRL_POS_UPD_EN_REV_SEL_SHIFT)
 
 /*
  * POS_EN (RW)
  *
  * Position include position
  */
-#define SEI_CTRL_POSITION_UPD_EN_POS_EN_MASK (0x80U)
-#define SEI_CTRL_POSITION_UPD_EN_POS_EN_SHIFT (7U)
-#define SEI_CTRL_POSITION_UPD_EN_POS_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_EN_POS_EN_SHIFT) & SEI_CTRL_POSITION_UPD_EN_POS_EN_MASK)
-#define SEI_CTRL_POSITION_UPD_EN_POS_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_EN_POS_EN_MASK) >> SEI_CTRL_POSITION_UPD_EN_POS_EN_SHIFT)
+#define SEI_CTRL_POS_UPD_EN_POS_EN_MASK (0x80U)
+#define SEI_CTRL_POS_UPD_EN_POS_EN_SHIFT (7U)
+#define SEI_CTRL_POS_UPD_EN_POS_EN_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_EN_POS_EN_SHIFT) & SEI_CTRL_POS_UPD_EN_POS_EN_MASK)
+#define SEI_CTRL_POS_UPD_EN_POS_EN_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_EN_POS_EN_MASK) >> SEI_CTRL_POS_UPD_EN_POS_EN_SHIFT)
 
 /*
  * POS_SEL (RW)
  *
  * Data register for position transfer
  */
-#define SEI_CTRL_POSITION_UPD_EN_POS_SEL_MASK (0x1FU)
-#define SEI_CTRL_POSITION_UPD_EN_POS_SEL_SHIFT (0U)
-#define SEI_CTRL_POSITION_UPD_EN_POS_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_EN_POS_SEL_SHIFT) & SEI_CTRL_POSITION_UPD_EN_POS_SEL_MASK)
-#define SEI_CTRL_POSITION_UPD_EN_POS_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_EN_POS_SEL_MASK) >> SEI_CTRL_POSITION_UPD_EN_POS_SEL_SHIFT)
+#define SEI_CTRL_POS_UPD_EN_POS_SEL_MASK (0x1FU)
+#define SEI_CTRL_POS_UPD_EN_POS_SEL_SHIFT (0U)
+#define SEI_CTRL_POS_UPD_EN_POS_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_EN_POS_SEL_SHIFT) & SEI_CTRL_POS_UPD_EN_POS_SEL_MASK)
+#define SEI_CTRL_POS_UPD_EN_POS_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_EN_POS_SEL_MASK) >> SEI_CTRL_POS_UPD_EN_POS_SEL_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_CFG */
 /*
- * OVRD (RW)
+ * TIME_OVRD (RW)
  *
- * Use override value
- * 0: use received data
- * 1: use override data
+ * Use override time
+ * 0: use time sample from motor group
+ * 1: use override time
  */
-#define SEI_CTRL_POSITION_UPD_CFG_OVRD_MASK (0x80000000UL)
-#define SEI_CTRL_POSITION_UPD_CFG_OVRD_SHIFT (31U)
-#define SEI_CTRL_POSITION_UPD_CFG_OVRD_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_CFG_OVRD_SHIFT) & SEI_CTRL_POSITION_UPD_CFG_OVRD_MASK)
-#define SEI_CTRL_POSITION_UPD_CFG_OVRD_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_CFG_OVRD_MASK) >> SEI_CTRL_POSITION_UPD_CFG_OVRD_SHIFT)
+#define SEI_CTRL_POS_UPD_CFG_TIME_OVRD_MASK (0x80000000UL)
+#define SEI_CTRL_POS_UPD_CFG_TIME_OVRD_SHIFT (31U)
+#define SEI_CTRL_POS_UPD_CFG_TIME_OVRD_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_CFG_TIME_OVRD_SHIFT) & SEI_CTRL_POS_UPD_CFG_TIME_OVRD_MASK)
+#define SEI_CTRL_POS_UPD_CFG_TIME_OVRD_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_CFG_TIME_OVRD_MASK) >> SEI_CTRL_POS_UPD_CFG_TIME_OVRD_SHIFT)
 
 /*
  * ONERR (RW)
@@ -1946,10 +1908,10 @@ typedef struct {
  * 0: Sample during windows time
  * 1: Close sample window after first sample
  */
-#define SEI_CTRL_POSITION_UPD_CFG_ONERR_MASK (0x1000000UL)
-#define SEI_CTRL_POSITION_UPD_CFG_ONERR_SHIFT (24U)
-#define SEI_CTRL_POSITION_UPD_CFG_ONERR_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_CFG_ONERR_SHIFT) & SEI_CTRL_POSITION_UPD_CFG_ONERR_MASK)
-#define SEI_CTRL_POSITION_UPD_CFG_ONERR_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_CFG_ONERR_MASK) >> SEI_CTRL_POSITION_UPD_CFG_ONERR_SHIFT)
+#define SEI_CTRL_POS_UPD_CFG_ONERR_MASK (0x1000000UL)
+#define SEI_CTRL_POS_UPD_CFG_ONERR_SHIFT (24U)
+#define SEI_CTRL_POS_UPD_CFG_ONERR_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_CFG_ONERR_SHIFT) & SEI_CTRL_POS_UPD_CFG_ONERR_MASK)
+#define SEI_CTRL_POS_UPD_CFG_ONERR_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_CFG_ONERR_MASK) >> SEI_CTRL_POS_UPD_CFG_ONERR_SHIFT)
 
 /*
  * LAT_SEL (RW)
@@ -1960,10 +1922,10 @@ typedef struct {
  * 2: latch 2
  * 3: latch 3
  */
-#define SEI_CTRL_POSITION_UPD_CFG_LAT_SEL_MASK (0x30000UL)
-#define SEI_CTRL_POSITION_UPD_CFG_LAT_SEL_SHIFT (16U)
-#define SEI_CTRL_POSITION_UPD_CFG_LAT_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_CFG_LAT_SEL_SHIFT) & SEI_CTRL_POSITION_UPD_CFG_LAT_SEL_MASK)
-#define SEI_CTRL_POSITION_UPD_CFG_LAT_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_CFG_LAT_SEL_MASK) >> SEI_CTRL_POSITION_UPD_CFG_LAT_SEL_SHIFT)
+#define SEI_CTRL_POS_UPD_CFG_LAT_SEL_MASK (0x30000UL)
+#define SEI_CTRL_POS_UPD_CFG_LAT_SEL_SHIFT (16U)
+#define SEI_CTRL_POS_UPD_CFG_LAT_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_CFG_LAT_SEL_SHIFT) & SEI_CTRL_POS_UPD_CFG_LAT_SEL_MASK)
+#define SEI_CTRL_POS_UPD_CFG_LAT_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_CFG_LAT_SEL_MASK) >> SEI_CTRL_POS_UPD_CFG_LAT_SEL_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_DAT */
 /*
@@ -1971,10 +1933,10 @@ typedef struct {
  *
  * Data register sampled, each bit represent a data register
  */
-#define SEI_CTRL_POSITION_UPD_DAT_DAT_SEL_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_UPD_DAT_DAT_SEL_SHIFT (0U)
-#define SEI_CTRL_POSITION_UPD_DAT_DAT_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_DAT_DAT_SEL_SHIFT) & SEI_CTRL_POSITION_UPD_DAT_DAT_SEL_MASK)
-#define SEI_CTRL_POSITION_UPD_DAT_DAT_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_DAT_DAT_SEL_MASK) >> SEI_CTRL_POSITION_UPD_DAT_DAT_SEL_SHIFT)
+#define SEI_CTRL_POS_UPD_DAT_DAT_SEL_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_UPD_DAT_DAT_SEL_SHIFT (0U)
+#define SEI_CTRL_POS_UPD_DAT_DAT_SEL_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_DAT_DAT_SEL_SHIFT) & SEI_CTRL_POS_UPD_DAT_DAT_SEL_MASK)
+#define SEI_CTRL_POS_UPD_DAT_DAT_SEL_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_DAT_DAT_SEL_MASK) >> SEI_CTRL_POS_UPD_DAT_DAT_SEL_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_TIME */
 /*
@@ -1982,10 +1944,10 @@ typedef struct {
  *
  * Update override time
  */
-#define SEI_CTRL_POSITION_UPD_TIME_TIME_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_UPD_TIME_TIME_SHIFT (0U)
-#define SEI_CTRL_POSITION_UPD_TIME_TIME_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_TIME_TIME_SHIFT) & SEI_CTRL_POSITION_UPD_TIME_TIME_MASK)
-#define SEI_CTRL_POSITION_UPD_TIME_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_TIME_TIME_MASK) >> SEI_CTRL_POSITION_UPD_TIME_TIME_SHIFT)
+#define SEI_CTRL_POS_UPD_TIME_TIME_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_UPD_TIME_TIME_SHIFT (0U)
+#define SEI_CTRL_POS_UPD_TIME_TIME_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_TIME_TIME_SHIFT) & SEI_CTRL_POS_UPD_TIME_TIME_MASK)
+#define SEI_CTRL_POS_UPD_TIME_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_TIME_TIME_MASK) >> SEI_CTRL_POS_UPD_TIME_TIME_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_POS */
 /*
@@ -1993,10 +1955,10 @@ typedef struct {
  *
  * Update override position
  */
-#define SEI_CTRL_POSITION_UPD_POS_POS_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_UPD_POS_POS_SHIFT (0U)
-#define SEI_CTRL_POSITION_UPD_POS_POS_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_POS_POS_SHIFT) & SEI_CTRL_POSITION_UPD_POS_POS_MASK)
-#define SEI_CTRL_POSITION_UPD_POS_POS_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_POS_POS_MASK) >> SEI_CTRL_POSITION_UPD_POS_POS_SHIFT)
+#define SEI_CTRL_POS_UPD_POS_POS_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_UPD_POS_POS_SHIFT (0U)
+#define SEI_CTRL_POS_UPD_POS_POS_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_POS_POS_SHIFT) & SEI_CTRL_POS_UPD_POS_POS_MASK)
+#define SEI_CTRL_POS_UPD_POS_POS_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_POS_POS_MASK) >> SEI_CTRL_POS_UPD_POS_POS_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_REV */
 /*
@@ -2004,10 +1966,10 @@ typedef struct {
  *
  * Update override revolution
  */
-#define SEI_CTRL_POSITION_UPD_REV_REV_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_UPD_REV_REV_SHIFT (0U)
-#define SEI_CTRL_POSITION_UPD_REV_REV_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_REV_REV_SHIFT) & SEI_CTRL_POSITION_UPD_REV_REV_MASK)
-#define SEI_CTRL_POSITION_UPD_REV_REV_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_REV_REV_MASK) >> SEI_CTRL_POSITION_UPD_REV_REV_SHIFT)
+#define SEI_CTRL_POS_UPD_REV_REV_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_UPD_REV_REV_SHIFT (0U)
+#define SEI_CTRL_POS_UPD_REV_REV_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_REV_REV_SHIFT) & SEI_CTRL_POS_UPD_REV_REV_MASK)
+#define SEI_CTRL_POS_UPD_REV_REV_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_REV_REV_MASK) >> SEI_CTRL_POS_UPD_REV_REV_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_SPD */
 /*
@@ -2015,10 +1977,10 @@ typedef struct {
  *
  * Update override speed
  */
-#define SEI_CTRL_POSITION_UPD_SPD_SPD_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_UPD_SPD_SPD_SHIFT (0U)
-#define SEI_CTRL_POSITION_UPD_SPD_SPD_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_SPD_SPD_SHIFT) & SEI_CTRL_POSITION_UPD_SPD_SPD_MASK)
-#define SEI_CTRL_POSITION_UPD_SPD_SPD_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_SPD_SPD_MASK) >> SEI_CTRL_POSITION_UPD_SPD_SPD_SHIFT)
+#define SEI_CTRL_POS_UPD_SPD_SPD_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_UPD_SPD_SPD_SHIFT (0U)
+#define SEI_CTRL_POS_UPD_SPD_SPD_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_SPD_SPD_SHIFT) & SEI_CTRL_POS_UPD_SPD_SPD_MASK)
+#define SEI_CTRL_POS_UPD_SPD_SPD_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_SPD_SPD_MASK) >> SEI_CTRL_POS_UPD_SPD_SPD_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_ACC */
 /*
@@ -2026,10 +1988,10 @@ typedef struct {
  *
  * Update override accelerate
  */
-#define SEI_CTRL_POSITION_UPD_ACC_ACC_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_UPD_ACC_ACC_SHIFT (0U)
-#define SEI_CTRL_POSITION_UPD_ACC_ACC_SET(x) (((uint32_t)(x) << SEI_CTRL_POSITION_UPD_ACC_ACC_SHIFT) & SEI_CTRL_POSITION_UPD_ACC_ACC_MASK)
-#define SEI_CTRL_POSITION_UPD_ACC_ACC_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_ACC_ACC_MASK) >> SEI_CTRL_POSITION_UPD_ACC_ACC_SHIFT)
+#define SEI_CTRL_POS_UPD_ACC_ACC_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_UPD_ACC_ACC_SHIFT (0U)
+#define SEI_CTRL_POS_UPD_ACC_ACC_SET(x) (((uint32_t)(x) << SEI_CTRL_POS_UPD_ACC_ACC_SHIFT) & SEI_CTRL_POS_UPD_ACC_ACC_MASK)
+#define SEI_CTRL_POS_UPD_ACC_ACC_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_ACC_ACC_MASK) >> SEI_CTRL_POS_UPD_ACC_ACC_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_VAL */
 /*
@@ -2037,36 +1999,36 @@ typedef struct {
  *
  * Position include acceleration
  */
-#define SEI_CTRL_POSITION_SMP_VAL_ACC_MASK (0x80000000UL)
-#define SEI_CTRL_POSITION_SMP_VAL_ACC_SHIFT (31U)
-#define SEI_CTRL_POSITION_SMP_VAL_ACC_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_VAL_ACC_MASK) >> SEI_CTRL_POSITION_SMP_VAL_ACC_SHIFT)
+#define SEI_CTRL_POS_SMP_VAL_ACC_MASK (0x80000000UL)
+#define SEI_CTRL_POS_SMP_VAL_ACC_SHIFT (31U)
+#define SEI_CTRL_POS_SMP_VAL_ACC_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_VAL_ACC_MASK) >> SEI_CTRL_POS_SMP_VAL_ACC_SHIFT)
 
 /*
  * SPD (RO)
  *
  * Position include speed
  */
-#define SEI_CTRL_POSITION_SMP_VAL_SPD_MASK (0x800000UL)
-#define SEI_CTRL_POSITION_SMP_VAL_SPD_SHIFT (23U)
-#define SEI_CTRL_POSITION_SMP_VAL_SPD_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_VAL_SPD_MASK) >> SEI_CTRL_POSITION_SMP_VAL_SPD_SHIFT)
+#define SEI_CTRL_POS_SMP_VAL_SPD_MASK (0x800000UL)
+#define SEI_CTRL_POS_SMP_VAL_SPD_SHIFT (23U)
+#define SEI_CTRL_POS_SMP_VAL_SPD_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_VAL_SPD_MASK) >> SEI_CTRL_POS_SMP_VAL_SPD_SHIFT)
 
 /*
  * REV (RO)
  *
  * Position include revolution
  */
-#define SEI_CTRL_POSITION_SMP_VAL_REV_MASK (0x8000U)
-#define SEI_CTRL_POSITION_SMP_VAL_REV_SHIFT (15U)
-#define SEI_CTRL_POSITION_SMP_VAL_REV_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_VAL_REV_MASK) >> SEI_CTRL_POSITION_SMP_VAL_REV_SHIFT)
+#define SEI_CTRL_POS_SMP_VAL_REV_MASK (0x8000U)
+#define SEI_CTRL_POS_SMP_VAL_REV_SHIFT (15U)
+#define SEI_CTRL_POS_SMP_VAL_REV_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_VAL_REV_MASK) >> SEI_CTRL_POS_SMP_VAL_REV_SHIFT)
 
 /*
  * POS (RO)
  *
  * Position include position
  */
-#define SEI_CTRL_POSITION_SMP_VAL_POS_MASK (0x80U)
-#define SEI_CTRL_POSITION_SMP_VAL_POS_SHIFT (7U)
-#define SEI_CTRL_POSITION_SMP_VAL_POS_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_VAL_POS_MASK) >> SEI_CTRL_POSITION_SMP_VAL_POS_SHIFT)
+#define SEI_CTRL_POS_SMP_VAL_POS_MASK (0x80U)
+#define SEI_CTRL_POS_SMP_VAL_POS_SHIFT (7U)
+#define SEI_CTRL_POS_SMP_VAL_POS_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_VAL_POS_MASK) >> SEI_CTRL_POS_SMP_VAL_POS_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SMP_STS */
 /*
@@ -2076,18 +2038,18 @@ typedef struct {
  * 0: Sample not happened
  * 1: Sample occured
  */
-#define SEI_CTRL_POSITION_SMP_STS_OCCUR_MASK (0x1000000UL)
-#define SEI_CTRL_POSITION_SMP_STS_OCCUR_SHIFT (24U)
-#define SEI_CTRL_POSITION_SMP_STS_OCCUR_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_STS_OCCUR_MASK) >> SEI_CTRL_POSITION_SMP_STS_OCCUR_SHIFT)
+#define SEI_CTRL_POS_SMP_STS_OCCUR_MASK (0x1000000UL)
+#define SEI_CTRL_POS_SMP_STS_OCCUR_SHIFT (24U)
+#define SEI_CTRL_POS_SMP_STS_OCCUR_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_STS_OCCUR_MASK) >> SEI_CTRL_POS_SMP_STS_OCCUR_SHIFT)
 
 /*
  * WIN_CNT (RO)
  *
  * Sample window counter
  */
-#define SEI_CTRL_POSITION_SMP_STS_WIN_CNT_MASK (0xFFFFU)
-#define SEI_CTRL_POSITION_SMP_STS_WIN_CNT_SHIFT (0U)
-#define SEI_CTRL_POSITION_SMP_STS_WIN_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SMP_STS_WIN_CNT_MASK) >> SEI_CTRL_POSITION_SMP_STS_WIN_CNT_SHIFT)
+#define SEI_CTRL_POS_SMP_STS_WIN_CNT_MASK (0xFFFFU)
+#define SEI_CTRL_POS_SMP_STS_WIN_CNT_SHIFT (0U)
+#define SEI_CTRL_POS_SMP_STS_WIN_CNT_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SMP_STS_WIN_CNT_MASK) >> SEI_CTRL_POS_SMP_STS_WIN_CNT_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: TIME_IN */
 /*
@@ -2095,9 +2057,9 @@ typedef struct {
  *
  * input time
  */
-#define SEI_CTRL_POSITION_TIME_IN_TIME_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_TIME_IN_TIME_SHIFT (0U)
-#define SEI_CTRL_POSITION_TIME_IN_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_TIME_IN_TIME_MASK) >> SEI_CTRL_POSITION_TIME_IN_TIME_SHIFT)
+#define SEI_CTRL_POS_TIME_IN_TIME_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_TIME_IN_TIME_SHIFT (0U)
+#define SEI_CTRL_POS_TIME_IN_TIME_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_TIME_IN_TIME_MASK) >> SEI_CTRL_POS_TIME_IN_TIME_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: POS_IN */
 /*
@@ -2105,9 +2067,9 @@ typedef struct {
  *
  * Input position
  */
-#define SEI_CTRL_POSITION_POS_IN_POS_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_POS_IN_POS_SHIFT (0U)
-#define SEI_CTRL_POSITION_POS_IN_POS_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_POS_IN_POS_MASK) >> SEI_CTRL_POSITION_POS_IN_POS_SHIFT)
+#define SEI_CTRL_POS_POS_IN_POS_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_POS_IN_POS_SHIFT (0U)
+#define SEI_CTRL_POS_POS_IN_POS_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_POS_IN_POS_MASK) >> SEI_CTRL_POS_POS_IN_POS_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: REV_IN */
 /*
@@ -2115,9 +2077,9 @@ typedef struct {
  *
  * Input revolution
  */
-#define SEI_CTRL_POSITION_REV_IN_REV_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_REV_IN_REV_SHIFT (0U)
-#define SEI_CTRL_POSITION_REV_IN_REV_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_REV_IN_REV_MASK) >> SEI_CTRL_POSITION_REV_IN_REV_SHIFT)
+#define SEI_CTRL_POS_REV_IN_REV_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_REV_IN_REV_SHIFT (0U)
+#define SEI_CTRL_POS_REV_IN_REV_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_REV_IN_REV_MASK) >> SEI_CTRL_POS_REV_IN_REV_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: SPD_IN */
 /*
@@ -2125,9 +2087,9 @@ typedef struct {
  *
  * Input speed
  */
-#define SEI_CTRL_POSITION_SPD_IN_SPD_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_SPD_IN_SPD_SHIFT (0U)
-#define SEI_CTRL_POSITION_SPD_IN_SPD_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_SPD_IN_SPD_MASK) >> SEI_CTRL_POSITION_SPD_IN_SPD_SHIFT)
+#define SEI_CTRL_POS_SPD_IN_SPD_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_SPD_IN_SPD_SHIFT (0U)
+#define SEI_CTRL_POS_SPD_IN_SPD_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_SPD_IN_SPD_MASK) >> SEI_CTRL_POS_SPD_IN_SPD_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: ACC_IN */
 /*
@@ -2135,9 +2097,9 @@ typedef struct {
  *
  * Input accelerate
  */
-#define SEI_CTRL_POSITION_ACC_IN_ACC_MASK (0xFFFFFFFFUL)
-#define SEI_CTRL_POSITION_ACC_IN_ACC_SHIFT (0U)
-#define SEI_CTRL_POSITION_ACC_IN_ACC_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_ACC_IN_ACC_MASK) >> SEI_CTRL_POSITION_ACC_IN_ACC_SHIFT)
+#define SEI_CTRL_POS_ACC_IN_ACC_MASK (0xFFFFFFFFUL)
+#define SEI_CTRL_POS_ACC_IN_ACC_SHIFT (0U)
+#define SEI_CTRL_POS_ACC_IN_ACC_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_ACC_IN_ACC_MASK) >> SEI_CTRL_POS_ACC_IN_ACC_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: UPD_STS */
 /*
@@ -2147,9 +2109,9 @@ typedef struct {
  * 0: data receive normally
  * 1: data receive error
  */
-#define SEI_CTRL_POSITION_UPD_STS_UPD_ERR_MASK (0x1000000UL)
-#define SEI_CTRL_POSITION_UPD_STS_UPD_ERR_SHIFT (24U)
-#define SEI_CTRL_POSITION_UPD_STS_UPD_ERR_GET(x) (((uint32_t)(x) & SEI_CTRL_POSITION_UPD_STS_UPD_ERR_MASK) >> SEI_CTRL_POSITION_UPD_STS_UPD_ERR_SHIFT)
+#define SEI_CTRL_POS_UPD_STS_UPD_ERR_MASK (0x1000000UL)
+#define SEI_CTRL_POS_UPD_STS_UPD_ERR_SHIFT (24U)
+#define SEI_CTRL_POS_UPD_STS_UPD_ERR_GET(x) (((uint32_t)(x) & SEI_CTRL_POS_UPD_STS_UPD_ERR_MASK) >> SEI_CTRL_POS_UPD_STS_UPD_ERR_SHIFT)
 
 /* Bitfield definition for register of struct array CTRL: INT_EN */
 /*
@@ -2365,7 +2327,7 @@ typedef struct {
 /*
  * PTR1_ST (RW)
  *
- * Pointer 1 end
+ * Pointer 1 start
  */
 #define SEI_CTRL_IRQ_INT_EN_PTR1_ST_MASK (0x20U)
 #define SEI_CTRL_IRQ_INT_EN_PTR1_ST_SHIFT (5U)
@@ -2375,7 +2337,7 @@ typedef struct {
 /*
  * PTR0_ST (RW)
  *
- * Pointer 0 end
+ * Pointer 0 start
  */
 #define SEI_CTRL_IRQ_INT_EN_PTR0_ST_MASK (0x10U)
 #define SEI_CTRL_IRQ_INT_EN_PTR0_ST_SHIFT (4U)
@@ -2626,7 +2588,7 @@ typedef struct {
 /*
  * PTR1_ST (W1C)
  *
- * Pointer 1 end
+ * Pointer 1 start
  */
 #define SEI_CTRL_IRQ_INT_FLAG_PTR1_ST_MASK (0x20U)
 #define SEI_CTRL_IRQ_INT_FLAG_PTR1_ST_SHIFT (5U)
@@ -2636,7 +2598,7 @@ typedef struct {
 /*
  * PTR0_ST (W1C)
  *
- * Pointer 0 end
+ * Pointer 0 start
  */
 #define SEI_CTRL_IRQ_INT_FLAG_PTR0_ST_MASK (0x10U)
 #define SEI_CTRL_IRQ_INT_FLAG_PTR0_ST_SHIFT (4U)
@@ -2866,7 +2828,7 @@ typedef struct {
 /*
  * PTR1_ST (RO)
  *
- * Pointer 1 end
+ * Pointer 1 start
  */
 #define SEI_CTRL_IRQ_INT_STS_PTR1_ST_MASK (0x20U)
 #define SEI_CTRL_IRQ_INT_STS_PTR1_ST_SHIFT (5U)
@@ -2875,7 +2837,7 @@ typedef struct {
 /*
  * PTR0_ST (RO)
  *
- * Pointer 0 end
+ * Pointer 0 start
  */
 #define SEI_CTRL_IRQ_INT_STS_PTR0_ST_MASK (0x10U)
 #define SEI_CTRL_IRQ_INT_STS_PTR0_ST_SHIFT (4U)
@@ -2978,7 +2940,7 @@ typedef struct {
  * 0: low
  * 1: rise-fall
  * 2: fall-rise
- * 3:high
+ * 3: high
  */
 #define SEI_INSTR_CK_MASK (0x3000000UL)
 #define SEI_INSTR_CK_SHIFT (24U)
@@ -3024,9 +2986,12 @@ typedef struct {
 /*
  * OPR (RW)
  *
- * When OP is 0, this area is the halt time in baudrate, 0 represents infinite time.
- * When OP is 1, this area is the the pointer to the command table.
- * When OP is 2-7, this area is the data length as fellow:
+ * [1] When OP is 0, this area is the halt time in baudrate, 0 represents infinite time.
+ * [2] When OP is 1, this area is the the pointer to the command table.
+ * OPR[4]=1, OPR[3:0] value is CMD_TABLE instruct pointer;
+ * OPR[4]=0, OPR[3:0]=0 is INIT_POINTER;
+ * OPR[4]=0, OPR[3:0]=1 is WDG_POINTER.
+ * [3] When OP is 2-7, this area is the data length as fellow:
  * 0: 1 bit
  * 1: 2 bit
  *  ...
@@ -3037,7 +3002,7 @@ typedef struct {
 #define SEI_INSTR_OPR_SET(x) (((uint32_t)(x) << SEI_INSTR_OPR_SHIFT) & SEI_INSTR_OPR_MASK)
 #define SEI_INSTR_OPR_GET(x) (((uint32_t)(x) & SEI_INSTR_OPR_MASK) >> SEI_INSTR_OPR_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_MODE */
+/* Bitfield definition for register of struct array DAT: MODE */
 /*
  * CRC_LEN (RW)
  *
@@ -3047,10 +3012,10 @@ typedef struct {
  * ...
  * 31: 32 bit
  */
-#define SEI_DAT_DATA_MODE_CRC_LEN_MASK (0x1F000000UL)
-#define SEI_DAT_DATA_MODE_CRC_LEN_SHIFT (24U)
-#define SEI_DAT_DATA_MODE_CRC_LEN_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_CRC_LEN_SHIFT) & SEI_DAT_DATA_MODE_CRC_LEN_MASK)
-#define SEI_DAT_DATA_MODE_CRC_LEN_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_CRC_LEN_MASK) >> SEI_DAT_DATA_MODE_CRC_LEN_SHIFT)
+#define SEI_DAT_MODE_CRC_LEN_MASK (0x1F000000UL)
+#define SEI_DAT_MODE_CRC_LEN_SHIFT (24U)
+#define SEI_DAT_MODE_CRC_LEN_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_CRC_LEN_SHIFT) & SEI_DAT_MODE_CRC_LEN_MASK)
+#define SEI_DAT_MODE_CRC_LEN_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_CRC_LEN_MASK) >> SEI_DAT_MODE_CRC_LEN_SHIFT)
 
 /*
  * WLEN (RW)
@@ -3061,10 +3026,10 @@ typedef struct {
  * ...
  * 31: 32 bit
  */
-#define SEI_DAT_DATA_MODE_WLEN_MASK (0x1F0000UL)
-#define SEI_DAT_DATA_MODE_WLEN_SHIFT (16U)
-#define SEI_DAT_DATA_MODE_WLEN_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_WLEN_SHIFT) & SEI_DAT_DATA_MODE_WLEN_MASK)
-#define SEI_DAT_DATA_MODE_WLEN_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_WLEN_MASK) >> SEI_DAT_DATA_MODE_WLEN_SHIFT)
+#define SEI_DAT_MODE_WLEN_MASK (0x1F0000UL)
+#define SEI_DAT_MODE_WLEN_SHIFT (16U)
+#define SEI_DAT_MODE_WLEN_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_WLEN_SHIFT) & SEI_DAT_MODE_WLEN_MASK)
+#define SEI_DAT_MODE_WLEN_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_WLEN_MASK) >> SEI_DAT_MODE_WLEN_SHIFT)
 
 /*
  * CRC_SHIFT (RW)
@@ -3073,10 +3038,10 @@ typedef struct {
  * 0: CRC
  * 1: shift mode
  */
-#define SEI_DAT_DATA_MODE_CRC_SHIFT_MASK (0x2000U)
-#define SEI_DAT_DATA_MODE_CRC_SHIFT_SHIFT (13U)
-#define SEI_DAT_DATA_MODE_CRC_SHIFT_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_CRC_SHIFT_SHIFT) & SEI_DAT_DATA_MODE_CRC_SHIFT_MASK)
-#define SEI_DAT_DATA_MODE_CRC_SHIFT_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_CRC_SHIFT_MASK) >> SEI_DAT_DATA_MODE_CRC_SHIFT_SHIFT)
+#define SEI_DAT_MODE_CRC_SHIFT_MASK (0x2000U)
+#define SEI_DAT_MODE_CRC_SHIFT_SHIFT (13U)
+#define SEI_DAT_MODE_CRC_SHIFT_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_CRC_SHIFT_SHIFT) & SEI_DAT_MODE_CRC_SHIFT_MASK)
+#define SEI_DAT_MODE_CRC_SHIFT_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_CRC_SHIFT_MASK) >> SEI_DAT_MODE_CRC_SHIFT_SHIFT)
 
 /*
  * CRC_INV (RW)
@@ -3085,10 +3050,10 @@ typedef struct {
  * 0: use CRC
  * 1: use inverted CRC
  */
-#define SEI_DAT_DATA_MODE_CRC_INV_MASK (0x1000U)
-#define SEI_DAT_DATA_MODE_CRC_INV_SHIFT (12U)
-#define SEI_DAT_DATA_MODE_CRC_INV_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_CRC_INV_SHIFT) & SEI_DAT_DATA_MODE_CRC_INV_MASK)
-#define SEI_DAT_DATA_MODE_CRC_INV_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_CRC_INV_MASK) >> SEI_DAT_DATA_MODE_CRC_INV_SHIFT)
+#define SEI_DAT_MODE_CRC_INV_MASK (0x1000U)
+#define SEI_DAT_MODE_CRC_INV_SHIFT (12U)
+#define SEI_DAT_MODE_CRC_INV_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_CRC_INV_SHIFT) & SEI_DAT_MODE_CRC_INV_MASK)
+#define SEI_DAT_MODE_CRC_INV_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_CRC_INV_MASK) >> SEI_DAT_MODE_CRC_INV_SHIFT)
 
 /*
  * WORDER (RW)
@@ -3097,10 +3062,10 @@ typedef struct {
  * 0: sample as bit order
  * 1: different from bit order
  */
-#define SEI_DAT_DATA_MODE_WORDER_MASK (0x800U)
-#define SEI_DAT_DATA_MODE_WORDER_SHIFT (11U)
-#define SEI_DAT_DATA_MODE_WORDER_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_WORDER_SHIFT) & SEI_DAT_DATA_MODE_WORDER_MASK)
-#define SEI_DAT_DATA_MODE_WORDER_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_WORDER_MASK) >> SEI_DAT_DATA_MODE_WORDER_SHIFT)
+#define SEI_DAT_MODE_WORDER_MASK (0x800U)
+#define SEI_DAT_MODE_WORDER_SHIFT (11U)
+#define SEI_DAT_MODE_WORDER_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_WORDER_SHIFT) & SEI_DAT_MODE_WORDER_MASK)
+#define SEI_DAT_MODE_WORDER_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_WORDER_MASK) >> SEI_DAT_MODE_WORDER_SHIFT)
 
 /*
  * BORDER (RW)
@@ -3109,10 +3074,10 @@ typedef struct {
  * 0: LSB first
  * 1: MSB first
  */
-#define SEI_DAT_DATA_MODE_BORDER_MASK (0x400U)
-#define SEI_DAT_DATA_MODE_BORDER_SHIFT (10U)
-#define SEI_DAT_DATA_MODE_BORDER_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_BORDER_SHIFT) & SEI_DAT_DATA_MODE_BORDER_MASK)
-#define SEI_DAT_DATA_MODE_BORDER_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_BORDER_MASK) >> SEI_DAT_DATA_MODE_BORDER_SHIFT)
+#define SEI_DAT_MODE_BORDER_MASK (0x400U)
+#define SEI_DAT_MODE_BORDER_SHIFT (10U)
+#define SEI_DAT_MODE_BORDER_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_BORDER_SHIFT) & SEI_DAT_MODE_BORDER_MASK)
+#define SEI_DAT_MODE_BORDER_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_BORDER_MASK) >> SEI_DAT_MODE_BORDER_SHIFT)
 
 /*
  * SIGNED (RW)
@@ -3121,20 +3086,20 @@ typedef struct {
  * 0: unsigned value
  * 1: signed value
  */
-#define SEI_DAT_DATA_MODE_SIGNED_MASK (0x200U)
-#define SEI_DAT_DATA_MODE_SIGNED_SHIFT (9U)
-#define SEI_DAT_DATA_MODE_SIGNED_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_SIGNED_SHIFT) & SEI_DAT_DATA_MODE_SIGNED_MASK)
-#define SEI_DAT_DATA_MODE_SIGNED_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_SIGNED_MASK) >> SEI_DAT_DATA_MODE_SIGNED_SHIFT)
+#define SEI_DAT_MODE_SIGNED_MASK (0x200U)
+#define SEI_DAT_MODE_SIGNED_SHIFT (9U)
+#define SEI_DAT_MODE_SIGNED_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_SIGNED_SHIFT) & SEI_DAT_MODE_SIGNED_MASK)
+#define SEI_DAT_MODE_SIGNED_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_SIGNED_MASK) >> SEI_DAT_MODE_SIGNED_SHIFT)
 
 /*
  * REWIND (RW)
  *
  * Write 1 to rewind read/write pointer, this is a self clear bit
  */
-#define SEI_DAT_DATA_MODE_REWIND_MASK (0x100U)
-#define SEI_DAT_DATA_MODE_REWIND_SHIFT (8U)
-#define SEI_DAT_DATA_MODE_REWIND_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_REWIND_SHIFT) & SEI_DAT_DATA_MODE_REWIND_MASK)
-#define SEI_DAT_DATA_MODE_REWIND_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_REWIND_MASK) >> SEI_DAT_DATA_MODE_REWIND_SHIFT)
+#define SEI_DAT_MODE_REWIND_MASK (0x100U)
+#define SEI_DAT_MODE_REWIND_SHIFT (8U)
+#define SEI_DAT_MODE_REWIND_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_REWIND_SHIFT) & SEI_DAT_MODE_REWIND_MASK)
+#define SEI_DAT_MODE_REWIND_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_REWIND_MASK) >> SEI_DAT_MODE_REWIND_SHIFT)
 
 /*
  * MODE (RW)
@@ -3144,84 +3109,84 @@ typedef struct {
  * 1: check mode
  * 2: CRC mode
  */
-#define SEI_DAT_DATA_MODE_MODE_MASK (0x3U)
-#define SEI_DAT_DATA_MODE_MODE_SHIFT (0U)
-#define SEI_DAT_DATA_MODE_MODE_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_MODE_MODE_SHIFT) & SEI_DAT_DATA_MODE_MODE_MASK)
-#define SEI_DAT_DATA_MODE_MODE_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_MODE_MODE_MASK) >> SEI_DAT_DATA_MODE_MODE_SHIFT)
+#define SEI_DAT_MODE_MODE_MASK (0x3U)
+#define SEI_DAT_MODE_MODE_SHIFT (0U)
+#define SEI_DAT_MODE_MODE_SET(x) (((uint32_t)(x) << SEI_DAT_MODE_MODE_SHIFT) & SEI_DAT_MODE_MODE_MASK)
+#define SEI_DAT_MODE_MODE_GET(x) (((uint32_t)(x) & SEI_DAT_MODE_MODE_MASK) >> SEI_DAT_MODE_MODE_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_IDX */
+/* Bitfield definition for register of struct array DAT: IDX */
 /*
  * LAST_BIT (RW)
  *
  * Last bit index for tranceive
  */
-#define SEI_DAT_DATA_IDX_LAST_BIT_MASK (0x1F000000UL)
-#define SEI_DAT_DATA_IDX_LAST_BIT_SHIFT (24U)
-#define SEI_DAT_DATA_IDX_LAST_BIT_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_IDX_LAST_BIT_SHIFT) & SEI_DAT_DATA_IDX_LAST_BIT_MASK)
-#define SEI_DAT_DATA_IDX_LAST_BIT_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_IDX_LAST_BIT_MASK) >> SEI_DAT_DATA_IDX_LAST_BIT_SHIFT)
+#define SEI_DAT_IDX_LAST_BIT_MASK (0x1F000000UL)
+#define SEI_DAT_IDX_LAST_BIT_SHIFT (24U)
+#define SEI_DAT_IDX_LAST_BIT_SET(x) (((uint32_t)(x) << SEI_DAT_IDX_LAST_BIT_SHIFT) & SEI_DAT_IDX_LAST_BIT_MASK)
+#define SEI_DAT_IDX_LAST_BIT_GET(x) (((uint32_t)(x) & SEI_DAT_IDX_LAST_BIT_MASK) >> SEI_DAT_IDX_LAST_BIT_SHIFT)
 
 /*
  * FIRST_BIT (RW)
  *
  * First bit index for tranceive
  */
-#define SEI_DAT_DATA_IDX_FIRST_BIT_MASK (0x1F0000UL)
-#define SEI_DAT_DATA_IDX_FIRST_BIT_SHIFT (16U)
-#define SEI_DAT_DATA_IDX_FIRST_BIT_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_IDX_FIRST_BIT_SHIFT) & SEI_DAT_DATA_IDX_FIRST_BIT_MASK)
-#define SEI_DAT_DATA_IDX_FIRST_BIT_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_IDX_FIRST_BIT_MASK) >> SEI_DAT_DATA_IDX_FIRST_BIT_SHIFT)
+#define SEI_DAT_IDX_FIRST_BIT_MASK (0x1F0000UL)
+#define SEI_DAT_IDX_FIRST_BIT_SHIFT (16U)
+#define SEI_DAT_IDX_FIRST_BIT_SET(x) (((uint32_t)(x) << SEI_DAT_IDX_FIRST_BIT_SHIFT) & SEI_DAT_IDX_FIRST_BIT_MASK)
+#define SEI_DAT_IDX_FIRST_BIT_GET(x) (((uint32_t)(x) & SEI_DAT_IDX_FIRST_BIT_MASK) >> SEI_DAT_IDX_FIRST_BIT_SHIFT)
 
 /*
  * MAX_BIT (RW)
  *
  * Highest bit index
  */
-#define SEI_DAT_DATA_IDX_MAX_BIT_MASK (0x1F00U)
-#define SEI_DAT_DATA_IDX_MAX_BIT_SHIFT (8U)
-#define SEI_DAT_DATA_IDX_MAX_BIT_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_IDX_MAX_BIT_SHIFT) & SEI_DAT_DATA_IDX_MAX_BIT_MASK)
-#define SEI_DAT_DATA_IDX_MAX_BIT_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_IDX_MAX_BIT_MASK) >> SEI_DAT_DATA_IDX_MAX_BIT_SHIFT)
+#define SEI_DAT_IDX_MAX_BIT_MASK (0x1F00U)
+#define SEI_DAT_IDX_MAX_BIT_SHIFT (8U)
+#define SEI_DAT_IDX_MAX_BIT_SET(x) (((uint32_t)(x) << SEI_DAT_IDX_MAX_BIT_SHIFT) & SEI_DAT_IDX_MAX_BIT_MASK)
+#define SEI_DAT_IDX_MAX_BIT_GET(x) (((uint32_t)(x) & SEI_DAT_IDX_MAX_BIT_MASK) >> SEI_DAT_IDX_MAX_BIT_SHIFT)
 
 /*
  * MIN_BIT (RW)
  *
  * Lowest bit index
  */
-#define SEI_DAT_DATA_IDX_MIN_BIT_MASK (0x1FU)
-#define SEI_DAT_DATA_IDX_MIN_BIT_SHIFT (0U)
-#define SEI_DAT_DATA_IDX_MIN_BIT_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_IDX_MIN_BIT_SHIFT) & SEI_DAT_DATA_IDX_MIN_BIT_MASK)
-#define SEI_DAT_DATA_IDX_MIN_BIT_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_IDX_MIN_BIT_MASK) >> SEI_DAT_DATA_IDX_MIN_BIT_SHIFT)
+#define SEI_DAT_IDX_MIN_BIT_MASK (0x1FU)
+#define SEI_DAT_IDX_MIN_BIT_SHIFT (0U)
+#define SEI_DAT_IDX_MIN_BIT_SET(x) (((uint32_t)(x) << SEI_DAT_IDX_MIN_BIT_SHIFT) & SEI_DAT_IDX_MIN_BIT_MASK)
+#define SEI_DAT_IDX_MIN_BIT_GET(x) (((uint32_t)(x) & SEI_DAT_IDX_MIN_BIT_MASK) >> SEI_DAT_IDX_MIN_BIT_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_GOLD */
+/* Bitfield definition for register of struct array DAT: GOLD */
 /*
  * GOLD_VALUE (RW)
  *
  * Gold value for check mode
  */
-#define SEI_DAT_DATA_GOLD_GOLD_VALUE_MASK (0xFFFFFFFFUL)
-#define SEI_DAT_DATA_GOLD_GOLD_VALUE_SHIFT (0U)
-#define SEI_DAT_DATA_GOLD_GOLD_VALUE_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_GOLD_GOLD_VALUE_SHIFT) & SEI_DAT_DATA_GOLD_GOLD_VALUE_MASK)
-#define SEI_DAT_DATA_GOLD_GOLD_VALUE_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_GOLD_GOLD_VALUE_MASK) >> SEI_DAT_DATA_GOLD_GOLD_VALUE_SHIFT)
+#define SEI_DAT_GOLD_GOLD_VALUE_MASK (0xFFFFFFFFUL)
+#define SEI_DAT_GOLD_GOLD_VALUE_SHIFT (0U)
+#define SEI_DAT_GOLD_GOLD_VALUE_SET(x) (((uint32_t)(x) << SEI_DAT_GOLD_GOLD_VALUE_SHIFT) & SEI_DAT_GOLD_GOLD_VALUE_MASK)
+#define SEI_DAT_GOLD_GOLD_VALUE_GET(x) (((uint32_t)(x) & SEI_DAT_GOLD_GOLD_VALUE_MASK) >> SEI_DAT_GOLD_GOLD_VALUE_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_CRCINIT */
+/* Bitfield definition for register of struct array DAT: CRCINIT */
 /*
  * CRC_INIT (RW)
  *
  * CRC initial value
  */
-#define SEI_DAT_DATA_CRCINIT_CRC_INIT_MASK (0xFFFFFFFFUL)
-#define SEI_DAT_DATA_CRCINIT_CRC_INIT_SHIFT (0U)
-#define SEI_DAT_DATA_CRCINIT_CRC_INIT_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_CRCINIT_CRC_INIT_SHIFT) & SEI_DAT_DATA_CRCINIT_CRC_INIT_MASK)
-#define SEI_DAT_DATA_CRCINIT_CRC_INIT_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_CRCINIT_CRC_INIT_MASK) >> SEI_DAT_DATA_CRCINIT_CRC_INIT_SHIFT)
+#define SEI_DAT_CRCINIT_CRC_INIT_MASK (0xFFFFFFFFUL)
+#define SEI_DAT_CRCINIT_CRC_INIT_SHIFT (0U)
+#define SEI_DAT_CRCINIT_CRC_INIT_SET(x) (((uint32_t)(x) << SEI_DAT_CRCINIT_CRC_INIT_SHIFT) & SEI_DAT_CRCINIT_CRC_INIT_MASK)
+#define SEI_DAT_CRCINIT_CRC_INIT_GET(x) (((uint32_t)(x) & SEI_DAT_CRCINIT_CRC_INIT_MASK) >> SEI_DAT_CRCINIT_CRC_INIT_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_CRCPOLY */
+/* Bitfield definition for register of struct array DAT: CRCPOLY */
 /*
  * CRC_POLY (RW)
  *
  * CRC polymonial
  */
-#define SEI_DAT_DATA_CRCPOLY_CRC_POLY_MASK (0xFFFFFFFFUL)
-#define SEI_DAT_DATA_CRCPOLY_CRC_POLY_SHIFT (0U)
-#define SEI_DAT_DATA_CRCPOLY_CRC_POLY_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_CRCPOLY_CRC_POLY_SHIFT) & SEI_DAT_DATA_CRCPOLY_CRC_POLY_MASK)
-#define SEI_DAT_DATA_CRCPOLY_CRC_POLY_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_CRCPOLY_CRC_POLY_MASK) >> SEI_DAT_DATA_CRCPOLY_CRC_POLY_SHIFT)
+#define SEI_DAT_CRCPOLY_CRC_POLY_MASK (0xFFFFFFFFUL)
+#define SEI_DAT_CRCPOLY_CRC_POLY_SHIFT (0U)
+#define SEI_DAT_CRCPOLY_CRC_POLY_SET(x) (((uint32_t)(x) << SEI_DAT_CRCPOLY_CRC_POLY_SHIFT) & SEI_DAT_CRCPOLY_CRC_POLY_MASK)
+#define SEI_DAT_CRCPOLY_CRC_POLY_GET(x) (((uint32_t)(x) & SEI_DAT_CRCPOLY_CRC_POLY_MASK) >> SEI_DAT_CRCPOLY_CRC_POLY_SHIFT)
 
 /* Bitfield definition for register of struct array DAT: DATA */
 /*
@@ -3234,125 +3199,125 @@ typedef struct {
 #define SEI_DAT_DATA_DATA_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_DATA_SHIFT) & SEI_DAT_DATA_DATA_MASK)
 #define SEI_DAT_DATA_DATA_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_DATA_MASK) >> SEI_DAT_DATA_DATA_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_SET */
+/* Bitfield definition for register of struct array DAT: SET */
 /*
  * DATA_SET (RW)
  *
  * DATA bit set
  */
-#define SEI_DAT_DATA_SET_DATA_SET_MASK (0xFFFFFFFFUL)
-#define SEI_DAT_DATA_SET_DATA_SET_SHIFT (0U)
-#define SEI_DAT_DATA_SET_DATA_SET_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_SET_DATA_SET_SHIFT) & SEI_DAT_DATA_SET_DATA_SET_MASK)
-#define SEI_DAT_DATA_SET_DATA_SET_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_SET_DATA_SET_MASK) >> SEI_DAT_DATA_SET_DATA_SET_SHIFT)
+#define SEI_DAT_SET_DATA_SET_MASK (0xFFFFFFFFUL)
+#define SEI_DAT_SET_DATA_SET_SHIFT (0U)
+#define SEI_DAT_SET_DATA_SET_SET(x) (((uint32_t)(x) << SEI_DAT_SET_DATA_SET_SHIFT) & SEI_DAT_SET_DATA_SET_MASK)
+#define SEI_DAT_SET_DATA_SET_GET(x) (((uint32_t)(x) & SEI_DAT_SET_DATA_SET_MASK) >> SEI_DAT_SET_DATA_SET_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_CLR */
+/* Bitfield definition for register of struct array DAT: CLR */
 /*
  * DATA_CLR (RW)
  *
  * DATA bit clear
  */
-#define SEI_DAT_DATA_CLR_DATA_CLR_MASK (0xFFFFFFFFUL)
-#define SEI_DAT_DATA_CLR_DATA_CLR_SHIFT (0U)
-#define SEI_DAT_DATA_CLR_DATA_CLR_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_CLR_DATA_CLR_SHIFT) & SEI_DAT_DATA_CLR_DATA_CLR_MASK)
-#define SEI_DAT_DATA_CLR_DATA_CLR_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_CLR_DATA_CLR_MASK) >> SEI_DAT_DATA_CLR_DATA_CLR_SHIFT)
+#define SEI_DAT_CLR_DATA_CLR_MASK (0xFFFFFFFFUL)
+#define SEI_DAT_CLR_DATA_CLR_SHIFT (0U)
+#define SEI_DAT_CLR_DATA_CLR_SET(x) (((uint32_t)(x) << SEI_DAT_CLR_DATA_CLR_SHIFT) & SEI_DAT_CLR_DATA_CLR_MASK)
+#define SEI_DAT_CLR_DATA_CLR_GET(x) (((uint32_t)(x) & SEI_DAT_CLR_DATA_CLR_MASK) >> SEI_DAT_CLR_DATA_CLR_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_INV */
+/* Bitfield definition for register of struct array DAT: INV */
 /*
  * DATA_INV (RW)
  *
  * DATA bit toggle
  */
-#define SEI_DAT_DATA_INV_DATA_INV_MASK (0xFFFFFFFFUL)
-#define SEI_DAT_DATA_INV_DATA_INV_SHIFT (0U)
-#define SEI_DAT_DATA_INV_DATA_INV_SET(x) (((uint32_t)(x) << SEI_DAT_DATA_INV_DATA_INV_SHIFT) & SEI_DAT_DATA_INV_DATA_INV_MASK)
-#define SEI_DAT_DATA_INV_DATA_INV_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_INV_DATA_INV_MASK) >> SEI_DAT_DATA_INV_DATA_INV_SHIFT)
+#define SEI_DAT_INV_DATA_INV_MASK (0xFFFFFFFFUL)
+#define SEI_DAT_INV_DATA_INV_SHIFT (0U)
+#define SEI_DAT_INV_DATA_INV_SET(x) (((uint32_t)(x) << SEI_DAT_INV_DATA_INV_SHIFT) & SEI_DAT_INV_DATA_INV_MASK)
+#define SEI_DAT_INV_DATA_INV_GET(x) (((uint32_t)(x) & SEI_DAT_INV_DATA_INV_MASK) >> SEI_DAT_INV_DATA_INV_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_IN */
+/* Bitfield definition for register of struct array DAT: IN */
 /*
  * DATA_IN (RO)
  *
  * Data input
  */
-#define SEI_DAT_DATA_IN_DATA_IN_MASK (0xFFFFFFFFUL)
-#define SEI_DAT_DATA_IN_DATA_IN_SHIFT (0U)
-#define SEI_DAT_DATA_IN_DATA_IN_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_IN_DATA_IN_MASK) >> SEI_DAT_DATA_IN_DATA_IN_SHIFT)
+#define SEI_DAT_IN_DATA_IN_MASK (0xFFFFFFFFUL)
+#define SEI_DAT_IN_DATA_IN_SHIFT (0U)
+#define SEI_DAT_IN_DATA_IN_GET(x) (((uint32_t)(x) & SEI_DAT_IN_DATA_IN_MASK) >> SEI_DAT_IN_DATA_IN_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_OUT */
+/* Bitfield definition for register of struct array DAT: OUT */
 /*
  * DATA_OUT (RO)
  *
  * Data output
  */
-#define SEI_DAT_DATA_OUT_DATA_OUT_MASK (0xFFFFFFFFUL)
-#define SEI_DAT_DATA_OUT_DATA_OUT_SHIFT (0U)
-#define SEI_DAT_DATA_OUT_DATA_OUT_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_OUT_DATA_OUT_MASK) >> SEI_DAT_DATA_OUT_DATA_OUT_SHIFT)
+#define SEI_DAT_OUT_DATA_OUT_MASK (0xFFFFFFFFUL)
+#define SEI_DAT_OUT_DATA_OUT_SHIFT (0U)
+#define SEI_DAT_OUT_DATA_OUT_GET(x) (((uint32_t)(x) & SEI_DAT_OUT_DATA_OUT_MASK) >> SEI_DAT_OUT_DATA_OUT_SHIFT)
 
-/* Bitfield definition for register of struct array DAT: DATA_STS */
+/* Bitfield definition for register of struct array DAT: STS */
 /*
  * CRC_IDX (RO)
  *
  * CRC index
  */
-#define SEI_DAT_DATA_STS_CRC_IDX_MASK (0x1F000000UL)
-#define SEI_DAT_DATA_STS_CRC_IDX_SHIFT (24U)
-#define SEI_DAT_DATA_STS_CRC_IDX_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_STS_CRC_IDX_MASK) >> SEI_DAT_DATA_STS_CRC_IDX_SHIFT)
+#define SEI_DAT_STS_CRC_IDX_MASK (0x1F000000UL)
+#define SEI_DAT_STS_CRC_IDX_SHIFT (24U)
+#define SEI_DAT_STS_CRC_IDX_GET(x) (((uint32_t)(x) & SEI_DAT_STS_CRC_IDX_MASK) >> SEI_DAT_STS_CRC_IDX_SHIFT)
 
 /*
  * WORD_IDX (RO)
  *
  * Word index
  */
-#define SEI_DAT_DATA_STS_WORD_IDX_MASK (0x1F0000UL)
-#define SEI_DAT_DATA_STS_WORD_IDX_SHIFT (16U)
-#define SEI_DAT_DATA_STS_WORD_IDX_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_STS_WORD_IDX_MASK) >> SEI_DAT_DATA_STS_WORD_IDX_SHIFT)
+#define SEI_DAT_STS_WORD_IDX_MASK (0x1F0000UL)
+#define SEI_DAT_STS_WORD_IDX_SHIFT (16U)
+#define SEI_DAT_STS_WORD_IDX_GET(x) (((uint32_t)(x) & SEI_DAT_STS_WORD_IDX_MASK) >> SEI_DAT_STS_WORD_IDX_SHIFT)
 
 /*
  * WORD_CNT (RO)
  *
  * Word counter
  */
-#define SEI_DAT_DATA_STS_WORD_CNT_MASK (0x1F00U)
-#define SEI_DAT_DATA_STS_WORD_CNT_SHIFT (8U)
-#define SEI_DAT_DATA_STS_WORD_CNT_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_STS_WORD_CNT_MASK) >> SEI_DAT_DATA_STS_WORD_CNT_SHIFT)
+#define SEI_DAT_STS_WORD_CNT_MASK (0x1F00U)
+#define SEI_DAT_STS_WORD_CNT_SHIFT (8U)
+#define SEI_DAT_STS_WORD_CNT_GET(x) (((uint32_t)(x) & SEI_DAT_STS_WORD_CNT_MASK) >> SEI_DAT_STS_WORD_CNT_SHIFT)
 
 /*
  * BIT_IDX (RO)
  *
  * Bit index
  */
-#define SEI_DAT_DATA_STS_BIT_IDX_MASK (0x1FU)
-#define SEI_DAT_DATA_STS_BIT_IDX_SHIFT (0U)
-#define SEI_DAT_DATA_STS_BIT_IDX_GET(x) (((uint32_t)(x) & SEI_DAT_DATA_STS_BIT_IDX_MASK) >> SEI_DAT_DATA_STS_BIT_IDX_SHIFT)
+#define SEI_DAT_STS_BIT_IDX_MASK (0x1FU)
+#define SEI_DAT_STS_BIT_IDX_SHIFT (0U)
+#define SEI_DAT_STS_BIT_IDX_GET(x) (((uint32_t)(x) & SEI_DAT_STS_BIT_IDX_MASK) >> SEI_DAT_STS_BIT_IDX_SHIFT)
 
 
 
-/* TRG_CMD register group index macro definition */
-#define SEI_CTRL_TRG_TABLE_TRG_CMD_COMMAND_TRIGGER0 (0UL)
-#define SEI_CTRL_TRG_TABLE_TRG_CMD_COMMAND_TRIGGER1 (1UL)
-#define SEI_CTRL_TRG_TABLE_TRG_CMD_COMMAND_TRIGGER2 (2UL)
-#define SEI_CTRL_TRG_TABLE_TRG_CMD_COMMAND_TRIGGER3 (3UL)
+/* CMD register group index macro definition */
+#define SEI_CTRL_TRG_TABLE_CMD_0 (0UL)
+#define SEI_CTRL_TRG_TABLE_CMD_1 (1UL)
+#define SEI_CTRL_TRG_TABLE_CMD_2 (2UL)
+#define SEI_CTRL_TRG_TABLE_CMD_3 (3UL)
 
-/* TRG_TIME register group index macro definition */
-#define SEI_CTRL_TRG_TABLE_TRG_TIME_TIME_TRIGGER0 (0UL)
-#define SEI_CTRL_TRG_TABLE_TRG_TIME_TIME_TRIGGER1 (1UL)
-#define SEI_CTRL_TRG_TABLE_TRG_TIME_TIME_TRIGGER2 (2UL)
-#define SEI_CTRL_TRG_TABLE_TRG_TIME_TIME_TRIGGER3 (3UL)
+/* TIME register group index macro definition */
+#define SEI_CTRL_TRG_TABLE_TIME_0 (0UL)
+#define SEI_CTRL_TRG_TABLE_TIME_1 (1UL)
+#define SEI_CTRL_TRG_TABLE_TIME_2 (2UL)
+#define SEI_CTRL_TRG_TABLE_TIME_3 (3UL)
 
-/* COMMAND_TABLE register group index macro definition */
-#define SEI_COMMAND_TABLE_0 (0UL)
-#define SEI_COMMAND_TABLE_1 (1UL)
-#define SEI_COMMAND_TABLE_2 (2UL)
-#define SEI_COMMAND_TABLE_3 (3UL)
-#define SEI_COMMAND_TABLE_4 (4UL)
-#define SEI_COMMAND_TABLE_5 (5UL)
-#define SEI_COMMAND_TABLE_6 (6UL)
-#define SEI_COMMAND_TABLE_7 (7UL)
+/* CMD_TABLE register group index macro definition */
+#define SEI_CMD_TABLE_0 (0UL)
+#define SEI_CMD_TABLE_1 (1UL)
+#define SEI_CMD_TABLE_2 (2UL)
+#define SEI_CMD_TABLE_3 (3UL)
+#define SEI_CMD_TABLE_4 (4UL)
+#define SEI_CMD_TABLE_5 (5UL)
+#define SEI_CMD_TABLE_6 (6UL)
+#define SEI_CMD_TABLE_7 (7UL)
 
-/* TRAN_CFG register group index macro definition */
-#define SEI_CTRL_LATCH_TRAN_CFG_TRAN_0_1 (0UL)
-#define SEI_CTRL_LATCH_TRAN_CFG_TRAN_1_2 (1UL)
-#define SEI_CTRL_LATCH_TRAN_CFG_TRAN_2_3 (2UL)
-#define SEI_CTRL_LATCH_TRAN_CFG_TRAN_3_0 (3UL)
+/* TRAN register group index macro definition */
+#define SEI_CTRL_LATCH_TRAN_0_1 (0UL)
+#define SEI_CTRL_LATCH_TRAN_1_2 (1UL)
+#define SEI_CTRL_LATCH_TRAN_2_3 (2UL)
+#define SEI_CTRL_LATCH_TRAN_3_0 (3UL)
 
 /* LATCH register group index macro definition */
 #define SEI_LATCH_0 (0UL)
@@ -3376,262 +3341,262 @@ typedef struct {
 #define SEI_CTRL_12 (12UL)
 
 /* INSTR register group index macro definition */
-#define SEI_INSTR_INSTR0 (0UL)
-#define SEI_INSTR_INSTR1 (1UL)
-#define SEI_INSTR_INSTR2 (2UL)
-#define SEI_INSTR_INSTR3 (3UL)
-#define SEI_INSTR_INSTR4 (4UL)
-#define SEI_INSTR_INSTR5 (5UL)
-#define SEI_INSTR_INSTR6 (6UL)
-#define SEI_INSTR_INSTR7 (7UL)
-#define SEI_INSTR_INSTR8 (8UL)
-#define SEI_INSTR_INSTR9 (9UL)
-#define SEI_INSTR_INSTR10 (10UL)
-#define SEI_INSTR_INSTR11 (11UL)
-#define SEI_INSTR_INSTR12 (12UL)
-#define SEI_INSTR_INSTR13 (13UL)
-#define SEI_INSTR_INSTR14 (14UL)
-#define SEI_INSTR_INSTR15 (15UL)
-#define SEI_INSTR_INSTR16 (16UL)
-#define SEI_INSTR_INSTR17 (17UL)
-#define SEI_INSTR_INSTR18 (18UL)
-#define SEI_INSTR_INSTR19 (19UL)
-#define SEI_INSTR_INSTR20 (20UL)
-#define SEI_INSTR_INSTR21 (21UL)
-#define SEI_INSTR_INSTR22 (22UL)
-#define SEI_INSTR_INSTR23 (23UL)
-#define SEI_INSTR_INSTR24 (24UL)
-#define SEI_INSTR_INSTR25 (25UL)
-#define SEI_INSTR_INSTR26 (26UL)
-#define SEI_INSTR_INSTR27 (27UL)
-#define SEI_INSTR_INSTR28 (28UL)
-#define SEI_INSTR_INSTR29 (29UL)
-#define SEI_INSTR_INSTR30 (30UL)
-#define SEI_INSTR_INSTR31 (31UL)
-#define SEI_INSTR_INSTR32 (32UL)
-#define SEI_INSTR_INSTR33 (33UL)
-#define SEI_INSTR_INSTR34 (34UL)
-#define SEI_INSTR_INSTR35 (35UL)
-#define SEI_INSTR_INSTR36 (36UL)
-#define SEI_INSTR_INSTR37 (37UL)
-#define SEI_INSTR_INSTR38 (38UL)
-#define SEI_INSTR_INSTR39 (39UL)
-#define SEI_INSTR_INSTR40 (40UL)
-#define SEI_INSTR_INSTR41 (41UL)
-#define SEI_INSTR_INSTR42 (42UL)
-#define SEI_INSTR_INSTR43 (43UL)
-#define SEI_INSTR_INSTR44 (44UL)
-#define SEI_INSTR_INSTR45 (45UL)
-#define SEI_INSTR_INSTR46 (46UL)
-#define SEI_INSTR_INSTR47 (47UL)
-#define SEI_INSTR_INSTR48 (48UL)
-#define SEI_INSTR_INSTR49 (49UL)
-#define SEI_INSTR_INSTR50 (50UL)
-#define SEI_INSTR_INSTR51 (51UL)
-#define SEI_INSTR_INSTR52 (52UL)
-#define SEI_INSTR_INSTR53 (53UL)
-#define SEI_INSTR_INSTR54 (54UL)
-#define SEI_INSTR_INSTR55 (55UL)
-#define SEI_INSTR_INSTR56 (56UL)
-#define SEI_INSTR_INSTR57 (57UL)
-#define SEI_INSTR_INSTR58 (58UL)
-#define SEI_INSTR_INSTR59 (59UL)
-#define SEI_INSTR_INSTR60 (60UL)
-#define SEI_INSTR_INSTR61 (61UL)
-#define SEI_INSTR_INSTR62 (62UL)
-#define SEI_INSTR_INSTR63 (63UL)
-#define SEI_INSTR_INSTR64 (64UL)
-#define SEI_INSTR_INSTR65 (65UL)
-#define SEI_INSTR_INSTR66 (66UL)
-#define SEI_INSTR_INSTR67 (67UL)
-#define SEI_INSTR_INSTR68 (68UL)
-#define SEI_INSTR_INSTR69 (69UL)
-#define SEI_INSTR_INSTR70 (70UL)
-#define SEI_INSTR_INSTR71 (71UL)
-#define SEI_INSTR_INSTR72 (72UL)
-#define SEI_INSTR_INSTR73 (73UL)
-#define SEI_INSTR_INSTR74 (74UL)
-#define SEI_INSTR_INSTR75 (75UL)
-#define SEI_INSTR_INSTR76 (76UL)
-#define SEI_INSTR_INSTR77 (77UL)
-#define SEI_INSTR_INSTR78 (78UL)
-#define SEI_INSTR_INSTR79 (79UL)
-#define SEI_INSTR_INSTR80 (80UL)
-#define SEI_INSTR_INSTR81 (81UL)
-#define SEI_INSTR_INSTR82 (82UL)
-#define SEI_INSTR_INSTR83 (83UL)
-#define SEI_INSTR_INSTR84 (84UL)
-#define SEI_INSTR_INSTR85 (85UL)
-#define SEI_INSTR_INSTR86 (86UL)
-#define SEI_INSTR_INSTR87 (87UL)
-#define SEI_INSTR_INSTR88 (88UL)
-#define SEI_INSTR_INSTR89 (89UL)
-#define SEI_INSTR_INSTR90 (90UL)
-#define SEI_INSTR_INSTR91 (91UL)
-#define SEI_INSTR_INSTR92 (92UL)
-#define SEI_INSTR_INSTR93 (93UL)
-#define SEI_INSTR_INSTR94 (94UL)
-#define SEI_INSTR_INSTR95 (95UL)
-#define SEI_INSTR_INSTR96 (96UL)
-#define SEI_INSTR_INSTR97 (97UL)
-#define SEI_INSTR_INSTR98 (98UL)
-#define SEI_INSTR_INSTR99 (99UL)
-#define SEI_INSTR_INSTR100 (100UL)
-#define SEI_INSTR_INSTR101 (101UL)
-#define SEI_INSTR_INSTR102 (102UL)
-#define SEI_INSTR_INSTR103 (103UL)
-#define SEI_INSTR_INSTR104 (104UL)
-#define SEI_INSTR_INSTR105 (105UL)
-#define SEI_INSTR_INSTR106 (106UL)
-#define SEI_INSTR_INSTR107 (107UL)
-#define SEI_INSTR_INSTR108 (108UL)
-#define SEI_INSTR_INSTR109 (109UL)
-#define SEI_INSTR_INSTR110 (110UL)
-#define SEI_INSTR_INSTR111 (111UL)
-#define SEI_INSTR_INSTR112 (112UL)
-#define SEI_INSTR_INSTR113 (113UL)
-#define SEI_INSTR_INSTR114 (114UL)
-#define SEI_INSTR_INSTR115 (115UL)
-#define SEI_INSTR_INSTR116 (116UL)
-#define SEI_INSTR_INSTR117 (117UL)
-#define SEI_INSTR_INSTR118 (118UL)
-#define SEI_INSTR_INSTR119 (119UL)
-#define SEI_INSTR_INSTR120 (120UL)
-#define SEI_INSTR_INSTR121 (121UL)
-#define SEI_INSTR_INSTR122 (122UL)
-#define SEI_INSTR_INSTR123 (123UL)
-#define SEI_INSTR_INSTR124 (124UL)
-#define SEI_INSTR_INSTR125 (125UL)
-#define SEI_INSTR_INSTR126 (126UL)
-#define SEI_INSTR_INSTR127 (127UL)
-#define SEI_INSTR_INSTR128 (128UL)
-#define SEI_INSTR_INSTR129 (129UL)
-#define SEI_INSTR_INSTR130 (130UL)
-#define SEI_INSTR_INSTR131 (131UL)
-#define SEI_INSTR_INSTR132 (132UL)
-#define SEI_INSTR_INSTR133 (133UL)
-#define SEI_INSTR_INSTR134 (134UL)
-#define SEI_INSTR_INSTR135 (135UL)
-#define SEI_INSTR_INSTR136 (136UL)
-#define SEI_INSTR_INSTR137 (137UL)
-#define SEI_INSTR_INSTR138 (138UL)
-#define SEI_INSTR_INSTR139 (139UL)
-#define SEI_INSTR_INSTR140 (140UL)
-#define SEI_INSTR_INSTR141 (141UL)
-#define SEI_INSTR_INSTR142 (142UL)
-#define SEI_INSTR_INSTR143 (143UL)
-#define SEI_INSTR_INSTR144 (144UL)
-#define SEI_INSTR_INSTR145 (145UL)
-#define SEI_INSTR_INSTR146 (146UL)
-#define SEI_INSTR_INSTR147 (147UL)
-#define SEI_INSTR_INSTR148 (148UL)
-#define SEI_INSTR_INSTR149 (149UL)
-#define SEI_INSTR_INSTR150 (150UL)
-#define SEI_INSTR_INSTR151 (151UL)
-#define SEI_INSTR_INSTR152 (152UL)
-#define SEI_INSTR_INSTR153 (153UL)
-#define SEI_INSTR_INSTR154 (154UL)
-#define SEI_INSTR_INSTR155 (155UL)
-#define SEI_INSTR_INSTR156 (156UL)
-#define SEI_INSTR_INSTR157 (157UL)
-#define SEI_INSTR_INSTR158 (158UL)
-#define SEI_INSTR_INSTR159 (159UL)
-#define SEI_INSTR_INSTR160 (160UL)
-#define SEI_INSTR_INSTR161 (161UL)
-#define SEI_INSTR_INSTR162 (162UL)
-#define SEI_INSTR_INSTR163 (163UL)
-#define SEI_INSTR_INSTR164 (164UL)
-#define SEI_INSTR_INSTR165 (165UL)
-#define SEI_INSTR_INSTR166 (166UL)
-#define SEI_INSTR_INSTR167 (167UL)
-#define SEI_INSTR_INSTR168 (168UL)
-#define SEI_INSTR_INSTR169 (169UL)
-#define SEI_INSTR_INSTR170 (170UL)
-#define SEI_INSTR_INSTR171 (171UL)
-#define SEI_INSTR_INSTR172 (172UL)
-#define SEI_INSTR_INSTR173 (173UL)
-#define SEI_INSTR_INSTR174 (174UL)
-#define SEI_INSTR_INSTR175 (175UL)
-#define SEI_INSTR_INSTR176 (176UL)
-#define SEI_INSTR_INSTR177 (177UL)
-#define SEI_INSTR_INSTR178 (178UL)
-#define SEI_INSTR_INSTR179 (179UL)
-#define SEI_INSTR_INSTR180 (180UL)
-#define SEI_INSTR_INSTR181 (181UL)
-#define SEI_INSTR_INSTR182 (182UL)
-#define SEI_INSTR_INSTR183 (183UL)
-#define SEI_INSTR_INSTR184 (184UL)
-#define SEI_INSTR_INSTR185 (185UL)
-#define SEI_INSTR_INSTR186 (186UL)
-#define SEI_INSTR_INSTR187 (187UL)
-#define SEI_INSTR_INSTR188 (188UL)
-#define SEI_INSTR_INSTR189 (189UL)
-#define SEI_INSTR_INSTR190 (190UL)
-#define SEI_INSTR_INSTR191 (191UL)
-#define SEI_INSTR_INSTR192 (192UL)
-#define SEI_INSTR_INSTR193 (193UL)
-#define SEI_INSTR_INSTR194 (194UL)
-#define SEI_INSTR_INSTR195 (195UL)
-#define SEI_INSTR_INSTR196 (196UL)
-#define SEI_INSTR_INSTR197 (197UL)
-#define SEI_INSTR_INSTR198 (198UL)
-#define SEI_INSTR_INSTR199 (199UL)
-#define SEI_INSTR_INSTR200 (200UL)
-#define SEI_INSTR_INSTR201 (201UL)
-#define SEI_INSTR_INSTR202 (202UL)
-#define SEI_INSTR_INSTR203 (203UL)
-#define SEI_INSTR_INSTR204 (204UL)
-#define SEI_INSTR_INSTR205 (205UL)
-#define SEI_INSTR_INSTR206 (206UL)
-#define SEI_INSTR_INSTR207 (207UL)
-#define SEI_INSTR_INSTR208 (208UL)
-#define SEI_INSTR_INSTR209 (209UL)
-#define SEI_INSTR_INSTR210 (210UL)
-#define SEI_INSTR_INSTR211 (211UL)
-#define SEI_INSTR_INSTR212 (212UL)
-#define SEI_INSTR_INSTR213 (213UL)
-#define SEI_INSTR_INSTR214 (214UL)
-#define SEI_INSTR_INSTR215 (215UL)
-#define SEI_INSTR_INSTR216 (216UL)
-#define SEI_INSTR_INSTR217 (217UL)
-#define SEI_INSTR_INSTR218 (218UL)
-#define SEI_INSTR_INSTR219 (219UL)
-#define SEI_INSTR_INSTR220 (220UL)
-#define SEI_INSTR_INSTR221 (221UL)
-#define SEI_INSTR_INSTR222 (222UL)
-#define SEI_INSTR_INSTR223 (223UL)
-#define SEI_INSTR_INSTR224 (224UL)
-#define SEI_INSTR_INSTR225 (225UL)
-#define SEI_INSTR_INSTR226 (226UL)
-#define SEI_INSTR_INSTR227 (227UL)
-#define SEI_INSTR_INSTR228 (228UL)
-#define SEI_INSTR_INSTR229 (229UL)
-#define SEI_INSTR_INSTR230 (230UL)
-#define SEI_INSTR_INSTR231 (231UL)
-#define SEI_INSTR_INSTR232 (232UL)
-#define SEI_INSTR_INSTR233 (233UL)
-#define SEI_INSTR_INSTR234 (234UL)
-#define SEI_INSTR_INSTR235 (235UL)
-#define SEI_INSTR_INSTR236 (236UL)
-#define SEI_INSTR_INSTR237 (237UL)
-#define SEI_INSTR_INSTR238 (238UL)
-#define SEI_INSTR_INSTR239 (239UL)
-#define SEI_INSTR_INSTR240 (240UL)
-#define SEI_INSTR_INSTR241 (241UL)
-#define SEI_INSTR_INSTR242 (242UL)
-#define SEI_INSTR_INSTR243 (243UL)
-#define SEI_INSTR_INSTR244 (244UL)
-#define SEI_INSTR_INSTR245 (245UL)
-#define SEI_INSTR_INSTR246 (246UL)
-#define SEI_INSTR_INSTR247 (247UL)
-#define SEI_INSTR_INSTR248 (248UL)
-#define SEI_INSTR_INSTR249 (249UL)
-#define SEI_INSTR_INSTR250 (250UL)
-#define SEI_INSTR_INSTR251 (251UL)
-#define SEI_INSTR_INSTR252 (252UL)
-#define SEI_INSTR_INSTR253 (253UL)
-#define SEI_INSTR_INSTR254 (254UL)
-#define SEI_INSTR_INSTR255 (255UL)
+#define SEI_INSTR_0 (0UL)
+#define SEI_INSTR_1 (1UL)
+#define SEI_INSTR_2 (2UL)
+#define SEI_INSTR_3 (3UL)
+#define SEI_INSTR_4 (4UL)
+#define SEI_INSTR_5 (5UL)
+#define SEI_INSTR_6 (6UL)
+#define SEI_INSTR_7 (7UL)
+#define SEI_INSTR_8 (8UL)
+#define SEI_INSTR_9 (9UL)
+#define SEI_INSTR_10 (10UL)
+#define SEI_INSTR_11 (11UL)
+#define SEI_INSTR_12 (12UL)
+#define SEI_INSTR_13 (13UL)
+#define SEI_INSTR_14 (14UL)
+#define SEI_INSTR_15 (15UL)
+#define SEI_INSTR_16 (16UL)
+#define SEI_INSTR_17 (17UL)
+#define SEI_INSTR_18 (18UL)
+#define SEI_INSTR_19 (19UL)
+#define SEI_INSTR_20 (20UL)
+#define SEI_INSTR_21 (21UL)
+#define SEI_INSTR_22 (22UL)
+#define SEI_INSTR_23 (23UL)
+#define SEI_INSTR_24 (24UL)
+#define SEI_INSTR_25 (25UL)
+#define SEI_INSTR_26 (26UL)
+#define SEI_INSTR_27 (27UL)
+#define SEI_INSTR_28 (28UL)
+#define SEI_INSTR_29 (29UL)
+#define SEI_INSTR_30 (30UL)
+#define SEI_INSTR_31 (31UL)
+#define SEI_INSTR_32 (32UL)
+#define SEI_INSTR_33 (33UL)
+#define SEI_INSTR_34 (34UL)
+#define SEI_INSTR_35 (35UL)
+#define SEI_INSTR_36 (36UL)
+#define SEI_INSTR_37 (37UL)
+#define SEI_INSTR_38 (38UL)
+#define SEI_INSTR_39 (39UL)
+#define SEI_INSTR_40 (40UL)
+#define SEI_INSTR_41 (41UL)
+#define SEI_INSTR_42 (42UL)
+#define SEI_INSTR_43 (43UL)
+#define SEI_INSTR_44 (44UL)
+#define SEI_INSTR_45 (45UL)
+#define SEI_INSTR_46 (46UL)
+#define SEI_INSTR_47 (47UL)
+#define SEI_INSTR_48 (48UL)
+#define SEI_INSTR_49 (49UL)
+#define SEI_INSTR_50 (50UL)
+#define SEI_INSTR_51 (51UL)
+#define SEI_INSTR_52 (52UL)
+#define SEI_INSTR_53 (53UL)
+#define SEI_INSTR_54 (54UL)
+#define SEI_INSTR_55 (55UL)
+#define SEI_INSTR_56 (56UL)
+#define SEI_INSTR_57 (57UL)
+#define SEI_INSTR_58 (58UL)
+#define SEI_INSTR_59 (59UL)
+#define SEI_INSTR_60 (60UL)
+#define SEI_INSTR_61 (61UL)
+#define SEI_INSTR_62 (62UL)
+#define SEI_INSTR_63 (63UL)
+#define SEI_INSTR_64 (64UL)
+#define SEI_INSTR_65 (65UL)
+#define SEI_INSTR_66 (66UL)
+#define SEI_INSTR_67 (67UL)
+#define SEI_INSTR_68 (68UL)
+#define SEI_INSTR_69 (69UL)
+#define SEI_INSTR_70 (70UL)
+#define SEI_INSTR_71 (71UL)
+#define SEI_INSTR_72 (72UL)
+#define SEI_INSTR_73 (73UL)
+#define SEI_INSTR_74 (74UL)
+#define SEI_INSTR_75 (75UL)
+#define SEI_INSTR_76 (76UL)
+#define SEI_INSTR_77 (77UL)
+#define SEI_INSTR_78 (78UL)
+#define SEI_INSTR_79 (79UL)
+#define SEI_INSTR_80 (80UL)
+#define SEI_INSTR_81 (81UL)
+#define SEI_INSTR_82 (82UL)
+#define SEI_INSTR_83 (83UL)
+#define SEI_INSTR_84 (84UL)
+#define SEI_INSTR_85 (85UL)
+#define SEI_INSTR_86 (86UL)
+#define SEI_INSTR_87 (87UL)
+#define SEI_INSTR_88 (88UL)
+#define SEI_INSTR_89 (89UL)
+#define SEI_INSTR_90 (90UL)
+#define SEI_INSTR_91 (91UL)
+#define SEI_INSTR_92 (92UL)
+#define SEI_INSTR_93 (93UL)
+#define SEI_INSTR_94 (94UL)
+#define SEI_INSTR_95 (95UL)
+#define SEI_INSTR_96 (96UL)
+#define SEI_INSTR_97 (97UL)
+#define SEI_INSTR_98 (98UL)
+#define SEI_INSTR_99 (99UL)
+#define SEI_INSTR_100 (100UL)
+#define SEI_INSTR_101 (101UL)
+#define SEI_INSTR_102 (102UL)
+#define SEI_INSTR_103 (103UL)
+#define SEI_INSTR_104 (104UL)
+#define SEI_INSTR_105 (105UL)
+#define SEI_INSTR_106 (106UL)
+#define SEI_INSTR_107 (107UL)
+#define SEI_INSTR_108 (108UL)
+#define SEI_INSTR_109 (109UL)
+#define SEI_INSTR_110 (110UL)
+#define SEI_INSTR_111 (111UL)
+#define SEI_INSTR_112 (112UL)
+#define SEI_INSTR_113 (113UL)
+#define SEI_INSTR_114 (114UL)
+#define SEI_INSTR_115 (115UL)
+#define SEI_INSTR_116 (116UL)
+#define SEI_INSTR_117 (117UL)
+#define SEI_INSTR_118 (118UL)
+#define SEI_INSTR_119 (119UL)
+#define SEI_INSTR_120 (120UL)
+#define SEI_INSTR_121 (121UL)
+#define SEI_INSTR_122 (122UL)
+#define SEI_INSTR_123 (123UL)
+#define SEI_INSTR_124 (124UL)
+#define SEI_INSTR_125 (125UL)
+#define SEI_INSTR_126 (126UL)
+#define SEI_INSTR_127 (127UL)
+#define SEI_INSTR_128 (128UL)
+#define SEI_INSTR_129 (129UL)
+#define SEI_INSTR_130 (130UL)
+#define SEI_INSTR_131 (131UL)
+#define SEI_INSTR_132 (132UL)
+#define SEI_INSTR_133 (133UL)
+#define SEI_INSTR_134 (134UL)
+#define SEI_INSTR_135 (135UL)
+#define SEI_INSTR_136 (136UL)
+#define SEI_INSTR_137 (137UL)
+#define SEI_INSTR_138 (138UL)
+#define SEI_INSTR_139 (139UL)
+#define SEI_INSTR_140 (140UL)
+#define SEI_INSTR_141 (141UL)
+#define SEI_INSTR_142 (142UL)
+#define SEI_INSTR_143 (143UL)
+#define SEI_INSTR_144 (144UL)
+#define SEI_INSTR_145 (145UL)
+#define SEI_INSTR_146 (146UL)
+#define SEI_INSTR_147 (147UL)
+#define SEI_INSTR_148 (148UL)
+#define SEI_INSTR_149 (149UL)
+#define SEI_INSTR_150 (150UL)
+#define SEI_INSTR_151 (151UL)
+#define SEI_INSTR_152 (152UL)
+#define SEI_INSTR_153 (153UL)
+#define SEI_INSTR_154 (154UL)
+#define SEI_INSTR_155 (155UL)
+#define SEI_INSTR_156 (156UL)
+#define SEI_INSTR_157 (157UL)
+#define SEI_INSTR_158 (158UL)
+#define SEI_INSTR_159 (159UL)
+#define SEI_INSTR_160 (160UL)
+#define SEI_INSTR_161 (161UL)
+#define SEI_INSTR_162 (162UL)
+#define SEI_INSTR_163 (163UL)
+#define SEI_INSTR_164 (164UL)
+#define SEI_INSTR_165 (165UL)
+#define SEI_INSTR_166 (166UL)
+#define SEI_INSTR_167 (167UL)
+#define SEI_INSTR_168 (168UL)
+#define SEI_INSTR_169 (169UL)
+#define SEI_INSTR_170 (170UL)
+#define SEI_INSTR_171 (171UL)
+#define SEI_INSTR_172 (172UL)
+#define SEI_INSTR_173 (173UL)
+#define SEI_INSTR_174 (174UL)
+#define SEI_INSTR_175 (175UL)
+#define SEI_INSTR_176 (176UL)
+#define SEI_INSTR_177 (177UL)
+#define SEI_INSTR_178 (178UL)
+#define SEI_INSTR_179 (179UL)
+#define SEI_INSTR_180 (180UL)
+#define SEI_INSTR_181 (181UL)
+#define SEI_INSTR_182 (182UL)
+#define SEI_INSTR_183 (183UL)
+#define SEI_INSTR_184 (184UL)
+#define SEI_INSTR_185 (185UL)
+#define SEI_INSTR_186 (186UL)
+#define SEI_INSTR_187 (187UL)
+#define SEI_INSTR_188 (188UL)
+#define SEI_INSTR_189 (189UL)
+#define SEI_INSTR_190 (190UL)
+#define SEI_INSTR_191 (191UL)
+#define SEI_INSTR_192 (192UL)
+#define SEI_INSTR_193 (193UL)
+#define SEI_INSTR_194 (194UL)
+#define SEI_INSTR_195 (195UL)
+#define SEI_INSTR_196 (196UL)
+#define SEI_INSTR_197 (197UL)
+#define SEI_INSTR_198 (198UL)
+#define SEI_INSTR_199 (199UL)
+#define SEI_INSTR_200 (200UL)
+#define SEI_INSTR_201 (201UL)
+#define SEI_INSTR_202 (202UL)
+#define SEI_INSTR_203 (203UL)
+#define SEI_INSTR_204 (204UL)
+#define SEI_INSTR_205 (205UL)
+#define SEI_INSTR_206 (206UL)
+#define SEI_INSTR_207 (207UL)
+#define SEI_INSTR_208 (208UL)
+#define SEI_INSTR_209 (209UL)
+#define SEI_INSTR_210 (210UL)
+#define SEI_INSTR_211 (211UL)
+#define SEI_INSTR_212 (212UL)
+#define SEI_INSTR_213 (213UL)
+#define SEI_INSTR_214 (214UL)
+#define SEI_INSTR_215 (215UL)
+#define SEI_INSTR_216 (216UL)
+#define SEI_INSTR_217 (217UL)
+#define SEI_INSTR_218 (218UL)
+#define SEI_INSTR_219 (219UL)
+#define SEI_INSTR_220 (220UL)
+#define SEI_INSTR_221 (221UL)
+#define SEI_INSTR_222 (222UL)
+#define SEI_INSTR_223 (223UL)
+#define SEI_INSTR_224 (224UL)
+#define SEI_INSTR_225 (225UL)
+#define SEI_INSTR_226 (226UL)
+#define SEI_INSTR_227 (227UL)
+#define SEI_INSTR_228 (228UL)
+#define SEI_INSTR_229 (229UL)
+#define SEI_INSTR_230 (230UL)
+#define SEI_INSTR_231 (231UL)
+#define SEI_INSTR_232 (232UL)
+#define SEI_INSTR_233 (233UL)
+#define SEI_INSTR_234 (234UL)
+#define SEI_INSTR_235 (235UL)
+#define SEI_INSTR_236 (236UL)
+#define SEI_INSTR_237 (237UL)
+#define SEI_INSTR_238 (238UL)
+#define SEI_INSTR_239 (239UL)
+#define SEI_INSTR_240 (240UL)
+#define SEI_INSTR_241 (241UL)
+#define SEI_INSTR_242 (242UL)
+#define SEI_INSTR_243 (243UL)
+#define SEI_INSTR_244 (244UL)
+#define SEI_INSTR_245 (245UL)
+#define SEI_INSTR_246 (246UL)
+#define SEI_INSTR_247 (247UL)
+#define SEI_INSTR_248 (248UL)
+#define SEI_INSTR_249 (249UL)
+#define SEI_INSTR_250 (250UL)
+#define SEI_INSTR_251 (251UL)
+#define SEI_INSTR_252 (252UL)
+#define SEI_INSTR_253 (253UL)
+#define SEI_INSTR_254 (254UL)
+#define SEI_INSTR_255 (255UL)
 
 /* DAT register group index macro definition */
 #define SEI_DAT_0 (0UL)

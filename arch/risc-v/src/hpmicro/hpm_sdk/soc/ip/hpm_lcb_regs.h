@@ -10,9 +10,9 @@
 #define HPM_LCB_H
 
 typedef struct {
-    __RW uint32_t CONTROL[1];                  /* 0x0: control register */
+    __RW uint32_t CTRL;                        /* 0x0: control register */
     __R  uint8_t  RESERVED0[96];               /* 0x4 - 0x63: Reserved */
-    __R  uint32_t PHY_STATUS[1];               /* 0x64: LVDS RX PHY Status register */
+    __R  uint32_t PHY_STAT;                    /* 0x64: LVDS RX PHY Status register */
     __RW uint32_t PHY_POW_CTRL[2];             /* 0x68 - 0x6C: LVDS0 PHY power control register */
     __RW uint32_t PHY_D_CTRL[4];               /* 0x70 - 0x7C: LVDS0 PHY Data Channel RX0 Setting */
     __RW uint32_t PHY_CK_CTRL[2];              /* 0x80 - 0x84: LVDS0 PHY CK Channel Setting */
@@ -21,7 +21,7 @@ typedef struct {
 } LCB_Type;
 
 
-/* Bitfield definition for register array: CONTROL */
+/* Bitfield definition for register: CTRL */
 /*
  * LVDS_RXCK_SEL (RW)
  *
@@ -29,10 +29,10 @@ typedef struct {
  * 1: LVDS1 RXCK
  * 0: LVDS0 RXCK
  */
-#define LCB_CONTROL_LVDS_RXCK_SEL_MASK (0x100U)
-#define LCB_CONTROL_LVDS_RXCK_SEL_SHIFT (8U)
-#define LCB_CONTROL_LVDS_RXCK_SEL_SET(x) (((uint32_t)(x) << LCB_CONTROL_LVDS_RXCK_SEL_SHIFT) & LCB_CONTROL_LVDS_RXCK_SEL_MASK)
-#define LCB_CONTROL_LVDS_RXCK_SEL_GET(x) (((uint32_t)(x) & LCB_CONTROL_LVDS_RXCK_SEL_MASK) >> LCB_CONTROL_LVDS_RXCK_SEL_SHIFT)
+#define LCB_CTRL_LVDS_RXCK_SEL_MASK (0x100U)
+#define LCB_CTRL_LVDS_RXCK_SEL_SHIFT (8U)
+#define LCB_CTRL_LVDS_RXCK_SEL_SET(x) (((uint32_t)(x) << LCB_CTRL_LVDS_RXCK_SEL_SHIFT) & LCB_CTRL_LVDS_RXCK_SEL_MASK)
+#define LCB_CTRL_LVDS_RXCK_SEL_GET(x) (((uint32_t)(x) & LCB_CTRL_LVDS_RXCK_SEL_MASK) >> LCB_CTRL_LVDS_RXCK_SEL_SHIFT)
 
 /*
  * CAM_LINK_WIDTH (RW)
@@ -43,10 +43,10 @@ typedef struct {
  * 10: 36bit
  * 11: reserved
  */
-#define LCB_CONTROL_CAM_LINK_WIDTH_MASK (0xC0U)
-#define LCB_CONTROL_CAM_LINK_WIDTH_SHIFT (6U)
-#define LCB_CONTROL_CAM_LINK_WIDTH_SET(x) (((uint32_t)(x) << LCB_CONTROL_CAM_LINK_WIDTH_SHIFT) & LCB_CONTROL_CAM_LINK_WIDTH_MASK)
-#define LCB_CONTROL_CAM_LINK_WIDTH_GET(x) (((uint32_t)(x) & LCB_CONTROL_CAM_LINK_WIDTH_MASK) >> LCB_CONTROL_CAM_LINK_WIDTH_SHIFT)
+#define LCB_CTRL_CAM_LINK_WIDTH_MASK (0xC0U)
+#define LCB_CTRL_CAM_LINK_WIDTH_SHIFT (6U)
+#define LCB_CTRL_CAM_LINK_WIDTH_SET(x) (((uint32_t)(x) << LCB_CTRL_CAM_LINK_WIDTH_SHIFT) & LCB_CTRL_CAM_LINK_WIDTH_MASK)
+#define LCB_CTRL_CAM_LINK_WIDTH_GET(x) (((uint32_t)(x) & LCB_CTRL_CAM_LINK_WIDTH_MASK) >> LCB_CTRL_CAM_LINK_WIDTH_SHIFT)
 
 /*
  * BIT_MAPPING (RW)
@@ -55,10 +55,10 @@ typedef struct {
  * 1: JEIDA standard
  * 0: SPWG standard
  */
-#define LCB_CONTROL_BIT_MAPPING_MASK (0x20U)
-#define LCB_CONTROL_BIT_MAPPING_SHIFT (5U)
-#define LCB_CONTROL_BIT_MAPPING_SET(x) (((uint32_t)(x) << LCB_CONTROL_BIT_MAPPING_SHIFT) & LCB_CONTROL_BIT_MAPPING_MASK)
-#define LCB_CONTROL_BIT_MAPPING_GET(x) (((uint32_t)(x) & LCB_CONTROL_BIT_MAPPING_MASK) >> LCB_CONTROL_BIT_MAPPING_SHIFT)
+#define LCB_CTRL_BIT_MAPPING_MASK (0x20U)
+#define LCB_CTRL_BIT_MAPPING_SHIFT (5U)
+#define LCB_CTRL_BIT_MAPPING_SET(x) (((uint32_t)(x) << LCB_CTRL_BIT_MAPPING_SHIFT) & LCB_CTRL_BIT_MAPPING_MASK)
+#define LCB_CTRL_BIT_MAPPING_GET(x) (((uint32_t)(x) & LCB_CTRL_BIT_MAPPING_MASK) >> LCB_CTRL_BIT_MAPPING_SHIFT)
 
 /*
  * DATA_WIDTH (RW)
@@ -67,10 +67,10 @@ typedef struct {
  * 1: 24bit
  * 0: 18bit(3line)
  */
-#define LCB_CONTROL_DATA_WIDTH_MASK (0x10U)
-#define LCB_CONTROL_DATA_WIDTH_SHIFT (4U)
-#define LCB_CONTROL_DATA_WIDTH_SET(x) (((uint32_t)(x) << LCB_CONTROL_DATA_WIDTH_SHIFT) & LCB_CONTROL_DATA_WIDTH_MASK)
-#define LCB_CONTROL_DATA_WIDTH_GET(x) (((uint32_t)(x) & LCB_CONTROL_DATA_WIDTH_MASK) >> LCB_CONTROL_DATA_WIDTH_SHIFT)
+#define LCB_CTRL_DATA_WIDTH_MASK (0x10U)
+#define LCB_CTRL_DATA_WIDTH_SHIFT (4U)
+#define LCB_CTRL_DATA_WIDTH_SET(x) (((uint32_t)(x) << LCB_CTRL_DATA_WIDTH_SHIFT) & LCB_CTRL_DATA_WIDTH_MASK)
+#define LCB_CTRL_DATA_WIDTH_GET(x) (((uint32_t)(x) & LCB_CTRL_DATA_WIDTH_MASK) >> LCB_CTRL_DATA_WIDTH_SHIFT)
 
 /*
  * MODE (RW)
@@ -81,29 +81,29 @@ typedef struct {
  * 10: sync code(2 line), LVDS RX PHY must be LVDS cameral mode
  * 11: sync code(1line), LVDS RX PHY must be LVDS cameral mode
  */
-#define LCB_CONTROL_MODE_MASK (0x3U)
-#define LCB_CONTROL_MODE_SHIFT (0U)
-#define LCB_CONTROL_MODE_SET(x) (((uint32_t)(x) << LCB_CONTROL_MODE_SHIFT) & LCB_CONTROL_MODE_MASK)
-#define LCB_CONTROL_MODE_GET(x) (((uint32_t)(x) & LCB_CONTROL_MODE_MASK) >> LCB_CONTROL_MODE_SHIFT)
+#define LCB_CTRL_MODE_MASK (0x3U)
+#define LCB_CTRL_MODE_SHIFT (0U)
+#define LCB_CTRL_MODE_SET(x) (((uint32_t)(x) << LCB_CTRL_MODE_SHIFT) & LCB_CTRL_MODE_MASK)
+#define LCB_CTRL_MODE_GET(x) (((uint32_t)(x) & LCB_CTRL_MODE_MASK) >> LCB_CTRL_MODE_SHIFT)
 
-/* Bitfield definition for register array: PHY_STATUS */
+/* Bitfield definition for register: PHY_STAT */
 /*
  * LVDS1_RX_PHY_DLL_LOCK (RO)
  *
  * LVDS1 RX PHY DLL Lock indication Signal, 1 means dll already locked
  */
-#define LCB_PHY_STATUS_LVDS1_RX_PHY_DLL_LOCK_MASK (0x2U)
-#define LCB_PHY_STATUS_LVDS1_RX_PHY_DLL_LOCK_SHIFT (1U)
-#define LCB_PHY_STATUS_LVDS1_RX_PHY_DLL_LOCK_GET(x) (((uint32_t)(x) & LCB_PHY_STATUS_LVDS1_RX_PHY_DLL_LOCK_MASK) >> LCB_PHY_STATUS_LVDS1_RX_PHY_DLL_LOCK_SHIFT)
+#define LCB_PHY_STAT_LVDS1_RX_PHY_DLL_LOCK_MASK (0x2U)
+#define LCB_PHY_STAT_LVDS1_RX_PHY_DLL_LOCK_SHIFT (1U)
+#define LCB_PHY_STAT_LVDS1_RX_PHY_DLL_LOCK_GET(x) (((uint32_t)(x) & LCB_PHY_STAT_LVDS1_RX_PHY_DLL_LOCK_MASK) >> LCB_PHY_STAT_LVDS1_RX_PHY_DLL_LOCK_SHIFT)
 
 /*
  * LVDS0_RX_PHY_DLL_LOCK (RO)
  *
  * LVDS0 RX PHY DLL Lock indication Signal, 1 means dll already locked
  */
-#define LCB_PHY_STATUS_LVDS0_RX_PHY_DLL_LOCK_MASK (0x1U)
-#define LCB_PHY_STATUS_LVDS0_RX_PHY_DLL_LOCK_SHIFT (0U)
-#define LCB_PHY_STATUS_LVDS0_RX_PHY_DLL_LOCK_GET(x) (((uint32_t)(x) & LCB_PHY_STATUS_LVDS0_RX_PHY_DLL_LOCK_MASK) >> LCB_PHY_STATUS_LVDS0_RX_PHY_DLL_LOCK_SHIFT)
+#define LCB_PHY_STAT_LVDS0_RX_PHY_DLL_LOCK_MASK (0x1U)
+#define LCB_PHY_STAT_LVDS0_RX_PHY_DLL_LOCK_SHIFT (0U)
+#define LCB_PHY_STAT_LVDS0_RX_PHY_DLL_LOCK_GET(x) (((uint32_t)(x) & LCB_PHY_STAT_LVDS0_RX_PHY_DLL_LOCK_MASK) >> LCB_PHY_STAT_LVDS0_RX_PHY_DLL_LOCK_SHIFT)
 
 /* Bitfield definition for register array: PHY_POW_CTRL */
 /*
@@ -298,12 +298,6 @@ typedef struct {
 #define LCB_PHY_SU_CTRL_SU_CTRL_GET(x) (((uint32_t)(x) & LCB_PHY_SU_CTRL_SU_CTRL_MASK) >> LCB_PHY_SU_CTRL_SU_CTRL_SHIFT)
 
 
-
-/* CONTROL register group index macro definition */
-#define LCB_CONTROL_CTRL (0UL)
-
-/* PHY_STATUS register group index macro definition */
-#define LCB_PHY_STATUS_PHY_STAT (0UL)
 
 /* PHY_POW_CTRL register group index macro definition */
 #define LCB_PHY_POW_CTRL_LVDS0 (0UL)

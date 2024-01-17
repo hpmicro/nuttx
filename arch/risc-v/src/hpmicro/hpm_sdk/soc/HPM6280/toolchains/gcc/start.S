@@ -18,6 +18,7 @@ __start:
     .option push
     .option norelax
     la gp, __global_pointer$
+    la tp, __thread_pointer$
     .option pop
 
     /* reset mstatus to 0*/
@@ -35,6 +36,19 @@ __start:
     /* Initialize stack pointer */
     la t0, _stack
     mv sp, t0
+
+#ifdef CONFIG_NOT_ENABLE_ICACHE
+    call l1c_ic_disable
+#else
+    call l1c_ic_enable
+#endif
+#ifdef CONFIG_NOT_ENABLE_DCACHE
+    call l1c_dc_invalidate_all
+    call l1c_dc_disable
+#else
+    call l1c_dc_enable
+    call l1c_dc_invalidate_all
+#endif
 
     /*
      * Initialize LMA/VMA sections.

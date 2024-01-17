@@ -16,6 +16,8 @@ board:
       size: 16M
     feature:
       - butn
+      - sdp
+      - rng
       - rtc
       - wdg
       - adc16
@@ -36,6 +38,7 @@ board:
       - qei
       - ffa
       - motor-control
+      - bldc_hfi
       - tsns
       - dac
       - ptp
@@ -49,3 +52,7 @@ board:
       - enet_phy_on_board
       - sw_gm_api
       - hall-qei
+      - puart
+      - gpt_pin
+      - acmp
+      - ptpc

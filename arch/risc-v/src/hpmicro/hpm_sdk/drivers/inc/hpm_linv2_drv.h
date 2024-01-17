@@ -19,9 +19,9 @@
 #define LIN_ID_DATA_LEN_GET(x) (((uint8_t)(x) & LIN_ID_DATA_LEN_MASK) >> LIN_ID_DATA_LEN_SHIFT)
 
 /**
- * @brief LIN driver APIs
- * @defgroup lin_interface LIN driver APIs
- * @ingroup io_interfaces
+ * @brief LINV2 driver APIs
+ * @defgroup linv2_interface LINV2 driver APIs
+ * @ingroup linv2_interface
  * @{
  */
 
@@ -184,6 +184,21 @@ static inline void lin_set_mode(LINV2_Type *ptr, bool master)
         ptr->TIMING_CONTROL |= LINV2_TIMING_CONTROL_MASTER_MODE_MASK;
     } else {
         ptr->TIMING_CONTROL &= ~LINV2_TIMING_CONTROL_MASTER_MODE_MASK;
+    }
+}
+
+/**
+ * @brief lin set checksum mode
+ *
+ * @param ptr lin base address
+ * @param enhance_check true for enhance checksum mode, false for normal checksum mode
+ */
+static inline void lin_set_checksum_mode(LINV2_Type *ptr, bool enhance_checksum)
+{
+    if (enhance_checksum) {
+        ptr->DATA_LEN_ID |= LINV2_DATA_LEN_ID_ENH_CHECK_MASK;
+    } else {
+        ptr->DATA_LEN_ID &= ~LINV2_DATA_LEN_ID_ENH_CHECK_MASK;
     }
 }
 

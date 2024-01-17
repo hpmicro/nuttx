@@ -107,6 +107,9 @@ typedef struct {
 /*
  * ACC_EN (RW)
  *
+ * Enable rdc accumulate
+ * 0: rdc disable
+ * 1: rdc enable
  */
 #define RDC_RDC_CTL_ACC_EN_MASK (0x4U)
 #define RDC_RDC_CTL_ACC_EN_SHIFT (2U)
@@ -666,7 +669,7 @@ typedef struct {
 /*
  * THRS (RW)
  *
- * The offset setting for edge detection of the i_channel, signed number
+ * The offset setting for edge detection of the q_channel, signed number
  * …
  * 2: the offset is 0x800000+2
  * 1: the offset is 0x800000+1
@@ -1004,6 +1007,7 @@ typedef struct {
 /*
  * ACC_VLD_I_EN (RW)
  *
+ * i_channel accumulate valid interrupt enable for i_channel
  */
 #define RDC_INT_EN_ACC_VLD_I_EN_MASK (0x8000U)
 #define RDC_INT_EN_ACC_VLD_I_EN_SHIFT (15U)
@@ -1013,6 +1017,7 @@ typedef struct {
 /*
  * ACC_VLD_Q_EN (RW)
  *
+ * q_channel accumulate valid interrupt enable for i_channel
  */
 #define RDC_INT_EN_ACC_VLD_Q_EN_MASK (0x4000U)
 #define RDC_INT_EN_ACC_VLD_Q_EN_SHIFT (14U)
@@ -1022,6 +1027,7 @@ typedef struct {
 /*
  * RISING_DELAY_I_EN (RW)
  *
+ * i_channel delayed rectify signal rising edge interrupt enable
  */
 #define RDC_INT_EN_RISING_DELAY_I_EN_MASK (0x2000U)
 #define RDC_INT_EN_RISING_DELAY_I_EN_SHIFT (13U)
@@ -1031,6 +1037,7 @@ typedef struct {
 /*
  * FALLING_DELAY_I_EN (RW)
  *
+ * i_channel delayed rectify signal falling edge interrupt enable
  */
 #define RDC_INT_EN_FALLING_DELAY_I_EN_MASK (0x1000U)
 #define RDC_INT_EN_FALLING_DELAY_I_EN_SHIFT (12U)
@@ -1040,6 +1047,7 @@ typedef struct {
 /*
  * RISING_DELAY_Q_EN (RW)
  *
+ * q_channel delayed rectify signal rising edge interrupt enable
  */
 #define RDC_INT_EN_RISING_DELAY_Q_EN_MASK (0x800U)
 #define RDC_INT_EN_RISING_DELAY_Q_EN_SHIFT (11U)
@@ -1049,6 +1057,7 @@ typedef struct {
 /*
  * FALLING_DELAY_Q_EN (RW)
  *
+ * q_channel delayed rectify signal falling edge interrupt enable
  */
 #define RDC_INT_EN_FALLING_DELAY_Q_EN_MASK (0x400U)
 #define RDC_INT_EN_FALLING_DELAY_Q_EN_SHIFT (10U)
@@ -1058,6 +1067,7 @@ typedef struct {
 /*
  * SAMPLE_RISING_I_EN (RW)
  *
+ * i_channel rising edge interrupt enable
  */
 #define RDC_INT_EN_SAMPLE_RISING_I_EN_MASK (0x200U)
 #define RDC_INT_EN_SAMPLE_RISING_I_EN_SHIFT (9U)
@@ -1067,6 +1077,7 @@ typedef struct {
 /*
  * SAMPLE_FALLING_I_EN (RW)
  *
+ * i_channel falling edge interrupt enable
  */
 #define RDC_INT_EN_SAMPLE_FALLING_I_EN_MASK (0x100U)
 #define RDC_INT_EN_SAMPLE_FALLING_I_EN_SHIFT (8U)
@@ -1076,6 +1087,7 @@ typedef struct {
 /*
  * SAMPLE_RISING_Q_EN (RW)
  *
+ * q_channel rising edge interrupt enable
  */
 #define RDC_INT_EN_SAMPLE_RISING_Q_EN_MASK (0x80U)
 #define RDC_INT_EN_SAMPLE_RISING_Q_EN_SHIFT (7U)
@@ -1085,6 +1097,7 @@ typedef struct {
 /*
  * SAMPLE_FALLING_Q_EN (RW)
  *
+ * q_channel falling edge interrupt enable
  */
 #define RDC_INT_EN_SAMPLE_FALLING_Q_EN_MASK (0x40U)
 #define RDC_INT_EN_SAMPLE_FALLING_Q_EN_SHIFT (6U)
@@ -1094,6 +1107,7 @@ typedef struct {
 /*
  * ACC_VLD_I_OVH_EN (RW)
  *
+ * i_channel accumulate overflow interrupt enable
  */
 #define RDC_INT_EN_ACC_VLD_I_OVH_EN_MASK (0x20U)
 #define RDC_INT_EN_ACC_VLD_I_OVH_EN_SHIFT (5U)
@@ -1103,6 +1117,7 @@ typedef struct {
 /*
  * ACC_VLD_Q_OVH_EN (RW)
  *
+ * q_channel accumulate overflow interrupt enable
  */
 #define RDC_INT_EN_ACC_VLD_Q_OVH_EN_MASK (0x10U)
 #define RDC_INT_EN_ACC_VLD_Q_OVH_EN_SHIFT (4U)
@@ -1112,6 +1127,7 @@ typedef struct {
 /*
  * ACC_VLD_I_OVL_EN (RW)
  *
+ * i_channel accumulate underflow interrupt enable
  */
 #define RDC_INT_EN_ACC_VLD_I_OVL_EN_MASK (0x8U)
 #define RDC_INT_EN_ACC_VLD_I_OVL_EN_SHIFT (3U)
@@ -1121,6 +1137,7 @@ typedef struct {
 /*
  * ACC_VLD_Q_OVL_EN (RW)
  *
+ * q_channel accumulate underflow interrupt enable
  */
 #define RDC_INT_EN_ACC_VLD_Q_OVL_EN_MASK (0x4U)
 #define RDC_INT_EN_ACC_VLD_Q_OVL_EN_SHIFT (2U)
@@ -1130,6 +1147,7 @@ typedef struct {
 /*
  * ACC_AMP_OVH_EN (RW)
  *
+ * accumulate ample overflow interrupt enable
  */
 #define RDC_INT_EN_ACC_AMP_OVH_EN_MASK (0x2U)
 #define RDC_INT_EN_ACC_AMP_OVH_EN_SHIFT (1U)
@@ -1139,6 +1157,7 @@ typedef struct {
 /*
  * ACC_AMP_OVL_EN (RW)
  *
+ * accumulate ample underflow interrupt enable
  */
 #define RDC_INT_EN_ACC_AMP_OVL_EN_MASK (0x1U)
 #define RDC_INT_EN_ACC_AMP_OVL_EN_SHIFT (0U)
@@ -1149,6 +1168,7 @@ typedef struct {
 /*
  * ACC_VLD_I_STA (W1C)
  *
+ * i_channel accumulate valid interrupt status for i_channel
  */
 #define RDC_ADC_INT_STATE_ACC_VLD_I_STA_MASK (0x8000U)
 #define RDC_ADC_INT_STATE_ACC_VLD_I_STA_SHIFT (15U)
@@ -1158,6 +1178,7 @@ typedef struct {
 /*
  * ACC_VLD_Q_STA (W1C)
  *
+ * q_channel accumulate valid interrupt status for i_channel
  */
 #define RDC_ADC_INT_STATE_ACC_VLD_Q_STA_MASK (0x4000U)
 #define RDC_ADC_INT_STATE_ACC_VLD_Q_STA_SHIFT (14U)
@@ -1167,6 +1188,7 @@ typedef struct {
 /*
  * RISING_DELAY_I_STA (W1C)
  *
+ * i_channel delayed rectify signal rising edge interrupt status
  */
 #define RDC_ADC_INT_STATE_RISING_DELAY_I_STA_MASK (0x2000U)
 #define RDC_ADC_INT_STATE_RISING_DELAY_I_STA_SHIFT (13U)
@@ -1176,6 +1198,7 @@ typedef struct {
 /*
  * FALLING_DELAY_I_STA (W1C)
  *
+ * i_channel delayed rectify signal falling edge interrupt status
  */
 #define RDC_ADC_INT_STATE_FALLING_DELAY_I_STA_MASK (0x1000U)
 #define RDC_ADC_INT_STATE_FALLING_DELAY_I_STA_SHIFT (12U)
@@ -1185,6 +1208,7 @@ typedef struct {
 /*
  * RISING_DELAY_Q_STA (W1C)
  *
+ * q_channel delayed rectify signal rising edge interrupt status
  */
 #define RDC_ADC_INT_STATE_RISING_DELAY_Q_STA_MASK (0x800U)
 #define RDC_ADC_INT_STATE_RISING_DELAY_Q_STA_SHIFT (11U)
@@ -1194,6 +1218,7 @@ typedef struct {
 /*
  * FALLING_DELAY_Q_STA (W1C)
  *
+ * q_channel delayed rectify signal falling edge interrupt status
  */
 #define RDC_ADC_INT_STATE_FALLING_DELAY_Q_STA_MASK (0x400U)
 #define RDC_ADC_INT_STATE_FALLING_DELAY_Q_STA_SHIFT (10U)
@@ -1203,6 +1228,7 @@ typedef struct {
 /*
  * SAMPLE_RISING_I_STA (W1C)
  *
+ * i_channel rising edge interrupt status
  */
 #define RDC_ADC_INT_STATE_SAMPLE_RISING_I_STA_MASK (0x200U)
 #define RDC_ADC_INT_STATE_SAMPLE_RISING_I_STA_SHIFT (9U)
@@ -1212,6 +1238,7 @@ typedef struct {
 /*
  * SAMPLE_FALLING_I_STA (W1C)
  *
+ * i_channel falling edge interrupt status
  */
 #define RDC_ADC_INT_STATE_SAMPLE_FALLING_I_STA_MASK (0x100U)
 #define RDC_ADC_INT_STATE_SAMPLE_FALLING_I_STA_SHIFT (8U)
@@ -1221,6 +1248,7 @@ typedef struct {
 /*
  * SAMPLE_RISING_Q_STA (W1C)
  *
+ * q_channel rising edge interrupt status
  */
 #define RDC_ADC_INT_STATE_SAMPLE_RISING_Q_STA_MASK (0x80U)
 #define RDC_ADC_INT_STATE_SAMPLE_RISING_Q_STA_SHIFT (7U)
@@ -1230,6 +1258,7 @@ typedef struct {
 /*
  * SAMPLE_FALLING_Q_STA (W1C)
  *
+ * q_channel falling edge interrupt status
  */
 #define RDC_ADC_INT_STATE_SAMPLE_FALLING_Q_STA_MASK (0x40U)
 #define RDC_ADC_INT_STATE_SAMPLE_FALLING_Q_STA_SHIFT (6U)
@@ -1239,6 +1268,7 @@ typedef struct {
 /*
  * ACC_VLD_I_OVH_STA (W1C)
  *
+ * i_channel accumulate overflow interrupt status
  */
 #define RDC_ADC_INT_STATE_ACC_VLD_I_OVH_STA_MASK (0x20U)
 #define RDC_ADC_INT_STATE_ACC_VLD_I_OVH_STA_SHIFT (5U)
@@ -1248,6 +1278,7 @@ typedef struct {
 /*
  * ACC_VLD_Q_OVH_STA (W1C)
  *
+ * q_channel accumulate overflow interrupt status
  */
 #define RDC_ADC_INT_STATE_ACC_VLD_Q_OVH_STA_MASK (0x10U)
 #define RDC_ADC_INT_STATE_ACC_VLD_Q_OVH_STA_SHIFT (4U)
@@ -1257,6 +1288,7 @@ typedef struct {
 /*
  * ACC_VLD_I_OVL_STA (W1C)
  *
+ * i_channel accumulate underflow interrupt status
  */
 #define RDC_ADC_INT_STATE_ACC_VLD_I_OVL_STA_MASK (0x8U)
 #define RDC_ADC_INT_STATE_ACC_VLD_I_OVL_STA_SHIFT (3U)
@@ -1266,6 +1298,7 @@ typedef struct {
 /*
  * ACC_VLD_Q_OVL_STA (W1C)
  *
+ * q_channel accumulate underflow interrupt status
  */
 #define RDC_ADC_INT_STATE_ACC_VLD_Q_OVL_STA_MASK (0x4U)
 #define RDC_ADC_INT_STATE_ACC_VLD_Q_OVL_STA_SHIFT (2U)
@@ -1275,6 +1308,7 @@ typedef struct {
 /*
  * ACC_AMP_OVH_STA (W1C)
  *
+ * accumulate ample overflow interrupt status
  */
 #define RDC_ADC_INT_STATE_ACC_AMP_OVH_STA_MASK (0x2U)
 #define RDC_ADC_INT_STATE_ACC_AMP_OVH_STA_SHIFT (1U)
@@ -1284,6 +1318,7 @@ typedef struct {
 /*
  * ACC_AMP_OVL_STA (W1C)
  *
+ * accumulate ample underflow interrupt status
  */
 #define RDC_ADC_INT_STATE_ACC_AMP_OVL_STA_MASK (0x1U)
 #define RDC_ADC_INT_STATE_ACC_AMP_OVL_STA_SHIFT (0U)

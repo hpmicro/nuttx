@@ -172,7 +172,7 @@ CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)boards$(DELIM)$(HPM_BOARD_SELECT)$(D
 CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)components$(DELIM)debug_console$(DELIM)hpm_debug_console.c
 
 ifeq ($(CONFIG_HPM_COMPONENTS_DMA_MANAGER),y)
-  CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)components$(DELIM)dma_manager$(DELIM)hpm_dma_manager.c
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)components$(DELIM)dma_mgr$(DELIM)hpm_dma_mgr.c
 endif
 
 ifeq ($(CONFIG_HPM_COMPONENTS_SPI),y)

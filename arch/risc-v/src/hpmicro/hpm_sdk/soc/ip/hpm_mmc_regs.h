@@ -77,7 +77,9 @@ typedef struct {
         __RW uint32_t BR_INI_DELTA_POS_TIME;   /* 0x1D4: Initialization timestamp for delta mode in prediction mode */
         __RW uint32_t BR_INI_DELTA_POS;        /* 0x1D8: Initialization delta position for delta mode in prediction mode */
         __RW uint32_t BR_INI_DELTA_REV;        /* 0x1DC: Initialization delta revolution for delta mode in prediction mode */
-        __R  uint8_t  RESERVED2[12];           /* 0x1E0 - 0x1EB: Reserved */
+        __RW uint32_t BR_INI_DELTA_SPEED;      /* 0x1E0: Initialization delta speed for delta mode in prediction mode */
+        __RW uint32_t BR_INI_DELTA_ACCEL;      /* 0x1E4: Initialization delta acceleration for delta mode in prediction mode */
+        __R  uint8_t  RESERVED2[4];            /* 0x1E8 - 0x1EB: Reserved */
         __R  uint32_t BR_CUR_POS_TIME;         /* 0x1EC: Monitor of the output timestamp */
         __R  uint32_t BR_CUR_POS;              /* 0x1F0: Monitor of the output position */
         __R  uint32_t BR_CUR_REV;              /* 0x1F4: Monitor of the output revolution */
@@ -533,7 +535,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * Unsigned U32:0 system clock frequency
+ * system clock frequency, ufix<32, 0>
  */
 #define MMC_SYSCLK_FREQ_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_SYSCLK_FREQ_VAL_SHIFT (0U)
@@ -544,7 +546,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * Unsigned U32:0, round( the value of clock period * (2^24)*(2^20) )
+ * round( the value of clock period * (2^24)*(2^20) ), ufix<32, 0>
  */
 #define MMC_SYSCLK_PERIOD_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_SYSCLK_PERIOD_VAL_SHIFT (0U)
@@ -555,7 +557,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * Unsigned U32:32 the threshold of theta difference between actual and prediction for out-of-sync determination
+ * the threshold of theta difference between actual and prediction for out-of-sync determination，ufix<32, 32>
  */
 #define MMC_OOSYNC_THETA_THR_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_OOSYNC_THETA_THR_VAL_SHIFT (0U)
@@ -566,7 +568,7 @@ typedef struct {
 /*
  * POSMAX (RW)
  *
- * Max ID Of Lines. For example-1, for 512 lines, it is 511
+ * Max ID Of Lines. For example-1, for 512 lines, it is 511. ufix<32, 0>
  */
 #define MMC_DISCRETECFG0_POSMAX_MASK (0xFFFFFUL)
 #define MMC_DISCRETECFG0_POSMAX_SHIFT (0U)
@@ -577,8 +579,8 @@ typedef struct {
 /*
  * INV_POSMAX (RW)
  *
- * discrete mode: Unsigned U32:32 of 1/(Number Of Lines)
- * continuous mode: the max delta for tracking from the last received position
+ * discrete mode: ufix<32, 0> of 1/(Number Of Lines)
+ * continuous mode: the max delta for tracking from the last received position, ufix<32, 32>
  */
 #define MMC_DISCRETECFG1_INV_POSMAX_MASK (0xFFFFFFFFUL)
 #define MMC_DISCRETECFG1_INV_POSMAX_SHIFT (0U)
@@ -589,7 +591,7 @@ typedef struct {
 /*
  * HALF_CIRC_THETA (RW)
  *
- * the theta for cal the clockwise or anticlockwise rotation between two adjacent inputs
+ * the theta for cal the clockwise or anticlockwise rotation between two adjacent inputs, ufix<32, 32>
  */
 #define MMC_CONTCFG0_HALF_CIRC_THETA_MASK (0xFFFFFFFFUL)
 #define MMC_CONTCFG0_HALF_CIRC_THETA_SHIFT (0U)
@@ -612,7 +614,8 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * the value
+ * the value；
+ * continuous mode: ufix<32, 32>
  */
 #define MMC_INI_POS_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_POS_VAL_SHIFT (0U)
@@ -623,7 +626,8 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * the value
+ * the value；
+ * continuous mode: ufix<32, 0>
  */
 #define MMC_INI_REV_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_REV_VAL_SHIFT (0U)
@@ -634,7 +638,8 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * the value
+ * the value;
+ * continuous mode: fix<32, 19>
  */
 #define MMC_INI_SPEED_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_SPEED_VAL_SHIFT (0U)
@@ -646,6 +651,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * continuous mode: fix<32, 19>
  */
 #define MMC_INI_ACCEL_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_ACCEL_VAL_SHIFT (0U)
@@ -668,7 +674,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * S31.15.
+ * the value, fix<32, 15>
  */
 #define MMC_INI_PCOEF_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_PCOEF_VAL_SHIFT (0U)
@@ -679,7 +685,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * S31.15.
+ * the value, fix<32, 21>
  */
 #define MMC_INI_ICOEF_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_ICOEF_VAL_SHIFT (0U)
@@ -690,7 +696,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * S31.19.
+ * the value, fix<32, 19>
  */
 #define MMC_INI_ACOEF_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_ACOEF_VAL_SHIFT (0U)
@@ -794,6 +800,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * continuous mode: ufix <32, 32>
  */
 #define MMC_INI_DELTA_POS_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_DELTA_POS_VAL_SHIFT (0U)
@@ -805,6 +812,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * continuous mode: fix<32, 0>
  */
 #define MMC_INI_DELTA_REV_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_DELTA_REV_VAL_SHIFT (0U)
@@ -815,7 +823,8 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * the value
+ * the value；
+ * continuous mode: fix<32, 19>
  */
 #define MMC_INI_DELTA_SPEED_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_DELTA_SPEED_VAL_SHIFT (0U)
@@ -827,6 +836,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * continuous mode: fix<32, 19>
  */
 #define MMC_INI_DELTA_ACCEL_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_INI_DELTA_ACCEL_VAL_SHIFT (0U)
@@ -859,6 +869,7 @@ typedef struct {
  * VAL (RW)
  *
  * For pos out trigger (pos).
+ * ufix<32, 32>
  */
 #define MMC_POS_TRG_POS_THR_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_POS_TRG_POS_THR_VAL_SHIFT (0U)
@@ -870,6 +881,7 @@ typedef struct {
  * VAL (RW)
  *
  * For pos out trigger (rev)
+ * fix<32, 0>
  */
 #define MMC_POS_TRG_REV_THR_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_POS_TRG_REV_THR_VAL_SHIFT (0U)
@@ -913,6 +925,7 @@ typedef struct {
  * VAL (RW)
  *
  * For speed trigger.
+ * continuous mode: fix<32, 19>
  */
 #define MMC_SPEED_TRG_THR_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_SPEED_TRG_THR_VAL_SHIFT (0U)
@@ -925,6 +938,7 @@ typedef struct {
  *
  * ErrThr0: Error Threshold 0, (abs(tracking error)>= will choose the coefs as below)
  * Note: ErrThr0>ErrThr1>ErrThr2
+ * ufix<31, 28>
  */
 #define MMC_COEF_TRG_CFG_ERR_THR_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_COEF_TRG_CFG_ERR_THR_VAL_SHIFT (0U)
@@ -935,7 +949,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * P0_Coef
+ * P0_Coef, fix<32, 15>
  */
 #define MMC_COEF_TRG_CFG_P_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_COEF_TRG_CFG_P_VAL_SHIFT (0U)
@@ -946,7 +960,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * I0_Coef
+ * I0_Coef, fix<32, 21>
  */
 #define MMC_COEF_TRG_CFG_I_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_COEF_TRG_CFG_I_VAL_SHIFT (0U)
@@ -957,7 +971,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * A0_Coef
+ * A0_Coef，fix<32, 19>
  */
 #define MMC_COEF_TRG_CFG_A_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_COEF_TRG_CFG_A_VAL_SHIFT (0U)
@@ -968,7 +982,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * CoefTime0: Time Stayed using this coefs (counted in input samples). Ideal value of tracing cycles should +1
+ * CoefTime0: Time Stayed using this coefs (counted in input samples). Ideal value of tracing cycles should +1. ufix<32,0>
  */
 #define MMC_COEF_TRG_CFG_TIME_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_COEF_TRG_CFG_TIME_VAL_SHIFT (0U)
@@ -1141,7 +1155,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * U32:0, time offset incycles from the trigger time
+ * ufix<32, 0> time offset incycles from the trigger time
  */
 #define MMC_BR_BR_TIMEOFF_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_TIMEOFF_VAL_SHIFT (0U)
@@ -1152,7 +1166,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * U32:0, time offset incycles between each trigger time
+ * uifx<32, 0>, time offset incycles between each trigger time
  */
 #define MMC_BR_BR_TRG_PERIOD_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_TRG_PERIOD_VAL_SHIFT (0U)
@@ -1163,7 +1177,7 @@ typedef struct {
 /*
  * VAL (RW)
  *
- * U32:0, the time for the first trigger
+ * uifx<32, 0> the time for the first trigger
  */
 #define MMC_BR_BR_TRG_F_TIME_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_TRG_F_TIME_VAL_SHIFT (0U)
@@ -1259,6 +1273,7 @@ typedef struct {
  * VAL (RW)
  *
  * For pos out trigger (pos).
+ * ufix<32, 32>
  */
 #define MMC_BR_BR_TRG_POS_THR_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_TRG_POS_THR_VAL_SHIFT (0U)
@@ -1270,6 +1285,7 @@ typedef struct {
  * VAL (RW)
  *
  * For pos out trigger (rev)
+ * ufix<32, 0>
  */
 #define MMC_BR_BR_TRG_REV_THR_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_TRG_REV_THR_VAL_SHIFT (0U)
@@ -1313,6 +1329,7 @@ typedef struct {
  * VAL (RW)
  *
  * For speed trigger.
+ * continuous mode: fix<32, 19>
  */
 #define MMC_BR_BR_TRG_SPEED_THR_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_TRG_SPEED_THR_VAL_SHIFT (0U)
@@ -1336,6 +1353,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * ufix<32, 32>
  */
 #define MMC_BR_BR_INI_POS_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_INI_POS_VAL_SHIFT (0U)
@@ -1347,6 +1365,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * ufix<32, 0>
  */
 #define MMC_BR_BR_INI_REV_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_INI_REV_VAL_SHIFT (0U)
@@ -1358,6 +1377,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * fix<32, 19>
  */
 #define MMC_BR_BR_INI_SPEED_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_INI_SPEED_VAL_SHIFT (0U)
@@ -1369,6 +1389,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * continuous mode: fix<32, 19>
  */
 #define MMC_BR_BR_INI_ACCEL_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_INI_ACCEL_VAL_SHIFT (0U)
@@ -1392,6 +1413,7 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * continuous mode: ufix<32, 32>
  */
 #define MMC_BR_BR_INI_DELTA_POS_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_INI_DELTA_POS_VAL_SHIFT (0U)
@@ -1403,11 +1425,36 @@ typedef struct {
  * VAL (RW)
  *
  * the value
+ * continuous mode: fix<32, 0>
  */
 #define MMC_BR_BR_INI_DELTA_REV_VAL_MASK (0xFFFFFFFFUL)
 #define MMC_BR_BR_INI_DELTA_REV_VAL_SHIFT (0U)
 #define MMC_BR_BR_INI_DELTA_REV_VAL_SET(x) (((uint32_t)(x) << MMC_BR_BR_INI_DELTA_REV_VAL_SHIFT) & MMC_BR_BR_INI_DELTA_REV_VAL_MASK)
 #define MMC_BR_BR_INI_DELTA_REV_VAL_GET(x) (((uint32_t)(x) & MMC_BR_BR_INI_DELTA_REV_VAL_MASK) >> MMC_BR_BR_INI_DELTA_REV_VAL_SHIFT)
+
+/* Bitfield definition for register of struct array BR: BR_INI_DELTA_SPEED */
+/*
+ * VAL (RW)
+ *
+ * the value
+ * continuous mode: fix<32, 19>
+ */
+#define MMC_BR_BR_INI_DELTA_SPEED_VAL_MASK (0xFFFFFFFFUL)
+#define MMC_BR_BR_INI_DELTA_SPEED_VAL_SHIFT (0U)
+#define MMC_BR_BR_INI_DELTA_SPEED_VAL_SET(x) (((uint32_t)(x) << MMC_BR_BR_INI_DELTA_SPEED_VAL_SHIFT) & MMC_BR_BR_INI_DELTA_SPEED_VAL_MASK)
+#define MMC_BR_BR_INI_DELTA_SPEED_VAL_GET(x) (((uint32_t)(x) & MMC_BR_BR_INI_DELTA_SPEED_VAL_MASK) >> MMC_BR_BR_INI_DELTA_SPEED_VAL_SHIFT)
+
+/* Bitfield definition for register of struct array BR: BR_INI_DELTA_ACCEL */
+/*
+ * VAL (RW)
+ *
+ * the value
+ * continuous mode: fix<32, 19>
+ */
+#define MMC_BR_BR_INI_DELTA_ACCEL_VAL_MASK (0xFFFFFFFFUL)
+#define MMC_BR_BR_INI_DELTA_ACCEL_VAL_SHIFT (0U)
+#define MMC_BR_BR_INI_DELTA_ACCEL_VAL_SET(x) (((uint32_t)(x) << MMC_BR_BR_INI_DELTA_ACCEL_VAL_SHIFT) & MMC_BR_BR_INI_DELTA_ACCEL_VAL_MASK)
+#define MMC_BR_BR_INI_DELTA_ACCEL_VAL_GET(x) (((uint32_t)(x) & MMC_BR_BR_INI_DELTA_ACCEL_VAL_MASK) >> MMC_BR_BR_INI_DELTA_ACCEL_VAL_SHIFT)
 
 /* Bitfield definition for register of struct array BR: BR_CUR_POS_TIME */
 /*

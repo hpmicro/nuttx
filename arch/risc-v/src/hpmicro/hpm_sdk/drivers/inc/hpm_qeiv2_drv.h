@@ -32,16 +32,6 @@
 #define QEIV2_EVENT_FAULT_FLAG_MASK             (1U << 18U) /**< fault flag */
 
 /**
- * @brief qeiv2 uvw position selection
- *
- */
-#define QEIV2_UVW_OPT_0_POS_SEL_LOW                  0u
-#define QEIV2_UVW_OPT_0_POS_SEL_HIGH                 1u
-#define QEIV2_UVW_OPT_0_POS_SEL_EDGE                 2u
-#define QEIV2_UVW_OPT_1_POS_SEL_LOW                  0u
-#define QEIV2_UVW_OPT_1_POS_SEL_HIGH                 3u
-
-/**
  * @brief qeiv2 work mode
  *
  */
@@ -63,6 +53,24 @@ typedef enum qeiv2_spd_tmr_content {
     qeiv2_spd_tmr_as_spd_tm    = 0, /**< spd and timer register as spd and time */
     qeiv2_spd_tmr_as_pos_angle = 1, /**< spd and timer register as position and angle */
 } qeiv2_spd_tmr_content_t;
+
+/**
+ * @brief compare match rotate direction
+ *
+ */
+typedef enum qeiv2_rotate_dir {
+    qeiv2_rotate_dir_forward = 0,
+    qeiv2_rotate_dir_reverse = 1,
+} qeiv2_rotate_dir_t;     /**< compare match rotate direction */
+
+/**
+ * @brief compare match position direction
+ *
+ */
+typedef enum qeiv2_position_dir {
+    qeiv2_pos_dir_decrease = 0,
+    qeiv2_pos_dir_increase = 1,
+} qeiv2_position_dir_t;     /**< compare match position direction */
 
 /**
  * @brief counting mode of Z-phase counter
@@ -97,14 +105,84 @@ typedef enum qeiv2_filter_mode {
 } qeiv2_filter_mode_t;
 
 /**
+ * @brief filter type
+ *
+ */
+typedef enum qeiv2_filter_phase {
+    qeiv2_filter_phase_a = 0, /**< filter phase a */
+    qeiv2_filter_phase_b,     /**< filter phase b */
+    qeiv2_filter_phase_z,     /**< filter phase z */
+    qeiv2_filter_phase_h,     /**< filter phase h */
+    qeiv2_filter_phase_h2,    /**< filter phase h2 */
+    qeiv2_filter_phase_f,     /**< filter phase f */
+} qeiv2_filter_phase_t;       /**< qeiv2_filter_phase_t */
+
+/**
  * @brief uvw position option
  *
  */
 typedef enum qeiv2_uvw_pos_opt {
-    qeiv2_uvw_opt_0_mmc = 0,   /**< output exact point position for MMC use */
-    qeiv2_uvw_opt_1_qeo,       /**< output next area position for QEO use */
+    qeiv2_uvw_pos_opt_current = 0,   /**< output exact point position, MMC use this */
+    qeiv2_uvw_pos_opt_next,          /**< output next area position, QEO use this */
 } qeiv2_uvw_pos_opt_t;
 
+typedef enum qeiv2_uvw_pos_sel {
+    qeiv2_uvw_pos_sel_low = 0,
+    qeiv2_uvw_pos_sel_high,
+    qeiv2_uvw_pos_sel_edge
+} qeiv2_uvw_pos_sel_t;       /**< qeiv2_uvw_pos_sel_t */
+
+/**
+ * @brief qeiv2 uvw position selection
+ *
+ */
+#define QEIV2_UVW_POS_OPT_CUR_SEL_LOW                  0u
+#define QEIV2_UVW_POS_OPT_CUR_SEL_HIGH                 1u
+#define QEIV2_UVW_POS_OPT_CUR_SEL_EDGE                 2u
+#define QEIV2_UVW_POS_OPT_NEX_SEL_LOW                  0u
+#define QEIV2_UVW_POS_OPT_NEX_SEL_HIGH                 3u
+
+typedef enum qeiv2_uvw_pos_idx {
+    qeiv2_uvw_pos0 = 0,
+    qeiv2_uvw_pos1,
+    qeiv2_uvw_pos2,
+    qeiv2_uvw_pos3,
+    qeiv2_uvw_pos4,
+    qeiv2_uvw_pos5,
+} qeiv2_uvw_pos_idx_t;       /**< qeiv2_uvw_pos_idx_t */
+
+/**
+ * @brief phase counter compare match config structure
+ *
+ */
+typedef struct {
+    uint32_t phcnt_cmp_value;
+    bool ignore_rotate_dir;
+    qeiv2_rotate_dir_t rotate_dir;
+    bool ignore_zcmp;
+    uint32_t zcmp_value;
+} qeiv2_phcnt_cmp_match_config_t;
+
+/**
+ * @brief position compare match config structure
+ *
+ */
+typedef struct {
+    uint32_t pos_cmp_value;
+    bool ignore_pos_dir;
+    qeiv2_position_dir_t pos_dir;
+} qeiv2_pos_cmp_match_config_t;
+
+/**
+ * @brief uvw config structure
+ */
+typedef struct {
+    qeiv2_uvw_pos_opt_t pos_opt;
+    qeiv2_uvw_pos_sel_t u_pos_sel[6];
+    qeiv2_uvw_pos_sel_t v_pos_sel[6];
+    qeiv2_uvw_pos_sel_t w_pos_sel[6];
+    uint32_t pos_cfg[6];
+} qeiv2_uvw_config_t;
 
 /**
  * @brief adc config structure
@@ -177,17 +255,19 @@ static inline void qeiv2_config_phmax_phparam(QEIV2_Type *qeiv2_x, uint32_t phma
  */
 static inline void qeiv2_config_z_phase_calibration(QEIV2_Type *qeiv2_x, uint32_t phidx, bool enable, qeiv2_work_mode_t mode)
 {
+    uint32_t tmp = qeiv2_x->CR;
     qeiv2_x->PHIDX = QEIV2_PHIDX_PHIDX_SET(phidx);
     if (enable) {
-        qeiv2_x->CR |= QEIV2_CR_PHCALIZ_MASK;
+        tmp |= QEIV2_CR_PHCALIZ_MASK;
     } else {
-        qeiv2_x->CR &= ~QEIV2_CR_PHCALIZ_MASK;
+        tmp &= ~QEIV2_CR_PHCALIZ_MASK;
     }
     if (enable && ((mode == qeiv2_work_mode_sin) || (mode == qeiv2_work_mode_sincos))) {
-        qeiv2_x->CR |= QEIV2_CR_Z_ONLY_EN_MASK;
+        tmp |= QEIV2_CR_Z_ONLY_EN_MASK;
     } else {
-        qeiv2_x->CR &= ~QEIV2_CR_Z_ONLY_EN_MASK;
+        tmp &= ~QEIV2_CR_Z_ONLY_EN_MASK;
     }
+    qeiv2_x->CR = tmp;
 }
 
 /**
@@ -277,6 +357,17 @@ static inline void qeiv2_select_spd_tmr_register_content(QEIV2_Type *qeiv2_x, qe
 }
 
 /**
+ * @brief check spd and tmr register content as pos and angle
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @return true if spd and timer register as pos and angle register
+ */
+static inline bool qeiv2_check_spd_tmr_as_pos_angle(QEIV2_Type *qeiv2_x)
+{
+    return ((qeiv2_x->CR & QEIV2_CR_RD_SEL_MASK) != 0) ? true : false;
+}
+
+/**
  * @brief set qeiv2 work mode
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
@@ -299,12 +390,14 @@ static inline void qeiv2_set_work_mode(QEIV2_Type *qeiv2_x, qeiv2_work_mode_t mo
  */
 static inline void qeiv2_config_wdog(QEIV2_Type *qeiv2_x, uint32_t timeout, uint8_t clr_phcnt, bool enable)
 {
-    qeiv2_x->WDGCFG = QEIV2_WDGCFG_WDGTO_SET(timeout) | QEIV2_WDGCFG_WDOG_CFG_SET(clr_phcnt);
+    uint32_t tmp;
+    tmp = QEIV2_WDGCFG_WDGTO_SET(timeout) | QEIV2_WDGCFG_WDOG_CFG_SET(clr_phcnt);
     if (enable) {
-        qeiv2_x->WDGCFG |= QEIV2_WDGCFG_WDGEN_MASK;
+        tmp |= QEIV2_WDGCFG_WDGEN_MASK;
     } else {
-        qeiv2_x->WDGCFG &= ~QEIV2_WDGCFG_WDGEN_MASK;
+        tmp &= ~QEIV2_WDGCFG_WDGEN_MASK;
     }
+    qeiv2_x->WDGCFG = tmp;
 }
 
 /**
@@ -596,6 +689,51 @@ static inline uint32_t qeiv2_get_current_count(QEIV2_Type *qeiv2_x, qeiv2_counte
 }
 
 /**
+ * @brief get current phcnt value
+ *
+ * @param qeiv2_x QEI base address, HPM_QEIx(x=0...n)
+ * @return phcnt value 
+ */
+static inline uint32_t qeiv2_get_current_phase_phcnt(QEIV2_Type *qeiv2_x)
+{
+    return QEIV2_COUNT_PH_PHCNT_GET(qeiv2_get_current_count(qeiv2_x, qeiv2_counter_type_phase));
+}
+
+/**
+ * @brief get current a phase level
+ *
+ * @param qeiv2_x QEI base address, HPM_QEIx(x=0...n)
+ * @return a phase level
+ */
+static inline bool qeiv2_get_current_phase_a_level(QEIV2_Type *qeiv2_x)
+{
+    return QEIV2_COUNT_PH_ASTAT_GET(qeiv2_get_current_count(qeiv2_x, qeiv2_counter_type_phase));
+}
+
+/**
+ * @brief get current b phase level
+ *
+ * @param qeiv2_x QEI base address, HPM_QEIx(x=0...n)
+ * @return b phase level
+ */
+static inline bool qeiv2_get_current_phase_b_level(QEIV2_Type *qeiv2_x)
+{
+    return QEIV2_COUNT_PH_BSTAT_GET(qeiv2_get_current_count(qeiv2_x, qeiv2_counter_type_phase));
+}
+
+/**
+ * @brief get current phase dir
+ *
+ * @param qeiv2_x QEI base address, HPM_QEIx(x=0...n)
+ * @return dir
+ */
+static inline bool qeiv2_get_current_phase_dir(QEIV2_Type *qeiv2_x)
+{
+    return QEIV2_COUNT_PH_DIR_GET(qeiv2_get_current_count(qeiv2_x, qeiv2_counter_type_phase));
+}
+
+
+/**
  * @brief get read event count value
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
@@ -648,7 +786,7 @@ static inline void qeiv2_set_z_cmp_value(QEIV2_Type *qeiv2_x, uint32_t cmp)
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] cmp phcnt compare value
  */
-static inline void qeiv2_set_phase_cmp_value(QEIV2_Type *qeiv2_x, uint32_t cmp)
+static inline void qeiv2_set_phcnt_cmp_value(QEIV2_Type *qeiv2_x, uint32_t cmp)
 {
     qeiv2_x->PHCMP = QEIV2_PHCMP_PHCMP_SET(cmp);
 }
@@ -658,6 +796,8 @@ static inline void qeiv2_set_phase_cmp_value(QEIV2_Type *qeiv2_x, uint32_t cmp)
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] cmp spdcnt or position compare value
+ *  when set @ref qeiv2_spd_tmr_as_spd_tm, this is spdcmp value. (ABZ encoder)
+ *  when set @ref qeiv2_spd_tmr_as_pos_angle, this is poscmp value. (sin or sincos encoder)
  */
 static inline void qeiv2_set_spd_pos_cmp_value(QEIV2_Type *qeiv2_x, uint32_t cmp)
 {
@@ -671,21 +811,23 @@ static inline void qeiv2_set_spd_pos_cmp_value(QEIV2_Type *qeiv2_x, uint32_t cmp
  * @param[in] ignore_zcmp ignore zcmp
  * @param[in] ignore_phcmp ignore phcmp
  * @param[in] ignore_spdposcmp ignore spdposcmp
- * @param[in] ignore_dir ignore encoder rotation direction. (ABZ encoder)
- * @param[in] reverse_dir match reverse rotation direction. (ABZ encoder)
+ *  when set @ref qeiv2_spd_tmr_as_spd_tm, this is spdcmp value. (ABZ encoder)
+ *  when set @ref qeiv2_spd_tmr_as_pos_angle, this is poscmp value. (sin or sincos encoder)
+ * @param[in] ignore_rotate_dir ignore encoder rotation direction. (ABZ encoder)
+ * @param[in] rotate_dir when don't ignore rotation direction, match rotation direction. @ref qeiv2_rotate_dir_t. (ABZ encoder)
  * @param[in] ignore_pos_dir ignore position increase or decrease direction. (sin or sincos encoder)
- * @param[in] pos_inc_dir when don't ignore position direction, match position direction. (sin or sincos encoder)
+ * @param[in] pos_dir when don't ignore position direction, match position direction. @ref qeiv2_position_dir_t. (sin or sincos encoder)
  */
-static inline void qeiv2_config_cmp_match_option(QEIV2_Type *qeiv2_x, bool ignore_zcmp, bool ignore_phcmp, bool ignore_spdposcmp,
-                                                                      bool ignore_dir, bool reverse_dir, bool ignore_pos_dir, bool pos_inc_dir)
+static inline void qeiv2_set_cmp_match_option(QEIV2_Type *qeiv2_x, bool ignore_zcmp, bool ignore_phcmp, bool ignore_spdposcmp,
+                                        bool ignore_rotate_dir, qeiv2_rotate_dir_t rotate_dir, bool ignore_pos_dir, qeiv2_position_dir_t pos_dir)
 {
-    qeiv2_x->MATCH_CFG &= ~(QEIV2_MATCH_CFG_ZCMPDIS_MASK | QEIV2_MATCH_CFG_PHASE_MATCH_DIS_MASK | QEIV2_MATCH_CFG_SPDCMPDIS_MASK
-                          | QEIV2_MATCH_CFG_DIRCMPDIS_MASK | QEIV2_MATCH_CFG_DIRCMP_MASK
-                          | QEIV2_MATCH_CFG_POS_MATCH_OPT_MASK | QEIV2_MATCH_CFG_POS_MATCH_DIR_MASK);
-    qeiv2_x->MATCH_CFG |= QEIV2_MATCH_CFG_ZCMPDIS_SET(ignore_zcmp) | QEIV2_MATCH_CFG_PHASE_MATCH_DIS_SET(ignore_phcmp)
+    qeiv2_x->MATCH_CFG = (qeiv2_x->MATCH_CFG & (~(QEIV2_MATCH_CFG_ZCMPDIS_MASK | QEIV2_MATCH_CFG_PHASE_MATCH_DIS_MASK | QEIV2_MATCH_CFG_SPDCMPDIS_MASK
+                                                | QEIV2_MATCH_CFG_DIRCMPDIS_MASK | QEIV2_MATCH_CFG_DIRCMP_MASK
+                                                | QEIV2_MATCH_CFG_POS_MATCH_OPT_MASK | QEIV2_MATCH_CFG_POS_MATCH_DIR_MASK)))
+                        | QEIV2_MATCH_CFG_ZCMPDIS_SET(ignore_zcmp) | QEIV2_MATCH_CFG_PHASE_MATCH_DIS_SET(ignore_phcmp)
                         | QEIV2_MATCH_CFG_SPDCMPDIS_SET(ignore_spdposcmp)
-                        | QEIV2_MATCH_CFG_DIRCMPDIS_SET(ignore_dir) | QEIV2_MATCH_CFG_DIRCMP_SET(reverse_dir)
-                        | QEIV2_MATCH_CFG_POS_MATCH_OPT_SET(!ignore_pos_dir) | QEIV2_MATCH_CFG_POS_MATCH_DIR_SET(pos_inc_dir);
+                        | QEIV2_MATCH_CFG_DIRCMPDIS_SET(ignore_rotate_dir) | QEIV2_MATCH_CFG_DIRCMP_SET(rotate_dir)
+                        | QEIV2_MATCH_CFG_POS_MATCH_OPT_SET(!ignore_pos_dir) | QEIV2_MATCH_CFG_POS_MATCH_DIR_SET(pos_dir);
 }
 
 /**
@@ -705,7 +847,7 @@ static inline void qeiv2_set_z_cmp2_value(QEIV2_Type *qeiv2_x, uint32_t cmp)
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] cmp phcnt compare2 value
  */
-static inline void qeiv2_set_phase_cmp2_value(QEIV2_Type *qeiv2_x, uint32_t cmp)
+static inline void qeiv2_set_phcnt_cmp2_value(QEIV2_Type *qeiv2_x, uint32_t cmp)
 {
     qeiv2_x->PHCMP2 = QEIV2_PHCMP2_PHCMP2_SET(cmp);
 }
@@ -727,22 +869,24 @@ static inline void qeiv2_set_spd_pos_cmp2_value(QEIV2_Type *qeiv2_x, uint32_t cm
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] ignore_zcmp ignore zcmp
  * @param[in] ignore_phcmp ignore phcmp
- * @param[in] ignore_spdposcmp ignore spdposcmp
- * @param[in] ignore_dir ignore encoder rotation direction. (ABZ encoder)
- * @param[in] reverse_dir match reverse rotation direction. (ABZ encoder)
+ * @param[in] ignore_spdposcmp ignore spdposcmp.
+ *  when set @ref qeiv2_spd_tmr_as_spd_tm, this is spdcmp value. (ABZ encoder)
+ *  when set @ref qeiv2_spd_tmr_as_pos_angle, this is poscmp value. (sin or sincos encoder)
+ * @param[in] ignore_rotate_dir ignore encoder rotation direction. (ABZ encoder)
+ * @param[in] rotate_dir when don't ignore rotation direction, match rotation direction. @ref qeiv2_rotate_dir_t. (ABZ encoder)
  * @param[in] ignore_pos_dir ignore position increase or decrease direction. (sin or sincos encoder)
- * @param[in] pos_inc_dir when don't ignore position direction, match position direction. (sin or sincos encoder)
+ * @param[in] pos_dir when don't ignore position direction, match position direction. @ref qeiv2_position_dir_t. (sin or sincos encoder)
  */
-static inline void qeiv2_config_cmp2_match_option(QEIV2_Type *qeiv2_x, bool ignore_zcmp, bool ignore_phcmp, bool ignore_spdposcmp,
-                                                                       bool ignore_dir, bool reverse_dir, bool ignore_pos_dir, bool pos_inc_dir)
+static inline void qeiv2_set_cmp2_match_option(QEIV2_Type *qeiv2_x, bool ignore_zcmp, bool ignore_phcmp, bool ignore_spdposcmp,
+                                        bool ignore_rotate_dir, qeiv2_rotate_dir_t rotate_dir, bool ignore_pos_dir, qeiv2_position_dir_t pos_dir)
 {
-    qeiv2_x->MATCH_CFG &= ~(QEIV2_MATCH_CFG_ZCMP2DIS_MASK | QEIV2_MATCH_CFG_PHASE_MATCH_DIS2_MASK | QEIV2_MATCH_CFG_SPDCMP2DIS_MASK
-                          | QEIV2_MATCH_CFG_DIRCMP2DIS_MASK | QEIV2_MATCH_CFG_DIRCMP2_MASK
-                          | QEIV2_MATCH_CFG_POS_MATCH2_OPT_MASK | QEIV2_MATCH_CFG_POS_MATCH2_DIR_MASK);
-    qeiv2_x->MATCH_CFG |= QEIV2_MATCH_CFG_ZCMP2DIS_SET(ignore_zcmp) | QEIV2_MATCH_CFG_PHASE_MATCH_DIS2_SET(ignore_phcmp)
+    qeiv2_x->MATCH_CFG = (qeiv2_x->MATCH_CFG & ~(QEIV2_MATCH_CFG_ZCMP2DIS_MASK | QEIV2_MATCH_CFG_PHASE_MATCH_DIS2_MASK | QEIV2_MATCH_CFG_SPDCMP2DIS_MASK
+                                               | QEIV2_MATCH_CFG_DIRCMP2DIS_MASK | QEIV2_MATCH_CFG_DIRCMP2_MASK
+                                               | QEIV2_MATCH_CFG_POS_MATCH2_OPT_MASK | QEIV2_MATCH_CFG_POS_MATCH2_DIR_MASK))
+                        | QEIV2_MATCH_CFG_ZCMP2DIS_SET(ignore_zcmp) | QEIV2_MATCH_CFG_PHASE_MATCH_DIS2_SET(ignore_phcmp)
                         | QEIV2_MATCH_CFG_SPDCMP2DIS_SET(ignore_spdposcmp)
-                        | QEIV2_MATCH_CFG_DIRCMP2DIS_SET(ignore_dir) | QEIV2_MATCH_CFG_DIRCMP2_SET(reverse_dir)
-                        | QEIV2_MATCH_CFG_POS_MATCH2_OPT_SET(!ignore_pos_dir) | QEIV2_MATCH_CFG_POS_MATCH2_DIR_SET(pos_inc_dir);
+                        | QEIV2_MATCH_CFG_DIRCMP2DIS_SET(ignore_rotate_dir) | QEIV2_MATCH_CFG_DIRCMP2_SET(rotate_dir)
+                        | QEIV2_MATCH_CFG_POS_MATCH2_OPT_SET(!ignore_pos_dir) | QEIV2_MATCH_CFG_POS_MATCH2_DIR_SET(pos_dir);
 }
 
 /**
@@ -750,20 +894,15 @@ static inline void qeiv2_config_cmp2_match_option(QEIV2_Type *qeiv2_x, bool igno
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] idx filter index
- *  @arg @ref QEIV2_FILT_CFG_FILT_CFG_A
- *  @arg @ref QEIV2_FILT_CFG_FILT_CFG_B
- *  @arg @ref QEIV2_FILT_CFG_FILT_CFG_Z
- *  @arg @ref QEIV2_FILT_CFG_FILT_CFG_H
- *  @arg @ref QEIV2_FILT_CFG_FILT_CFG_H2
- *  @arg @ref QEIV2_FILT_CFG_FILT_CFG_F
+ *  @arg @ref qeiv2_filter_phase_t
  * @param[in] outinv Filter will invert the output
  * @param[in] mode qeiv2_filter_mode_t
  * @param[in] sync set to enable sychronization input signal with TRGM clock
  * @param[in] filtlen defines the filter counter length.
  */
-static inline void qeiv2_config_filter(QEIV2_Type *qeiv2_x, uint8_t idx, bool outinv, qeiv2_filter_mode_t mode, bool sync, uint16_t filtlen)
+static inline void qeiv2_config_filter(QEIV2_Type *qeiv2_x, qeiv2_filter_phase_t phase, bool outinv, qeiv2_filter_mode_t mode, bool sync, uint16_t filtlen)
 {
-    qeiv2_x->FILT_CFG[idx] =
+    qeiv2_x->FILT_CFG[phase] =
         QEIV2_FILT_CFG_OUTINV_SET(outinv) | QEIV2_FILT_CFG_MODE_SET(mode) | QEIV2_FILT_CFG_SYNCEN_SET(sync) | QEIV2_FILT_CFG_FILTLEN_SET(filtlen);
 }
 
@@ -779,10 +918,10 @@ static inline void qeiv2_config_filter(QEIV2_Type *qeiv2_x, uint8_t idx, bool ou
  */
 static inline void qeiv2_config_abz_uvw_signal_edge(QEIV2_Type *qeiv2_x, bool siga_en, bool sigb_en, bool sigz_en, bool posedge_en, bool negedge_en)
 {
-    qeiv2_x->QEI_CFG &= ~(QEIV2_QEI_CFG_SIGA_EN_MASK | QEIV2_QEI_CFG_SIGB_EN_MASK | QEIV2_QEI_CFG_SIGZ_EN_MASK
-                       | QEIV2_QEI_CFG_POSIDGE_EN_MASK | QEIV2_QEI_CFG_NEGEDGE_EN_MASK);
-    qeiv2_x->QEI_CFG |= (QEIV2_QEI_CFG_SIGA_EN_SET(siga_en) | QEIV2_QEI_CFG_SIGB_EN_SET(sigb_en) | QEIV2_QEI_CFG_SIGZ_EN_SET(sigz_en)
-                       | QEIV2_QEI_CFG_POSIDGE_EN_SET(posedge_en) | QEIV2_QEI_CFG_NEGEDGE_EN_SET(negedge_en));
+    qeiv2_x->QEI_CFG = (qeiv2_x->QEI_CFG & ~(QEIV2_QEI_CFG_SIGA_EN_MASK | QEIV2_QEI_CFG_SIGB_EN_MASK | QEIV2_QEI_CFG_SIGZ_EN_MASK
+                                           | QEIV2_QEI_CFG_POSIDGE_EN_MASK | QEIV2_QEI_CFG_NEGEDGE_EN_MASK))
+                     | (QEIV2_QEI_CFG_SIGA_EN_SET(siga_en) | QEIV2_QEI_CFG_SIGB_EN_SET(sigb_en) | QEIV2_QEI_CFG_SIGZ_EN_SET(sigz_en)
+                     | QEIV2_QEI_CFG_POSIDGE_EN_SET(posedge_en) | QEIV2_QEI_CFG_NEGEDGE_EN_SET(negedge_en));
 }
 
 /**
@@ -791,7 +930,7 @@ static inline void qeiv2_config_abz_uvw_signal_edge(QEIV2_Type *qeiv2_x, bool si
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] pulse_num for speed detection, will count the cycle number for configed pulse_num
  */
-static inline void qeiv2_set_pulse0_value(QEIV2_Type *qeiv2_x, uint32_t pulse_num)
+static inline void qeiv2_set_pulse0_num(QEIV2_Type *qeiv2_x, uint32_t pulse_num)
 {
     qeiv2_x->PULSE0_NUM = QEIV2_PULSE0_NUM_PULSE0_NUM_SET(pulse_num);
 }
@@ -824,7 +963,7 @@ static inline uint32_t qeiv2_get_pulse0_cycle_snap1(QEIV2_Type *qeiv2_x)
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] pulse_num for speed detection, will count the cycle number for configed pulse_num
  */
-static inline void qeiv2_set_pulse1_value(QEIV2_Type *qeiv2_x, uint32_t pulse_num)
+static inline void qeiv2_set_pulse1_num(QEIV2_Type *qeiv2_x, uint32_t pulse_num)
 {
     qeiv2_x->PULSE1_NUM = QEIV2_PULSE1_NUM_PULSE1_NUM_SET(pulse_num);
 }
@@ -857,7 +996,7 @@ static inline uint32_t qeiv2_get_pulse1_cycle_snap1(QEIV2_Type *qeiv2_x)
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] cycle_num for speed detection, will count the pulse number for configed cycle_num
  */
-static inline void qeiv2_set_cycle0_value(QEIV2_Type *qeiv2_x, uint32_t cycle_num)
+static inline void qeiv2_set_cycle0_num(QEIV2_Type *qeiv2_x, uint32_t cycle_num)
 {
     qeiv2_x->CYCLE0_NUM = QEIV2_CYCLE0_NUM_CYCLE0_NUM_SET(cycle_num);
 }
@@ -912,7 +1051,7 @@ static inline uint32_t qeiv2_get_cycle0_pulse0cycle_snap1(QEIV2_Type *qeiv2_x)
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] cycle_num for speed detection, will count the pulse number for configed cycle_num
  */
-static inline void qeiv2_set_cycle1_value(QEIV2_Type *qeiv2_x, uint32_t cycle_num)
+static inline void qeiv2_set_cycle1_num(QEIV2_Type *qeiv2_x, uint32_t cycle_num)
 {
     qeiv2_x->CYCLE1_NUM = QEIV2_CYCLE1_NUM_CYCLE1_NUM_SET(cycle_num);
 }
@@ -984,14 +1123,16 @@ static inline void qeiv2_clear_counter_when_dir_chg(QEIV2_Type *qeiv2_x, bool en
  */
 static inline void qeiv2_config_adcx(QEIV2_Type *qeiv2_x, qeiv2_adc_config_t *config, bool enable)
 {
-    qeiv2_x->ADCX_CFG0 = QEIV2_ADCX_CFG0_X_ADCSEL_SET(config->adc_select) | QEIV2_ADCX_CFG0_X_CHAN_SET(config->adc_channel);
+    uint32_t tmp;
+    tmp = QEIV2_ADCX_CFG0_X_ADCSEL_SET(config->adc_select) | QEIV2_ADCX_CFG0_X_CHAN_SET(config->adc_channel);
     qeiv2_x->ADCX_CFG1 = QEIV2_ADCX_CFG1_X_PARAM1_SET(config->param1) | QEIV2_ADCX_CFG1_X_PARAM0_SET(config->param0);
     qeiv2_x->ADCX_CFG2 = QEIV2_ADCX_CFG2_X_OFFSET_SET(config->offset);
     if (enable) {
-        qeiv2_x->ADCX_CFG0 |= QEIV2_ADCX_CFG0_X_ADC_ENABLE_MASK;
+        tmp |= QEIV2_ADCX_CFG0_X_ADC_ENABLE_MASK;
     } else {
-        qeiv2_x->ADCX_CFG0 &= ~QEIV2_ADCX_CFG0_X_ADC_ENABLE_MASK;
+        tmp &= ~QEIV2_ADCX_CFG0_X_ADC_ENABLE_MASK;
     }
+    qeiv2_x->ADCX_CFG0 = tmp;
 }
 
 /**
@@ -1002,14 +1143,16 @@ static inline void qeiv2_config_adcx(QEIV2_Type *qeiv2_x, qeiv2_adc_config_t *co
  */
 static inline void qeiv2_config_adcy(QEIV2_Type *qeiv2_x, qeiv2_adc_config_t *config, bool enable)
 {
-    qeiv2_x->ADCY_CFG0 = QEIV2_ADCY_CFG0_Y_ADCSEL_SET(config->adc_select) | QEIV2_ADCY_CFG0_Y_CHAN_SET(config->adc_channel);
+    uint32_t tmp;
+    tmp = QEIV2_ADCY_CFG0_Y_ADCSEL_SET(config->adc_select) | QEIV2_ADCY_CFG0_Y_CHAN_SET(config->adc_channel);
     qeiv2_x->ADCY_CFG1 = QEIV2_ADCY_CFG1_Y_PARAM1_SET(config->param1) | QEIV2_ADCY_CFG1_Y_PARAM0_SET(config->param0);
     qeiv2_x->ADCY_CFG2 = QEIV2_ADCY_CFG2_Y_OFFSET_SET(config->offset);
     if (enable) {
-        qeiv2_x->ADCY_CFG0 |= QEIV2_ADCY_CFG0_Y_ADC_ENABLE_MASK;
+        tmp |= QEIV2_ADCY_CFG0_Y_ADC_ENABLE_MASK;
     } else {
-        qeiv2_x->ADCY_CFG0 &= ~QEIV2_ADCY_CFG0_Y_ADC_ENABLE_MASK;
+        tmp &= ~QEIV2_ADCY_CFG0_Y_ADC_ENABLE_MASK;
     }
+    qeiv2_x->ADCY_CFG0 = tmp;
 }
 
 /**
@@ -1051,28 +1194,40 @@ static inline void qeiv2_set_uvw_position_opt(QEIV2_Type *qeiv2_x, qeiv2_uvw_pos
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] idx uvw position config index
- *  @arg @ref QEIV2_UVW_POS_CFG_UVW_POS0_CFG
- *  @arg @ref QEIV2_UVW_POS_CFG_UVW_POS1_CFG
- *  @arg @ref QEIV2_UVW_POS_CFG_UVW_POS2_CFG
- *  @arg @ref QEIV2_UVW_POS_CFG_UVW_POS3_CFG
- *  @arg @ref QEIV2_UVW_POS_CFG_UVW_POS4_CFG
- *  @arg @ref QEIV2_UVW_POS_CFG_UVW_POS5_CFG
- * @param[in] u_pos_sel U position selection
- * @param[in] v_pos_sel V position selection
- * @param[in] w_pos_sel W position selection
+ *  @arg @ref qeiv2_uvw_pos_idx_t
+ * @param[in] u_pos_sel U position selection based by uvw position option
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_LOW
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_HIGH
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_EDGE
+ *  @arg @ref QEIV2_UVW_POS_OPT_NEX_SEL_LOW
+ *  @arg @ref QEIV2_UVW_POS_OPT_NEX_SEL_HIGH
+ * @param[in] v_pos_sel V position selection based by uvw position option
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_LOW
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_HIGH
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_EDGE
+ *  @arg @ref QEIV2_UVW_POS_OPT_NEX_SEL_LOW
+ *  @arg @ref QEIV2_UVW_POS_OPT_NEX_SEL_HIGH
+ * @param[in] w_pos_sel W position selection based by uvw position option
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_LOW
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_HIGH
+ *  @arg @ref QEIV2_UVW_POS_OPT_CUR_SEL_EDGE
+ *  @arg @ref QEIV2_UVW_POS_OPT_NEX_SEL_LOW
+ *  @arg @ref QEIV2_UVW_POS_OPT_NEX_SEL_HIGH
  * @param[in] enable enable this uvw config
  */
-static inline void qeiv2_config_uvw_position(QEIV2_Type *qeiv2_x, uint8_t idx, uint8_t u_pos_sel, uint8_t v_pos_sel,
+static inline void qeiv2_set_uvw_position_sel(QEIV2_Type *qeiv2_x, qeiv2_uvw_pos_idx_t idx, uint8_t u_pos_sel, uint8_t v_pos_sel,
                                              uint8_t w_pos_sel, bool enable)
 {
-    qeiv2_x->UVW_POS_CFG[idx] = QEIV2_UVW_POS_CFG_U_POS_SEL_SET(u_pos_sel)
-                              | QEIV2_UVW_POS_CFG_V_POS_SEL_SET(v_pos_sel)
-                              | QEIV2_UVW_POS_CFG_W_POS_SEL_SET(w_pos_sel);
+    uint32_t tmp;
+    tmp = QEIV2_UVW_POS_CFG_U_POS_SEL_SET(u_pos_sel)
+        | QEIV2_UVW_POS_CFG_V_POS_SEL_SET(v_pos_sel)
+        | QEIV2_UVW_POS_CFG_W_POS_SEL_SET(w_pos_sel);
     if (enable) {
-        qeiv2_x->UVW_POS_CFG[idx] |= QEIV2_UVW_POS_CFG_POS_EN_MASK;
+        tmp |= QEIV2_UVW_POS_CFG_POS_EN_MASK;
     } else {
-        qeiv2_x->UVW_POS_CFG[idx] &= ~QEIV2_UVW_POS_CFG_POS_EN_MASK;
+        tmp &= ~QEIV2_UVW_POS_CFG_POS_EN_MASK;
     }
+    qeiv2_x->UVW_POS_CFG[idx] = tmp;
 }
 
 /**
@@ -1080,15 +1235,10 @@ static inline void qeiv2_config_uvw_position(QEIV2_Type *qeiv2_x, uint8_t idx, u
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] idx uvw position config index
- *  @arg @ref QEIV2_UVW_POS_UVW_POS0
- *  @arg @ref QEIV2_UVW_POS_UVW_POS1
- *  @arg @ref QEIV2_UVW_POS_UVW_POS2
- *  @arg @ref QEIV2_UVW_POS_UVW_POS3
- *  @arg @ref QEIV2_UVW_POS_UVW_POS4
- *  @arg @ref QEIV2_UVW_POS_UVW_POS5
+ *  @arg @ref qeiv2_uvw_pos_idx_t
  * @param[in] pos angle corresponding to UVW signal position
  */
-static inline void qeiv2_set_uvw_position(QEIV2_Type *qeiv2_x, uint8_t idx, uint32_t pos)
+static inline void qeiv2_set_uvw_position(QEIV2_Type *qeiv2_x, qeiv2_uvw_pos_idx_t idx, uint32_t pos)
 {
     qeiv2_x->UVW_POS[idx] = pos;
 }
@@ -1099,7 +1249,7 @@ static inline void qeiv2_set_uvw_position(QEIV2_Type *qeiv2_x, uint8_t idx, uint
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] cnt z phase counter value
  */
-static inline uint32_t qeiv2_set_z_phase(QEIV2_Type *qeiv2_x, uint32_t cnt)
+static inline void qeiv2_set_z_phase(QEIV2_Type *qeiv2_x, uint32_t cnt)
 {
     qeiv2_x->COUNT[QEIV2_COUNT_CURRENT].Z = cnt;
 }
@@ -1205,13 +1355,67 @@ static inline void qeiv2_set_angle_adjust_value(QEIV2_Type *qeiv2_x, int32_t ang
  */
 static inline void qeiv2_config_position_timeout(QEIV2_Type *qeiv2_x, uint32_t tm, bool enable)
 {
-    qeiv2_x->POS_TIMEOUT = QEIV2_POS_TIMEOUT_TIMEOUT_SET(tm);
+    uint32_t tmp;
+    tmp = QEIV2_POS_TIMEOUT_TIMEOUT_SET(tm);
     if (enable) {
-        qeiv2_x->POS_TIMEOUT |= QEIV2_POS_TIMEOUT_ENABLE_MASK;
+        tmp |= QEIV2_POS_TIMEOUT_ENABLE_MASK;
     } else {
-        qeiv2_x->POS_TIMEOUT &= ~QEIV2_POS_TIMEOUT_ENABLE_MASK;
+        tmp &= ~QEIV2_POS_TIMEOUT_ENABLE_MASK;
     }
+    qeiv2_x->POS_TIMEOUT = tmp;
 }
+
+/**
+ * @brief config phcnt compare match condition
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] config  @ref qeiv2_phcnt_cmp_match_config_t
+ * @return status_invalid_argument or status_success
+ */
+hpm_stat_t qeiv2_config_phcnt_cmp_match_condition(QEIV2_Type *qeiv2_x, qeiv2_phcnt_cmp_match_config_t *config);
+
+/**
+ * @brief config position compare match condition
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] config  @ref qeiv2_pos_cmp_match_config_t
+ * @return status_invalid_argument or status_success
+ */
+hpm_stat_t qeiv2_config_position_cmp_match_condition(QEIV2_Type *qeiv2_x, qeiv2_pos_cmp_match_config_t *config);
+
+/**
+ * @brief config phcnt compare2 match condition
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] config  @ref qeiv2_phcnt_cmp_match_config_t
+ * @return status_invalid_argument or status_success
+ */
+hpm_stat_t qeiv2_config_phcnt_cmp2_match_condition(QEIV2_Type *qeiv2_x, qeiv2_phcnt_cmp_match_config_t *config);
+
+/**
+ * @brief config position compare2 match condition
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] config  @ref qeiv2_pos_cmp_match_config_t
+ * @return status_invalid_argument or status_success
+ */
+hpm_stat_t qeiv2_config_position_cmp2_match_condition(QEIV2_Type *qeiv2_x, qeiv2_pos_cmp_match_config_t *config);
+
+/**
+ * @brief get uvw position default config
+ *
+ * @param[out] config uvw position default config structure pointer
+ */
+void qeiv2_get_uvw_position_defconfig(qeiv2_uvw_config_t *config);
+
+/**
+ * @brief config uvw position
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] config  uvw position config structure pointer
+ * @return status_invalid_argument or status_success
+ */
+hpm_stat_t qeiv2_config_uvw_position(QEIV2_Type *qeiv2_x, qeiv2_uvw_config_t *config);
 
 #ifdef __cplusplus
 }

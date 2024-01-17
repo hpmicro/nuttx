@@ -234,10 +234,62 @@ void board_timer_create(uint32_t ms, board_timer_cb cb)
 void board_i2c_bus_clear(I2C_Type *ptr)
 {
     init_i2c_pins_as_gpio(ptr);
+    if (ptr == BOARD_APP_I2C_BASE) {
+        gpio_set_pin_input(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SDA_GPIO_INDEX, BOARD_I2C_SDA_GPIO_PIN);
+        gpio_set_pin_input(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN);
+        if (!gpio_read_pin(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN)) {
+            printf("CLK is low, please power cycle the board\n");
+            while (1) {
+            }
+        }
+        if (!gpio_read_pin(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SDA_GPIO_INDEX, BOARD_I2C_SDA_GPIO_PIN)) {
+            printf("SDA is low, try to issue I2C bus clear\n");
+        } else {
+            printf("I2C bus is ready\n");
+            return;
+        }
+
+        gpio_set_pin_output(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN);
+        while (1) {
+            for (uint32_t i = 0; i < 9; i++) {
+                gpio_write_pin(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN, 1);
+                board_delay_ms(10);
+                gpio_write_pin(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN, 0);
+                board_delay_ms(10);
+            }
+            board_delay_ms(100);
+        }
+        printf("I2C bus is cleared\n");
+    }
 }
 
 void board_init_i2c(I2C_Type *ptr)
 {
+    i2c_config_t config;
+    hpm_stat_t stat;
+    uint32_t freq;
+    if (ptr == NULL) {
+        return;
+    }
+
+    board_i2c_bus_clear(ptr);
+    init_i2c_pins(ptr);
+    clock_add_to_group(clock_i2c0, 0);
+    clock_add_to_group(clock_i2c1, 0);
+    clock_add_to_group(clock_i2c2, 0);
+    clock_add_to_group(clock_i2c3, 0);
+    /* Configure the I2C clock to 24MHz */
+    clock_set_source_divider(BOARD_APP_I2C_CLK_NAME, clk_src_osc24m, 1U);
+
+    config.i2c_mode = i2c_mode_normal;
+    config.is_10bit_addressing = false;
+    freq = clock_get_frequency(BOARD_APP_I2C_CLK_NAME);
+    stat = i2c_init_master(ptr, freq, &config);
+    if (stat != status_success) {
+        printf("failed to initialize i2c 0x%lx\n", (uint32_t) ptr);
+        while (1) {
+        }
+    }
 }
 
 uint32_t board_init_spi_clock(SPI_Type *ptr)
@@ -311,6 +363,8 @@ uint8_t board_get_usb_id_status(void)
 
 void board_usb_vbus_ctrl(uint8_t usb_index, uint8_t level)
 {
+    (void) usb_index;
+    (void) level;
 }
 
 void board_init_pmp(void)
@@ -419,55 +473,17 @@ void board_init_clock(void)
 
     /* Connect Group0 to CPU0 */
     clock_connect_group_to_cpu(0, 0);
-    /*
-     * Configure CPU0 to 480MHz
-     *
-     *  NOTE: The PLL2 is disabled by default, and it will be enabled automatically if
-     *        it is required by any nodes.
-     *  Here the PLl2 clock is enabled after switching CPU clock source to it
-     */
-    clock_set_source_divider(clock_cpu0, clk_src_pll1_clk0, 1);
+
+    /* Configure CPU to 480MHz, AXI/AHB to 160MHz */
+    sysctl_config_cpu0_domain_clock(HPM_SYSCTL, clock_source_pll1_clk0, 1, 3, 3);
     /* Configure PLL1_CLK0 Post Divider to 1.2 */
     pllctlv2_set_postdiv(HPM_PLLCTLV2, 1, 0, 1);
-    /* Configure PLL1 clock frequencey to 576MHz, the PLL1_CLK0 frequency  =- 576MHz / 1.2 = 480MHz */
+    /* Configure PLL1 clock frequencey to 576MHz, the PLL1_CLK0 frequency = 576MHz / 1.2 = 480MHz */
     pllctlv2_init_pll_with_freq(HPM_PLLCTLV2, 1, 576000000);
-
     clock_update_core_clock();
 
-    /* Configure AHB to 200MHz */
-    clock_set_source_divider(clock_ahb, clk_src_pll1_clk1, 2);
-
-    clock_set_source_divider(clock_aud1, clk_src_pll2_clk0, 46); /* config clock_aud1 for 44100*n sample rate */
-}
-
-uint32_t board_init_adc12_clock(ADC16_Type *ptr)
-{
-    uint32_t freq = 0;
-    switch ((uint32_t) ptr) {
-    case HPM_ADC0_BASE:
-        /* Configure the ADC clock to 200MHz */
-        clock_set_adc_source(clock_adc0, clk_adc_src_ana);
-        clock_set_source_divider(clock_ana0, clk_src_pll1_clk1, 2U);
-        freq = clock_get_frequency(clock_adc0);
-        break;
-    case HPM_ADC1_BASE:
-        /* Configure the ADC clock to 200MHz */
-        clock_set_adc_source(clock_adc1, clk_adc_src_ana);
-        clock_set_source_divider(clock_ana0, clk_src_pll1_clk1, 2U);
-        freq = clock_get_frequency(clock_adc1);
-        break;
-    case HPM_ADC2_BASE:
-        /* Configure the ADC clock to 200MHz */
-        clock_set_adc_source(clock_adc2, clk_adc_src_ana);
-        clock_set_source_divider(clock_ana0, clk_src_pll1_clk1, 2U);
-        freq = clock_get_frequency(clock_adc2);
-        break;
-    default:
-        /* Invalid ADC instance */
-        break;
-    }
-
-    return freq;
+    /* Configure mchtmr to 24MHz */
+    clock_set_source_divider(clock_mchtmr0, clk_src_osc24m, 1);
 }
 
 uint32_t board_init_dao_clock(void)
@@ -487,12 +503,50 @@ hpm_stat_t board_set_audio_pll_clock(uint32_t freq)
 
 uint32_t board_init_i2s_clock(I2S_Type *ptr)
 {
+    (void) ptr;
     return 0;
 }
 
-uint32_t board_init_adc16_clock(ADC16_Type *ptr)
+uint32_t board_init_adc16_clock(ADC16_Type *ptr, bool clk_src_ahb)
 {
-    return 0;
+    uint32_t freq = 0;
+
+    if (ptr == HPM_ADC0) {
+        if (clk_src_ahb) {
+            /* Configure the ADC clock from AHB (@160MHz by default)*/
+            clock_set_adc_source(clock_adc0, clk_adc_src_ahb0);
+        } else {
+            /* Configure the ADC clock from pll0_clk1 divided by 2 (@166MHz by default) */
+            clock_set_adc_source(clock_adc0, clk_adc_src_ana0);
+            clock_set_source_divider(clock_ana0, clk_src_pll0_clk1, 2U);
+        }
+
+        freq = clock_get_frequency(clock_adc0);
+    } else if (ptr == HPM_ADC1) {
+        if (clk_src_ahb) {
+            /* Configure the ADC clock from AHB (@160MHz by default)*/
+            clock_set_adc_source(clock_adc1, clk_adc_src_ahb0);
+        } else {
+            /* Configure the ADC clock from pll1_clk1 divided by 2 (@166MHz by default) */
+            clock_set_adc_source(clock_adc1, clk_adc_src_ana1);
+            clock_set_source_divider(clock_ana1, clk_src_pll0_clk1, 2U);
+        }
+
+        freq = clock_get_frequency(clock_adc1);
+    } else if (ptr == HPM_ADC2) {
+        if (clk_src_ahb) {
+            /* Configure the ADC clock from AHB (@160MHz by default)*/
+            clock_set_adc_source(clock_adc2, clk_adc_src_ahb0);
+        } else {
+            /* Configure the ADC clock from pll1_clk1 divided by 2 (@166MHz by default) */
+            clock_set_adc_source(clock_adc2, clk_adc_src_ana2);
+            clock_set_source_divider(clock_ana2, clk_src_pll0_clk1, 2U);
+        }
+
+        freq = clock_get_frequency(clock_adc2);
+    }
+
+    return freq;
 }
 
 uint32_t board_init_dac_clock(DAC_Type *ptr, bool clk_src_ahb)
@@ -502,10 +556,10 @@ uint32_t board_init_dac_clock(DAC_Type *ptr, bool clk_src_ahb)
     if (ptr == HPM_DAC) {
         if (clk_src_ahb == true) {
             /* Configure the DAC clock to 160MHz */
-            clock_set_dac_source(clock_dac0, clk_dac_src_ahb);
+            clock_set_dac_source(clock_dac0, clk_dac_src_ahb0);
         } else {
             /* Configure the DAC clock to 166MHz */
-            clock_set_dac_source(clock_dac0, clk_dac_src_ana);
+            clock_set_dac_source(clock_dac0, clk_dac_src_ana3);
             clock_set_source_divider(clock_ana3, clk_src_pll0_clk1, 2);
         }
 
@@ -587,12 +641,7 @@ void _init_ext_ram(void)
 }
 #endif
 
-void board_init_sd_pins(SDXC_Type *ptr)
-{
-    init_sdxc_pins(ptr, false);
-}
-
-uint32_t board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq)
+uint32_t board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq, bool need_inverse)
 {
     uint32_t actual_freq = 0;
     do {
@@ -600,6 +649,7 @@ uint32_t board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq)
             break;
         }
         clock_name_t sdxc_clk = clock_sdxc0;
+        sdxc_enable_inverse_clock(ptr, false);
         sdxc_enable_sd_clock(ptr, false);
         /* Configure the SDXC Frequency to 200MHz */
         clock_set_source_divider(sdxc_clk, clk_src_pll0_clk0, 2);
@@ -610,11 +660,11 @@ uint32_t board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq)
             sdxc_set_clock_divider(ptr, 600);
         }
             /* configure the clock to 24MHz for the SDR12/Default speed */
-        else if (freq <= 25000000UL) {
+        else if (freq <= 26000000UL) {
             sdxc_set_clock_divider(ptr, 8);
         }
             /* Configure the clock to 50MHz for the SDR25/High speed/50MHz DDR/50MHz SDR */
-        else if (freq <= 50000000UL) {
+        else if (freq <= 52000000UL) {
             sdxc_set_clock_divider(ptr, 4);
         }
             /* Configure the clock to 100MHz for the SDR50 */
@@ -629,6 +679,9 @@ uint32_t board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq)
         else {
             sdxc_set_clock_divider(ptr, 8);
         }
+        if (need_inverse) {
+            sdxc_enable_inverse_clock(ptr, true);
+        }
         sdxc_enable_sd_clock(ptr, true);
         actual_freq = clock_get_frequency(sdxc_clk) / sdxc_get_clock_divider(ptr);
     } while (false);
@@ -638,6 +691,7 @@ uint32_t board_sd_configure_clock(SDXC_Type *ptr, uint32_t freq)
 
 void board_sd_switch_pins_to_1v8(SDXC_Type *ptr)
 {
+    (void) ptr;
     /* This feature is not supported */
 }
 
@@ -697,6 +751,7 @@ hpm_stat_t board_init_enet_pins(ENET_Type *ptr)
 
 hpm_stat_t board_reset_enet_phy(ENET_Type *ptr)
 {
+    (void) ptr;
     return status_success;
 }
 
@@ -728,6 +783,7 @@ uint32_t board_init_uart_clock(UART_Type *ptr)
 
 uint8_t board_get_enet_dma_pbl(ENET_Type *ptr)
 {
+    (void) ptr;
     return enet_pbl_16;
 }
 
@@ -755,5 +811,6 @@ hpm_stat_t board_disable_enet_irq(ENET_Type *ptr)
 
 void board_init_enet_pps_pins(ENET_Type *ptr)
 {
+    (void) ptr;
     init_enet_pps_pins();
 }

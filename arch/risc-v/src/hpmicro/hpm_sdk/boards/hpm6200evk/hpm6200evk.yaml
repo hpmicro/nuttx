@@ -12,6 +12,8 @@ board:
       size: 16M
     feature:
       - butn
+      - sdp
+      - rng
       - rtc
       - wdg
       - lin
@@ -42,3 +44,8 @@ board:
       - crc
       - motor-phase-voltage
       - bldc_smc
+      - bldc_hfi
+      - puart
+      - gpt_pin
+      - acmp
+      - ptpc

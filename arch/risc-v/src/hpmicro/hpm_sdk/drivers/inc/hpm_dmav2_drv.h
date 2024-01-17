@@ -22,6 +22,9 @@
 
 #define DMA_Type DMAV2_Type
 
+#define DMA_CHANNEL_PRIORITY_LOW                (0U)
+#define DMA_CHANNEL_PRIORITY_HIGH               (1U)
+
 #define DMA_NUM_TRANSFER_PER_BURST_1T           (0U)
 #define DMA_NUM_TRANSFER_PER_BURST_2T           (1U)
 #define DMA_NUM_TRANSFER_PER_BURST_4T           (2U)
@@ -39,25 +42,35 @@
 #define DMA_TRANSFER_WIDTH_WORD                 (2U)
 #define DMA_TRANSFER_WIDTH_DOUBLE_WORD          (3U)
 
-#define DMA_CHANNEL_STATUS_ONGOING (1U)
-#define DMA_CHANNEL_STATUS_ERROR (2U)
-#define DMA_CHANNEL_STATUS_ABORT (4U)
-#define DMA_CHANNEL_STATUS_TC (8U)
-#define DMA_CHANNEL_STATUS_HALF_TC (16U)
+#define DMA_ALIGN_HALF_WORD(x)                  (x & ~(1u))
+#define DMA_ALIGN_WORD(x)                       (x & ~(3u))
+#define DMA_ALIGN_DOUBLE_WORD(x)                (x & ~(7u))
 
-#define DMA_CHANNEL_IRQ_STATUS_ERROR(x) (uint32_t)(1 << x)
-#define DMA_CHANNEL_IRQ_STATUS_ABORT(x) (uint32_t)(1 << x)
-#define DMA_CHANNEL_IRQ_STATUS_TC(x)    (uint32_t)(1 << x)
-#define DMA_CHANNEL_IRQ_STATUS_HALF_TC(x)    (uint32_t)(1 << x)
+#define DMA_CHANNEL_STATUS_ONGOING              (1U)
+#define DMA_CHANNEL_STATUS_ERROR                (2U)
+#define DMA_CHANNEL_STATUS_ABORT                (4U)
+#define DMA_CHANNEL_STATUS_TC                   (8U)
+#define DMA_CHANNEL_STATUS_HALF_TC              (16U)
 
-#define DMA_HANDSHAKE_MODE_HANDSHAKE (1U)
-#define DMA_HANDSHAKE_MODE_NORMAL (0U)
+#define DMA_CHANNEL_IRQ_STATUS_ERROR(x)         (uint32_t)(1 << x)
+#define DMA_CHANNEL_IRQ_STATUS_ABORT(x)         (uint32_t)(1 << x)
+#define DMA_CHANNEL_IRQ_STATUS_TC(x)            (uint32_t)(1 << x)
+#define DMA_CHANNEL_IRQ_STATUS_HALF_TC(x)       (uint32_t)(1 << x)
 
-#define DMA_ADDRESS_CONTROL_INCREMENT (0U)
-#define DMA_ADDRESS_CONTROL_DECREMENT (1U)
-#define DMA_ADDRESS_CONTROL_FIXED (2U)
+#define DMA_HANDSHAKE_MODE_NORMAL               (0U)
+#define DMA_HANDSHAKE_MODE_HANDSHAKE            (1U)
 
-#define DMA_INTERRUPT_MASK_NONE (0U)
+#define DMA_ADDRESS_CONTROL_INCREMENT           (0U)
+#define DMA_ADDRESS_CONTROL_DECREMENT           (1U)
+#define DMA_ADDRESS_CONTROL_FIXED               (2U)
+
+#define DMA_SRC_BURST_OPT_STANDAND_SIZE         (0U)
+#define DMA_SRC_BURST_OPT_CUSTOM_SIZE           (1U)
+
+#define DMA_HANDSHAKE_OPT_ONE_BURST             (0U)
+#define DMA_HANDSHAKE_OPT_ALL_TRANSIZE          (1U)
+
+#define DMA_INTERRUPT_MASK_NONE                 (0U)
 #define DMA_INTERRUPT_MASK_ERROR  DMAV2_CHCTRL_CTRL_INTERRMASK_MASK
 #define DMA_INTERRUPT_MASK_ABORT  DMAV2_CHCTRL_CTRL_INTABTMASK_MASK
 #define DMA_INTERRUPT_MASK_TERMINAL_COUNT DMAV2_CHCTRL_CTRL_INTTCMASK_MASK
@@ -100,9 +113,6 @@ typedef struct dma_linked_descriptor {
 
 /* @brief Channel config */
 typedef struct dma_channel_config {
-    bool en_infiniteloop;
-    bool en_handshake_trans_all_data;
-    bool en_burst_using_new_trans_count;
     uint8_t priority;               /**< Channel priority */
     uint8_t src_burst_size;         /**< Source burst size */
     uint8_t src_mode;               /**< Source work mode */
@@ -116,8 +126,10 @@ typedef struct dma_channel_config {
     uint32_t dst_addr;              /**< Destination address */
     uint32_t linked_ptr;            /**< Next linked descriptor */
     uint32_t size_in_byte;          /**< Total size to be transferred in byte */
+    bool en_infiniteloop;           /**< Infinite loop transfer enable. Attention: only DMAV2 support */
+    uint8_t handshake_opt;          /**< Handshake transfer option. Attention: only DMAV2 support */
+    uint8_t burst_opt;              /**< Burst size option. Attention: only DMAV2 support */
 } dma_channel_config_t;
-
 
 /* @brief Channel config */
 typedef struct dma_handshake_config {
@@ -202,15 +214,86 @@ static inline bool dma_channel_is_enable(DMAV2_Type *ptr, uint32_t ch_index)
 }
 
 /**
- * @brief   Get DMA channel residue transfer size
+ * @brief   Set DMA channel priority
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] priority dma priority
+ *  @arg @ref DMA_PRIORITY_LOW
+ *  @arg @ref DMA_PRIORITY_HIGH
+ *
+ */
+static inline void dma_set_priority(DMAV2_Type *ptr, uint32_t ch_index, uint8_t priority)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_PRIORITY_MASK) | DMAV2_CHCTRL_CTRL_PRIORITY_SET(priority);
+}
+
+/**
+ * @brief   Set DMA channel source work mode
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] mode source work mode
+ *  @arg @ref DMA_HANDSHAKE_MODE_NORMAL
+ *  @arg @ref DMA_HANDSHAKE_MODE_HANDSHAKE
+ *
+ */
+static inline void dma_set_source_work_mode(DMAV2_Type *ptr, uint32_t ch_index, uint8_t mode)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_SRCMODE_MASK) | DMAV2_CHCTRL_CTRL_SRCMODE_SET(mode);
+}
+
+/**
+ * @brief   Set DMA channel destination work mode
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] mode destination work mode
+ *  @arg @ref DMA_HANDSHAKE_MODE_NORMAL
+ *  @arg @ref DMA_HANDSHAKE_MODE_HANDSHAKE
+ *
+ */
+static inline void dma_set_destination_work_mode(DMAV2_Type *ptr, uint32_t ch_index, uint8_t mode)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_DSTMODE_MASK) | DMAV2_CHCTRL_CTRL_DSTMODE_SET(mode);
+}
+
+/**
+ * @brief   Set DMA channel source burst size
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] burstsize source burst size
+ *  when BURSTOPT is 0, please reference follows:
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_1T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_2T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_4T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_8T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_16T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_32T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_64T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_128T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_256T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_512T
+ *      @arg @ref DMA_NUM_TRANSFER_PER_BURST_1024T
+ *  when BURSTOPT is 1, burst size is (burstsize + 1).
+ *
+ */
+static inline void dma_set_source_burst_size(DMAV2_Type *ptr, uint32_t ch_index, uint8_t burstsize)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_SRCBURSTSIZE_MASK) | DMAV2_CHCTRL_CTRL_SRCBURSTSIZE_SET(burstsize);
+}
+
+/**
+ * @brief   Get DMA channel remaining transfer size
  *
  * @param[in] ptr DMA base address
  * @param[in] ch_index Index of the channel
  *
- * @return residue transfer size
+ * @return remaining transfer size
  *
  */
-static inline uint32_t dma_get_residue_transfer_size(DMAV2_Type *ptr, uint32_t ch_index)
+static inline uint32_t dma_get_remaining_transfer_size(DMAV2_Type *ptr, uint32_t ch_index)
 {
     return ptr->CHCTRL[ch_index].TRANSIZE;
 }
@@ -227,6 +310,38 @@ static inline uint32_t dma_get_residue_transfer_size(DMAV2_Type *ptr, uint32_t c
 static inline void dma_set_transfer_size(DMAV2_Type *ptr, uint32_t ch_index, uint32_t size_in_width)
 {
     ptr->CHCTRL[ch_index].TRANSIZE = DMAV2_CHCTRL_TRANSIZE_TRANSIZE_SET(size_in_width);
+}
+
+/**
+ * @brief   Set DMA channel source width
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] width transfer source width of the channel
+ *  @arg @ref DMA_TRANSFER_WIDTH_BYTE
+ *  @arg @ref DMA_TRANSFER_WIDTH_HALF_WORD
+ *  @arg @ref DMA_TRANSFER_WIDTH_WORD
+ *  @arg @ref DMA_TRANSFER_WIDTH_DOUBLE_WORD
+ */
+static inline void dma_set_source_width(DMAV2_Type *ptr, uint32_t ch_index, uint8_t width)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_SRCWIDTH_MASK) | DMAV2_CHCTRL_CTRL_SRCWIDTH_SET(width);
+}
+
+/**
+ * @brief   Set DMA channel destination width
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] width transfer destination width of the channel
+ *  @arg @ref DMA_TRANSFER_WIDTH_BYTE
+ *  @arg @ref DMA_TRANSFER_WIDTH_HALF_WORD
+ *  @arg @ref DMA_TRANSFER_WIDTH_WORD
+ *  @arg @ref DMA_TRANSFER_WIDTH_DOUBLE_WORD
+ */
+static inline void dma_set_destination_width(DMAV2_Type *ptr, uint32_t ch_index, uint8_t width)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_DSTWIDTH_MASK) | DMAV2_CHCTRL_CTRL_DSTWIDTH_SET(width);
 }
 
 /**
@@ -278,6 +393,81 @@ static inline void dma_set_destination_address(DMAV2_Type *ptr, uint32_t ch_inde
 }
 
 /**
+ * @brief   Set DMA channel source address control mode
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] addr_ctrl source address control mode
+ *  @arg @ref DMA_ADDRESS_CONTROL_INCREMENT
+ *  @arg @ref DMA_ADDRESS_CONTROL_DECREMENT
+ *  @arg @ref DMA_ADDRESS_CONTROL_FIXED
+ *
+ */
+static inline void dma_set_source_address_ctrl(DMAV2_Type *ptr, uint32_t ch_index, uint8_t addr_ctrl)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_SRCADDRCTRL_MASK) | DMAV2_CHCTRL_CTRL_SRCADDRCTRL_SET(addr_ctrl);
+}
+
+/**
+ * @brief   Set DMA channel destination address control mode
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] addr_ctrl destination address control mode
+ *  @arg @ref DMA_ADDRESS_CONTROL_INCREMENT
+ *  @arg @ref DMA_ADDRESS_CONTROL_DECREMENT
+ *  @arg @ref DMA_ADDRESS_CONTROL_FIXED
+ *
+ */
+static inline void dma_set_destination_address_ctrl(DMAV2_Type *ptr, uint32_t ch_index, uint8_t addr_ctrl)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_DSTADDRCTRL_MASK) | DMAV2_CHCTRL_CTRL_DSTADDRCTRL_SET(addr_ctrl);
+}
+
+/**
+ * @brief   Set DMA channel infinite loop mode
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] infinite_loop false - normal mode(single times mode); true - infinite loop mode(cycle mode)
+ *
+ */
+static inline void dma_set_infinite_loop_mode(DMAV2_Type *ptr, uint32_t ch_index, bool infinite_loop)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_INFINITELOOP_MASK) | DMAV2_CHCTRL_CTRL_INFINITELOOP_SET(infinite_loop);
+}
+
+/**
+ * @brief   Set DMA channel source burst option
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] burst_opt burst option
+ *  @arg @ref DMA_SRC_BURST_OPT_STANDAND_SIZE
+ *  @arg @ref DMA_SRC_BURST_OPT_CUSTOM_SIZE
+ *
+ */
+static inline void dma_set_src_busrt_option(DMAV2_Type *ptr, uint32_t ch_index, uint8_t burst_opt)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_BURSTOPT_MASK) | DMAV2_CHCTRL_CTRL_BURSTOPT_SET(burst_opt);
+}
+
+/**
+ * @brief   Set DMA channel handshake option
+ *
+ * @param[in] ptr DMA base address
+ * @param[in] ch_index Index of the channel
+ * @param[in] handshake_opt handshake option
+ *  @arg @ref DMA_HANDSHAKE_OPT_ONE_BURST
+ *  @arg @ref DMA_HANDSHAKE_OPT_ALL_TRANSIZE
+ *
+ */
+static inline void dma_set_handshake_option(DMAV2_Type *ptr, uint32_t ch_index, uint8_t handshake_opt)
+{
+    ptr->CHCTRL[ch_index].CTRL = (ptr->CHCTRL[ch_index].CTRL & ~DMAV2_CHCTRL_CTRL_HANDSHAKEOPT_MASK) | DMAV2_CHCTRL_CTRL_HANDSHAKEOPT_SET(handshake_opt);
+}
+
+/**
  * @brief   Abort channel transfer with mask
  *
  * @param[in] ptr DMA base address
@@ -321,11 +511,11 @@ static inline bool dma_has_linked_pointer_configured(DMAV2_Type *ptr, uint32_t c
  * @param[in] ptr DMA base address
  * @param[in] ch_index Target channel index to be checked
  *
- * @retval 1 if transfer is still ongoing
- * @retval 2 if any error occurred during transferring
- * @retval 4 if transfer is aborted
- * @retval 8 if transfer is finished without error
- * @retval 16 if transfer is finished without error
+ * @retval DMA_CHANNEL_STATUS_ONGOING if transfer is still ongoing
+ * @retval DMA_CHANNEL_STATUS_ERROR if any error occurred during transferring
+ * @retval DMA_CHANNEL_STATUS_ABORT if transfer is aborted
+ * @retval DMA_CHANNEL_STATUS_TC if transfer is finished without error
+ * @retval DMA_CHANNEL_STATUS_HALF_TC if half transfer complete without error
  */
 static inline uint32_t dma_check_transfer_status(DMAV2_Type *ptr, uint8_t ch_index)
 {
