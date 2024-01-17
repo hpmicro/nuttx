@@ -1028,10 +1028,6 @@ static void usbhost_hub_event(FAR void *arg)
                  status, change);
         }
     }
-  
-  /* Free portstatus memory */
-
-  DRVR_FREE(hport->drvr, (FAR uint8_t *)portstatus);
 
   /* Free portstatus memory */
 

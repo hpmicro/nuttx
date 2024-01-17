@@ -2976,6 +2976,13 @@ config ARCH_BOARD_S698PM_DKIT
 	---help---
 		none
 
+config ARCH_BOARD_HPM6750EVK2
+	bool "Hpmicro hpm6750evk2"
+	depends on ARCH_CHIP_HPM6750
+	---help---
+		This is the board configuration for the port of NuttX to the Hpmicro hpm6750evk2
+		board.  This board features the RISC-V hpm6750.
+
 config ARCH_BOARD_HPM6750EVK2_SDK
 	bool "HPMicro evaluation board for HPM6750 with hpmsdk"
 	depends on ARCH_CHIP_HPM6750
