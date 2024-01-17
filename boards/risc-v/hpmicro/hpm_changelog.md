@@ -35,3 +35,15 @@
 - hpm6200evk-sdk
     - configs: add gpio
     - configs: add nsh
+
+## [v0.2.0] - 20240118
+
+### Version
+- Nuttx: release v12.4.0
+- Apps: release v12.4.0
+- Hpm_sdk: release v1.4.0
+
+### Added:
+- hpm5300evk-sdk
+    - configs: add gpio
+    - configs: add nsh
