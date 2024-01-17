@@ -2985,21 +2985,21 @@ config ARCH_BOARD_HPM6750EVK2
 
 config ARCH_BOARD_HPM6750EVK2_SDK
 	bool "HPMicro evaluation board for HPM6750 with hpmsdk"
-	depends on ARCH_CHIP_HPM6750
+	depends on ARCH_CHIP_HPM6750_SDK
 	---help---
 		This is the board configuration for the port of NuttX to the
 		HPMicro hpm6750evk2 board with hpmsdk. This board features the RISC-V D45.
 
 config ARCH_BOARD_HPM6300EVK_SDK
 	bool "HPMicro evaluation board for HPM6360 with hpmsdk"
-	depends on ARCH_CHIP_HPM6360
+	depends on ARCH_CHIP_HPM6360_SDK
 	---help---
 		This is the board configuration for the port of NuttX to the
 		HPMicro hpm6300evk board with hpmsdk. This board features the RISC-V D45.
 
 config ARCH_BOARD_HPM6200EVK_SDK
 	bool "HPMicro evaluation board for HPM6280 with hpmsdk"
-	depends on ARCH_CHIP_HPM6280
+	depends on ARCH_CHIP_HPM6280_SDK
 	---help---
 		This is the board configuration for the port of NuttX to the
 		HPMicro hpm6200evk board with hpmsdk. This board features the RISC-V D45.

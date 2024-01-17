@@ -11,17 +11,17 @@ comment "HPMicro Configuration Options"
 
 choice
 	prompt "HPMicro Chip Selection"
-	default ARCH_CHIP_HPM6750
+	default ARCH_CHIP_HPM6750_SDK
 
-config ARCH_CHIP_HPM6750
+config ARCH_CHIP_HPM6750_SDK
 	bool "HPM6750"
 	select HPM_PLLCTLV_DRV
 
-config ARCH_CHIP_HPM6360
+config ARCH_CHIP_HPM6360_SDK
 	bool "HPM6360"
 	select HPM_PLLCTLV2_DRV
 
-config ARCH_CHIP_HPM6280
+config ARCH_CHIP_HPM6280_SDK
 	bool "HPM6280"
 	select HPM_PLLCTLV2_DRV
 
@@ -58,7 +58,7 @@ config HPM_BUILD_TYPE_FLASH_XIP
 	bool "flash_xip.ld"
 	select INCLUDE_BOOTHEADER
 
-if ARCH_CHIP_HPM6750 || ARCH_CHIP_HPM6360
+if ARCH_CHIP_HPM6750_SDK || ARCH_CHIP_HPM6360_SDK
 config HPM_BUILD_TYPE_FLASH_SDRAM_XIP
 	bool "flash_sdram_xip.ld"
 	select INCLUDE_BOOTHEADER
@@ -1807,7 +1807,7 @@ config HPM_ENET1
 #####################################################################
 #  MBX Configuration
 #####################################################################
-if ARCH_CHIP_HPM6750 || ARCH_CHIP_HPM6280
+if ARCH_CHIP_HPM6750_SDK || ARCH_CHIP_HPM6280_SDK
     config HPM_MBX
       bool "MBX"
       default n

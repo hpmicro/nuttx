@@ -33,7 +33,7 @@
 #define HPM_IRQ_PERI_START   (RISCV_IRQ_ASYNC + 20)
 
 /* Machine Global External Interrupt */
-#ifdef CONFIG_ARCH_CHIP_HPM6750
+#if defined(CONFIG_ARCH_CHIP_HPM6750) || defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
 #define HPM_IRQn_GPIO0_A      (HPM_IRQ_PERI_START + IRQn_GPIO0_A     )    /* GPIO0_A IRQ */
 #define HPM_IRQn_GPIO0_B      (HPM_IRQ_PERI_START + IRQn_GPIO0_B     )    /* GPIO0_B IRQ */
 #define HPM_IRQn_GPIO0_C      (HPM_IRQ_PERI_START + IRQn_GPIO0_C     )    /* GPIO0_C IRQ */
@@ -165,7 +165,7 @@
 #define NR_IRQS               (HPM_IRQ_PERI_START + HPM_NR_IRQS)
 #endif
 
-#ifdef CONFIG_ARCH_CHIP_HPM6360
+#ifdef CONFIG_ARCH_CHIP_HPM6360_SDK
 #define HPM_IRQn_GPIO0_A      (HPM_IRQ_PERI_START + IRQn_GPIO0_A     )    /* GPIO0_A IRQ */
 #define HPM_IRQn_GPIO0_B      (HPM_IRQ_PERI_START + IRQn_GPIO0_B     )    /* GPIO0_B IRQ */
 #define HPM_IRQn_GPIO0_C      (HPM_IRQ_PERI_START + IRQn_GPIO0_C     )    /* GPIO0_C IRQ */
@@ -248,7 +248,7 @@
 #define NR_IRQS               (HPM_IRQ_PERI_START + HPM_NR_IRQS)
 #endif
 
-#ifdef CONFIG_ARCH_CHIP_HPM6280
+#ifdef CONFIG_ARCH_CHIP_HPM6280_SDK
 #define HPM_IRQn_GPIO0_A      (HPM_IRQ_PERI_START + IRQn_GPIO0_A     )    /* GPIO0_A IRQ */
 #define HPM_IRQn_GPIO0_B      (HPM_IRQ_PERI_START + IRQn_GPIO0_B     )    /* GPIO0_B IRQ */
 #define HPM_IRQn_GPIO0_C      (HPM_IRQ_PERI_START + IRQn_GPIO0_C     )    /* GPIO0_C IRQ */
