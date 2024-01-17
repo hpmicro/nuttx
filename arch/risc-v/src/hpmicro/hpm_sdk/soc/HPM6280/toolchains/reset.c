@@ -102,23 +102,3 @@ __attribute__((weak)) void reset_handler(void)
     /* Entry function */
     __hpm_start();
 }
-
-/*
- * When compiling C++ code with static objects, the compiler inserts
- * a call to __cxa_atexit() with __dso_handle as one of the arguments.
- * The dummy versions of these symbols should be provided.
- */
-__attribute__((weak)) void __cxa_atexit(void (*arg1)(void *), void *arg2, void *arg3)
-{
-    (void) arg1;
-    (void) arg2;
-    (void) arg3;
-}
-
-#if !defined(__SEGGER_RTL_VERSION) || defined(__riscv_xandes)
-void *__dso_handle = (void *) &__dso_handle;
-#endif
-
-__attribute__((weak)) void _init(void)
-{
-}
