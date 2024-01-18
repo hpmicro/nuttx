@@ -28,7 +28,7 @@ CHIP_CSRCS += hpmicro$(DELIM)hpm_lowputc.c hpmicro$(DELIM)hpm_serial.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm_start.c hpmicro$(DELIM)hpm_timerisr.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm_printf.c hpmicro$(DELIM)hpm_cache.c
 
-ifeq ($(CONFIG_HPM_DMA_DRV),y)
+ifeq ($(CONFIG_HPM_DMA),y)
 CHIP_CSRCS += hpmicro$(DELIM)hpm_dma.c
 endif 
 

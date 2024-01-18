@@ -25,6 +25,10 @@ config ARCH_CHIP_HPM6280_SDK
 	bool "HPM6280"
 	select HPM_PLLCTLV2_DRV
 
+config ARCH_CHIP_HPM5361_SDK
+	bool "HPM5361"
+	select HPM_PLLCTLV2_DRV
+
 endchoice # HPMicro Chip Selection
 
 config HPMICRO_ENABLE_FPU
@@ -106,6 +110,10 @@ config HPM_WDG_DRV
 	default n
 
 config HPM_DMA_DRV
+	bool
+	default n
+
+config HPM_DMAV2_DRV
 	bool
 	default n
 
@@ -485,7 +493,8 @@ config HPM_I2C3_SLAVE_ADDR
 config HPM_DMA
 	bool "DMA"
 	select ARCH_DMA
-	select HPM_DMA_DRV
+	select HPM_DMA_DRV if ARCH_CHIP_HPM6750_SDK || ARCH_CHIP_HPM6360_SDK || ARCH_CHIP_HPM6280_SDK
+	select HPM_DMAV2_DRV if ARCH_CHIP_HPM5361_SDK
 	select HPM_COMPONENTS_DMA_MANAGER
 	default n
 
@@ -505,9 +514,7 @@ config HPM_SPI0
 config HPM_SPI0_DMA
 	bool "SPI0_DMA"
 	default n
-	select ARCH_DMA
-	select HPM_DMA_DRV
-	select HPM_COMPONENTS_DMA_MANAGER
+	select HPM_DMA
 	select HPM_COMPONENTS_SPI
 	select HPM_SPI_DMA
 
@@ -523,9 +530,7 @@ config HPM_SPI1
 config HPM_SPI1_DMA
 	bool "SPI1_DMA"
 	default n
-	select ARCH_DMA
-	select HPM_DMA_DRV
-	select HPM_COMPONENTS_DMA_MANAGER
+	select HPM_DMA
 	select HPM_COMPONENTS_SPI
 	select HPM_SPI_DMA
 
@@ -541,9 +546,7 @@ config HPM_SPI2
 config HPM_SPI2_DMA
 	bool "SPI2_DMA"
 	default n
-	select ARCH_DMA
-	select HPM_DMA_DRV
-	select HPM_COMPONENTS_DMA_MANAGER
+	select HPM_DMA
 	select HPM_COMPONENTS_SPI
 	select HPM_SPI_DMA
 
@@ -559,9 +562,7 @@ config HPM_SPI3
 config HPM_SPI3_DMA
 	bool "SPI3_DMA"
 	default n
-	select ARCH_DMA
-	select HPM_DMA_DRV
-	select HPM_COMPONENTS_DMA_MANAGER
+	select HPM_DMA
 	select HPM_COMPONENTS_SPI
 	select HPM_SPI_DMA
 

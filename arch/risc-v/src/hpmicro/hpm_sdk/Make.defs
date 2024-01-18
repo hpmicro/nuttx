@@ -83,6 +83,10 @@ ifeq ($(CONFIG_HPM_DMA_DRV),y)
   CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)src$(DELIM)hpm_dma_drv.c
 endif
 
+ifeq ($(CONFIG_HPM_DMAV2_DRV),y)
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)src$(DELIM)hpm_dmav2_drv.c
+endif
+
 ifeq ($(CONFIG_HPM_GPTMR_DRV),y)
   CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)src$(DELIM)hpm_gptmr_drv.c
 endif

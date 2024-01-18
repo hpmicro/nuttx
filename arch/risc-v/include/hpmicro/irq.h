@@ -346,4 +346,81 @@
 #define NR_IRQS               (HPM_IRQ_PERI_START + HPM_NR_IRQS)
 #endif
 
+#ifdef CONFIG_ARCH_CHIP_HPM5361_SDK
+#define HPM_IRQn_GPIO0_A      (HPM_IRQ_PERI_START + IRQn_GPIO0_A     )    /* GPIO0_A IRQ */
+#define HPM_IRQn_GPIO0_B      (HPM_IRQ_PERI_START + IRQn_GPIO0_B     )    /* GPIO0_B IRQ */
+#define HPM_IRQn_GPIO0_X      (HPM_IRQ_PERI_START + IRQn_GPIO0_X     )    /* GPIO0_X IRQ */
+#define HPM_IRQn_GPIO0_Y      (HPM_IRQ_PERI_START + IRQn_GPIO0_Y     )    /* GPIO0_Y IRQ */
+#define HPM_IRQn_GPTMR0       (HPM_IRQ_PERI_START + IRQn_GPTMR0      )    /* GPTMR0 IRQ */
+#define HPM_IRQn_GPTMR1       (HPM_IRQ_PERI_START + IRQn_GPTMR1      )    /* GPTMR1 IRQ */
+#define HPM_IRQn_GPTMR2       (HPM_IRQ_PERI_START + IRQn_GPTMR2      )    /* GPTMR2 IRQ */
+#define HPM_IRQn_GPTMR3       (HPM_IRQ_PERI_START + IRQn_GPTMR3      )    /* GPTMR3 IRQ */
+#define HPM_IRQn_LIN0         (HPM_IRQ_PERI_START + IRQn_LIN0        )    /* LIN0 IRQ */
+#define HPM_IRQn_LIN1         (HPM_IRQ_PERI_START + IRQn_LIN1        )    /* LIN1 IRQ */
+#define HPM_IRQn_LIN2         (HPM_IRQ_PERI_START + IRQn_LIN2        )    /* LIN2 IRQ */
+#define HPM_IRQn_LIN3         (HPM_IRQ_PERI_START + IRQn_LIN3        )    /* LIN3 IRQ */
+#define HPM_IRQn_UART0        (HPM_IRQ_PERI_START + IRQn_UART0       )    /* UART0 IRQ */
+#define HPM_IRQn_UART1        (HPM_IRQ_PERI_START + IRQn_UART1       )    /* UART1 IRQ */
+#define HPM_IRQn_UART2        (HPM_IRQ_PERI_START + IRQn_UART2       )    /* UART2 IRQ */
+#define HPM_IRQn_UART3        (HPM_IRQ_PERI_START + IRQn_UART3       )    /* UART3 IRQ */
+#define HPM_IRQn_UART4        (HPM_IRQ_PERI_START + IRQn_UART4       )    /* UART4 IRQ */
+#define HPM_IRQn_UART5        (HPM_IRQ_PERI_START + IRQn_UART5       )    /* UART5 IRQ */
+#define HPM_IRQn_UART6        (HPM_IRQ_PERI_START + IRQn_UART6       )    /* UART6 IRQ */
+#define HPM_IRQn_UART7        (HPM_IRQ_PERI_START + IRQn_UART7       )    /* UART7 IRQ */
+#define HPM_IRQn_I2C0         (HPM_IRQ_PERI_START + IRQn_I2C0        )    /* I2C0 IRQ */
+#define HPM_IRQn_I2C1         (HPM_IRQ_PERI_START + IRQn_I2C1        )    /* I2C1 IRQ */
+#define HPM_IRQn_I2C2         (HPM_IRQ_PERI_START + IRQn_I2C2        )    /* I2C2 IRQ */
+#define HPM_IRQn_I2C3         (HPM_IRQ_PERI_START + IRQn_I2C3        )    /* I2C3 IRQ */
+#define HPM_IRQn_SPI0         (HPM_IRQ_PERI_START + IRQn_SPI0        )    /* SPI0 IRQ */
+#define HPM_IRQn_SPI1         (HPM_IRQ_PERI_START + IRQn_SPI1        )    /* SPI1 IRQ */
+#define HPM_IRQn_SPI2         (HPM_IRQ_PERI_START + IRQn_SPI2        )    /* SPI2 IRQ */
+#define HPM_IRQn_SPI3         (HPM_IRQ_PERI_START + IRQn_SPI3        )    /* SPI3 IRQ */
+#define HPM_IRQn_TSNS         (HPM_IRQ_PERI_START + IRQn_TSNS        )    /* TSNS IRQ */
+#define HPM_IRQn_MBX0A        (HPM_IRQ_PERI_START + IRQn_MBX0A       )    /* MBX0A IRQ */
+#define HPM_IRQn_MBX0B        (HPM_IRQ_PERI_START + IRQn_MBX0B       )    /* MBX0B IRQ */
+#define HPM_IRQn_WDG0         (HPM_IRQ_PERI_START + IRQn_WDG0        )    /* WDG0 IRQ */
+#define HPM_IRQn_WDG1         (HPM_IRQ_PERI_START + IRQn_WDG1        )    /* WDG1 IRQ */
+#define HPM_IRQn_HDMA         (HPM_IRQ_PERI_START + IRQn_HDMA        )    /* HDMA IRQ */
+#define HPM_IRQn_CAN0         (HPM_IRQ_PERI_START + IRQn_CAN0        )    /* CAN0 IRQ */
+#define HPM_IRQn_CAN1         (HPM_IRQ_PERI_START + IRQn_CAN1        )    /* CAN1 IRQ */
+#define HPM_IRQn_CAN2         (HPM_IRQ_PERI_START + IRQn_CAN2        )    /* CAN2 IRQ */
+#define HPM_IRQn_CAN3         (HPM_IRQ_PERI_START + IRQn_CAN3        )    /* CAN3 IRQ */
+#define HPM_IRQn_PTPC         (HPM_IRQ_PERI_START + IRQn_PTPC        )    /* PTPC IRQ */
+#define HPM_IRQn_PWM0         (HPM_IRQ_PERI_START + IRQn_PWM0        )    /* PWM0 IRQ */
+#define HPM_IRQn_QEI0         (HPM_IRQ_PERI_START + IRQn_QEI0        )    /* QEI0 IRQ */
+#define HPM_IRQn_SEI0         (HPM_IRQ_PERI_START + IRQn_SEI0        )    /* SEI0 IRQ */
+#define HPM_IRQn_MMC0         (HPM_IRQ_PERI_START + IRQn_MMC0        )    /* MMC0 IRQ */
+#define HPM_IRQn_TRGMUX0      (HPM_IRQ_PERI_START + IRQn_TRGMUX0     )    /* TRGMUX0 IRQ */
+#define HPM_IRQn_PWM1         (HPM_IRQ_PERI_START + IRQn_PWM1        )    /* PWM1 IRQ */
+#define HPM_IRQn_QEI1         (HPM_IRQ_PERI_START + IRQn_QEI1        )    /* QEI1 IRQ */
+#define HPM_IRQn_SEI1         (HPM_IRQ_PERI_START + IRQn_SEI1        )    /* SEI1 IRQ */
+#define HPM_IRQn_MMC1         (HPM_IRQ_PERI_START + IRQn_MMC1        )    /* MMC1 IRQ */
+#define HPM_IRQn_TRGMUX1      (HPM_IRQ_PERI_START + IRQn_TRGMUX1     )    /* TRGMUX1 IRQ */
+#define HPM_IRQn_RDC          (HPM_IRQ_PERI_START + IRQn_RDC         )    /* RDC IRQ */
+#define HPM_IRQn_USB0         (HPM_IRQ_PERI_START + IRQn_USB0        )    /* USB0 IRQ */
+#define HPM_IRQn_XPI0         (HPM_IRQ_PERI_START + IRQn_XPI0        )    /* XPI0 IRQ */
+#define HPM_IRQn_SDP          (HPM_IRQ_PERI_START + IRQn_SDP         )    /* SDP IRQ */
+#define HPM_IRQn_PSEC         (HPM_IRQ_PERI_START + IRQn_PSEC        )    /* PSEC IRQ */
+#define HPM_IRQn_SECMON       (HPM_IRQ_PERI_START + IRQn_SECMON      )    /* SECMON IRQ */
+#define HPM_IRQn_RNG          (HPM_IRQ_PERI_START + IRQn_RNG         )    /* RNG IRQ */
+#define HPM_IRQn_FUSE         (HPM_IRQ_PERI_START + IRQn_FUSE        )    /* FUSE IRQ */
+#define HPM_IRQn_ADC0         (HPM_IRQ_PERI_START + IRQn_ADC0        )    /* ADC0 IRQ */
+#define HPM_IRQn_ADC1         (HPM_IRQ_PERI_START + IRQn_ADC1        )    /* ADC1 IRQ */
+#define HPM_IRQn_DAC0         (HPM_IRQ_PERI_START + IRQn_DAC0        )    /* DAC0 IRQ */
+#define HPM_IRQn_DAC1         (HPM_IRQ_PERI_START + IRQn_DAC1        )    /* DAC1 IRQ */
+#define HPM_IRQn_ACMP_0       (HPM_IRQ_PERI_START + IRQn_ACMP_0      )    /* ACMP_0 IRQ */
+#define HPM_IRQn_ACMP_1       (HPM_IRQ_PERI_START + IRQn_ACMP_1      )    /* ACMP_1 IRQ */
+#define HPM_IRQn_SYSCTL       (HPM_IRQ_PERI_START + IRQn_SYSCTL      )    /* SYSCTL IRQ */
+#define HPM_IRQn_PGPIO        (HPM_IRQ_PERI_START + IRQn_PGPIO       )    /* PGPIO IRQ */
+#define HPM_IRQn_PTMR         (HPM_IRQ_PERI_START + IRQn_PTMR        )    /* PTMR IRQ */
+#define HPM_IRQn_PUART        (HPM_IRQ_PERI_START + IRQn_PUART       )    /* PUART IRQ */
+#define HPM_IRQn_PWDG         (HPM_IRQ_PERI_START + IRQn_PWDG        )    /* PWDG IRQ */
+#define HPM_IRQn_BROWNOUT     (HPM_IRQ_PERI_START + IRQn_BROWNOUT    )    /* BROWNOUT IRQ */
+#define HPM_IRQn_PAD_WAKEUP   (HPM_IRQ_PERI_START + IRQn_PAD_WAKEUP  )    /* PAD_WAKEUP IRQ */
+#define HPM_IRQn_DEBUG0       (HPM_IRQ_PERI_START + IRQn_DEBUG0      )    /* DEBUG0 IRQ */
+#define HPM_IRQn_DEBUG1       (HPM_IRQ_PERI_START + IRQn_DEBUG1      )    /* DEBUG1 IRQ */
+#define HPM_NR_IRQS           72
+#define NR_IRQS               (HPM_IRQ_PERI_START + HPM_NR_IRQS)
+#endif
+
 #endif /* __ARCH_RISCV_INCLUDE_HPMICRO_IRQ_H */
