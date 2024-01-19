@@ -68,7 +68,7 @@
 
 #include "board.h"
 #include "spi/hpm_spi.h"
-#include "hpm_spi.h"
+#include "hpm_spi_master.h"
 #include "hpm_dma.h"
 #include "hpm_clock_drv.h"
 #include "hpm_spi_drv.h"
@@ -79,7 +79,7 @@
  * Pre-processor Definitions
  ****************************************************************************/
 #define  HPM_MAX_SPI_COUNT      4
-#define  HPM_MAX_SPI_DMA_COUNT  129   /*max len is 65535, spi max len is 512. 65535/512.*/
+#define  HPM_MAX_SPI_DMA_COUNT  129   /* <= 4K for descriptor*/
 
 #if defined (CONFIG_HPM_SPI_DRV) && defined (CONFIG_SPI_DRIVER)
 
@@ -122,10 +122,8 @@ struct hpm_spidev_s
   bool             defertrig;    /* Flag indicating that trigger should be deferred */
   bool             trigarmed;    /* Flag indicating that the trigger is armed */
 #endif
-  int8_t           dma_txchan;   /* DMA channel handle for RX transfers */
-  int8_t           dma_rxchan;   /* DMA channel handle for TX transfers */
-  uint32_t         rx_dmamux_ch; /* The RX DMAMUX channel number */
-  uint32_t         tx_dmamux_ch; /* The TX DMAMUX channel number */
+  dma_resource_t   dma_txresource; /* DMA channel RX resource */
+  dma_resource_t   dma_rxresource; /* DMA channel TX resource */
   sem_t            rxsem;        /* Wait for RX DMA to complete */
   sem_t            txsem;        /* Wait for TX DMA to complete */
 #endif
@@ -162,14 +160,12 @@ static inline void spi_dumpregs(struct hpm_spidev_s *priv);
 #ifdef CONFIG_HPM_SPI_DMA
 static int         spi_dmarxwait(struct hpm_spidev_s *priv);
 static int         spi_dmatxwait(struct hpm_spidev_s *priv);
-static void        spi_rx_dma_channel_callback(DMA_Type *ptr, 
-                                              uint32_t channel, 
-                                              void *user_data, 
-                                              uint32_t int_stat);
-static void        spi_tx_dma_channel_callback(DMA_Type *ptr, 
-                                              uint32_t channel, 
-                                              void *user_data, 
-                                              uint32_t int_stat);
+static void        spi_rx_dma_channel_tc_callback(DMA_Type *ptr,
+                                              uint32_t channel,
+                                              void *user_data);
+static void        spi_tx_dma_channel_tc_callback(DMA_Type *ptr,
+                                              uint32_t channel,
+                                              void *user_data);
 #endif
 
 /* SPI methods */
@@ -270,8 +266,6 @@ spi_context_t spi0_context = {
             .rx_dma_ch     = 0,
             .tx_dma_ch     = 0,
             .dmamux_ptr    = HPM_DMAMUX,
-            .rx_dmamux_ch  = 0,
-            .tx_dmamux_ch  = 0,
             .rx_req        = HPM_DMA_SRC_SPI0_RX,
             .tx_req        = HPM_DMA_SRC_SPI0_TX,
             .data_width    = DMA_TRANSFER_WIDTH_BYTE,
@@ -353,8 +347,6 @@ spi_context_t spi1_context = {
             .rx_dma_ch     = 0,
             .tx_dma_ch     = 0,
             .dmamux_ptr    = HPM_DMAMUX,
-            .rx_dmamux_ch  = 0,
-            .tx_dmamux_ch  = 0,
             .rx_req        = HPM_DMA_SRC_SPI1_RX,
             .tx_req        = HPM_DMA_SRC_SPI1_TX,
             .data_width    = DMA_TRANSFER_WIDTH_BYTE,
@@ -436,8 +428,6 @@ spi_context_t spi2_context = {
             .rx_dma_ch     = 0,
             .tx_dma_ch     = 0,
             .dmamux_ptr    = HPM_DMAMUX,
-            .rx_dmamux_ch  = 0,
-            .tx_dmamux_ch  = 0,
             .rx_req        = HPM_DMA_SRC_SPI2_RX,
             .tx_req        = HPM_DMA_SRC_SPI2_TX,
             .data_width    = DMA_TRANSFER_WIDTH_BYTE,
@@ -519,8 +509,6 @@ spi_context_t spi3_context = {
             .rx_dma_ch     = 0,
             .tx_dma_ch     = 0,
             .dmamux_ptr    = HPM_DMAMUX,
-            .rx_dmamux_ch  = 0,
-            .tx_dmamux_ch  = 0,
             .rx_req        = HPM_DMA_SRC_SPI3_RX,
             .tx_req        = HPM_DMA_SRC_SPI3_TX,
             .data_width    = DMA_TRANSFER_WIDTH_BYTE,
@@ -785,34 +773,21 @@ static int spi_dmatxwait(struct hpm_spidev_s *priv)
  *
  ****************************************************************************/
 
-static void  spi_rx_dma_channel_callback(DMA_Type *ptr, uint32_t channel, void *user_data, uint32_t int_stat)
+static void  spi_rx_dma_channel_tc_callback(DMA_Type *ptr, uint32_t channel, void *user_data)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)user_data;
   UNUSED(channel);
-  spiinfo("RX interrupt fired with status %lu\n", int_stat);
-  if (int_stat == DMA_CHANNEL_STATUS_TC)
-    {     
-      nxsem_post(&priv->rxsem);
-    }
-  else
-    {
-      spierr("DMA transfer failed for RX.\n");
-    }
+  spiinfo("RX interrupt fired with tc status\n");  
+  nxsem_post(&priv->rxsem);
+
 }
 
-static void  spi_tx_dma_channel_callback(DMA_Type *ptr, uint32_t channel, void *user_data, uint32_t int_stat)
+static void  spi_tx_dma_channel_tc_callback(DMA_Type *ptr, uint32_t channel, void *user_data)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)user_data;
   UNUSED(channel);
-  spiinfo("TX interrupt fired with status %lu\n", int_stat);
-  if (int_stat == DMA_CHANNEL_STATUS_TC)
-    {
-      nxsem_post(&priv->txsem);
-    }
-  else
-    {
-      spierr("DMA transfer failed for TX.\n");
-    }
+  spiinfo("TX interrupt fired with tc status\n");
+  nxsem_post(&priv->txsem);
 }
 #endif
 
@@ -1220,11 +1195,11 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
   // printf("spi_exchange_nodma: %d %d \n",len,spi_get_data_length_in_bytes(priv->spibase));
   while(len > 0)
     {
-      dummy_len = (len > 400) ? 400 : len;
+      dummy_len = (len > SPI_SOC_TRANSFER_COUNT_MAX) ? SPI_SOC_TRANSFER_COUNT_MAX : len;
       hpm_spi_transfer(priv->spibase,
             &control_config,
             NULL, NULL,
-            (uint8_t *)&tx_buffer[inc_len], dummy_len,(uint8_t *)&rx_buffer[inc_len], dummy_len);
+            (uint8_t *)&tx_buffer[inc_len * spi_get_data_length_in_bytes((SPI_Type *)priv->spibase)], dummy_len,(uint8_t *)&rx_buffer[inc_len * spi_get_data_length_in_bytes((SPI_Type *)priv->spibase)], dummy_len);
       len      -= dummy_len;
       inc_len  += dummy_len;
     }
@@ -1259,15 +1234,19 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
                          void *rxbuffer, size_t nwords)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
+  DEBUGASSERT(priv != NULL);
+  
+#ifdef CONFIG_HPM_SPI_DMA
   spi_control_config_t control_config = {0};
   uint8_t cmd = 0x1a;
   uint32_t addr = 0x10;
   hpm_stat_t stat;
-  DEBUGASSERT(priv != NULL);
-  
-#ifdef CONFIG_HPM_SPI_DMA
-    nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
-  if ((priv->dma_txchan < 0) || (priv->dma_rxchan < 0))
+  size_t len = 0 ;
+  size_t inc_len = 0;
+  size_t dummy_len = 0;
+  nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
+  len = nwords;
+  if ((priv->dma_rxresource.base == NULL) || (priv->dma_txresource.base == NULL))
     {
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
       return;
@@ -1282,56 +1261,60 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
     control_config.common_config.data_phase_fmt = spi_single_io_mode;
     control_config.common_config.dummy_cnt      = spi_dummy_count_1;
 
-      
-    if(!txbuffer)
+    while(len > 0)
       {
-        control_config.common_config.trans_mode = spi_trans_read_only;
-        control_config.common_config.rx_dma_enable  = true;
-        priv->spi_context->tx_size                  = 0;
-        priv->spi_context->rx_size                  = nwords;
-        priv->config = SIMPLEX_RX;
-      }
-    else if(!rxbuffer)
-      {
-        control_config.common_config.trans_mode     = spi_trans_write_only;
-        control_config.common_config.tx_dma_enable  = true;
-        priv->spi_context->tx_size                  = nwords;
-        priv->spi_context->rx_size                  = 0;
-        priv->config = SIMPLEX_TX;
-      }
-    else if(txbuffer && rxbuffer)
-      {
-        control_config.common_config.trans_mode = spi_trans_write_read_together;
-        control_config.common_config.tx_dma_enable  = true;
-        control_config.common_config.rx_dma_enable  = true;
-        priv->spi_context->tx_size                  = nwords;
-        priv->spi_context->rx_size                  = nwords;
-        priv->config = FULL_DUPLEX;
-      }
-    else
-      {
-        return;
-      }
+        dummy_len = (len > SPI_SOC_TRANSFER_COUNT_MAX) ? SPI_SOC_TRANSFER_COUNT_MAX : len;
+        if(!txbuffer)
+          {
+            control_config.common_config.trans_mode = spi_trans_read_only;
+            control_config.common_config.rx_dma_enable  = true;
+            priv->spi_context->tx_size                  = 0;
+            priv->spi_context->rx_size                  = dummy_len;
+            priv->config = SIMPLEX_RX;
+          }
+        else if(!rxbuffer)
+          {
+            control_config.common_config.trans_mode     = spi_trans_write_only;
+            control_config.common_config.tx_dma_enable  = true;
+            priv->spi_context->tx_size                  = dummy_len;
+            priv->spi_context->rx_size                  = 0;
+            priv->config = SIMPLEX_TX;
+          }
+        else if(txbuffer && rxbuffer)
+          {
+            control_config.common_config.trans_mode = spi_trans_write_read_together;
+            control_config.common_config.tx_dma_enable  = true;
+            control_config.common_config.rx_dma_enable  = true;
+            priv->spi_context->tx_size                  = dummy_len;
+            priv->spi_context->rx_size                  = dummy_len;
+            priv->config = FULL_DUPLEX;
+          }
+        else
+          {
+            return;
+          }
+          priv->spi_context->cmd              = cmd;
+          priv->spi_context->addr             = addr;
+          priv->spi_context->data_len_in_byte = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase);
 
-      priv->spi_context->cmd              = cmd;
-      priv->spi_context->addr             = addr;
-      priv->spi_context->data_len_in_byte = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase);
+          priv->spi_context->tx_buff          = &((uint8_t *)txbuffer)[inc_len];    
+          priv->spi_context->tx_count         = priv->spi_context->tx_size / priv->spi_context->data_len_in_byte;
 
-      priv->spi_context->tx_buff          = (uint8_t *)txbuffer;    
-      priv->spi_context->tx_count         = priv->spi_context->tx_size / priv->spi_context->data_len_in_byte;
+          priv->spi_context->rx_buff          = &((uint8_t *)&rxbuffer)[inc_len];
+          priv->spi_context->rx_count         = priv->spi_context->rx_size / priv->spi_context->data_len_in_byte;
 
-      priv->spi_context->rx_buff          = (uint8_t *)rxbuffer;
-      priv->spi_context->rx_count         = priv->spi_context->rx_size / priv->spi_context->data_len_in_byte;
-
-      priv->spi_context->dma_context.data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) - 1;
-      
-      stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
-      if (stat != status_success) 
-        {
-          return;
-        }
-      spi_dmarxwait(priv);
-      spi_dmatxwait(priv);
+          priv->spi_context->dma_context.data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) - 1;
+          
+          stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
+          if (stat != status_success) 
+            {
+              return;
+            }
+          spi_dmarxwait(priv);
+          spi_dmatxwait(priv);
+          len      -= dummy_len;
+          inc_len  += dummy_len;
+      }
     }
 #else
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
@@ -1486,38 +1469,30 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
   /* Select a default frequency of approx. 400KHz */
 
   spi_setfrequency((struct spi_dev_s *)priv, 400000);
-
 #ifdef CONFIG_HPM_SPI_DMA
-  hpm_dma_resource_t dma_resource;
-  hpm_dmamux_resource_t dmamux_resource;
-  priv->dma_rxchan = hpm_dma_channel_request(spi_rx_dma_channel_callback, (void *)priv);
-  priv->dma_txchan = hpm_dma_channel_request(spi_tx_dma_channel_callback, (void *)priv); 
-  if(priv->dma_rxchan >= 0)
-    {
-      hpm_dma_channel_get_resource(priv->dma_rxchan, &dma_resource);
-      if (hpm_dmamux_channel_request(priv->dma_rxchan, priv->spi_context->dma_context.rx_req) < 0)
-        {
-          return;
-        }
-      hpm_dmamux_channel_get_resource(priv->dma_rxchan, &dmamux_resource);
-      priv->spi_context->dma_context.dma_ptr      = dma_resource.base;
-      priv->spi_context->dma_context.rx_dma_ch    = dma_resource.channel;
-      priv->spi_context->dma_context.rx_dmamux_ch = dmamux_resource.dmamux_channel;
-      hpm_dma_channel_start(priv->dma_rxchan);
-    }
-  if(priv->dma_txchan >= 0)
-    {
-      hpm_dma_channel_get_resource(priv->dma_txchan, &dma_resource);
-      if (hpm_dmamux_channel_request(priv->dma_txchan, priv->spi_context->dma_context.tx_req) < 0)
-        {
-          return;
-        }
-      hpm_dmamux_channel_get_resource(priv->dma_txchan, &dmamux_resource);
-      priv->spi_context->dma_context.dma_ptr      = dma_resource.base;
-      priv->spi_context->dma_context.tx_dma_ch    = dma_resource.channel;
-      priv->spi_context->dma_context.tx_dmamux_ch = dmamux_resource.dmamux_channel;
-      hpm_dma_channel_start(priv->dma_txchan);
-    }
+  priv->dma_rxresource.base = NULL;
+  priv->dma_txresource.base = NULL;
+  if (dma_mgr_request_resource(&priv->dma_rxresource) == status_success)
+  {
+    dma_mgr_install_chn_tc_callback(&priv->dma_rxresource, spi_rx_dma_channel_tc_callback, (void *)priv);
+    dma_mgr_enable_chn_irq(&priv->dma_rxresource, DMA_MGR_INTERRUPT_MASK_TC);
+    priv->spi_context->dma_context.dma_ptr      = priv->dma_rxresource.base;
+    priv->spi_context->dma_context.rx_dma_ch    = priv->dma_rxresource.channel;
+    priv->spi_context->dma_context.rx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_rxresource.base, priv->dma_rxresource.channel);
+    dma_mgr_enable_chn_irq(&priv->dma_rxresource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
+    dma_mgr_enable_channel(&priv->dma_rxresource);
+  }
+
+  if (dma_mgr_request_resource(&priv->dma_txresource) == status_success)
+  {
+    dma_mgr_install_chn_tc_callback(&priv->dma_txresource, spi_tx_dma_channel_tc_callback, (void *)priv);
+    dma_mgr_enable_chn_irq(&priv->dma_txresource, DMA_MGR_INTERRUPT_MASK_TC);
+    priv->spi_context->dma_context.dma_ptr      = priv->dma_txresource.base;
+    priv->spi_context->dma_context.tx_dma_ch    = priv->dma_txresource.channel;
+     priv->spi_context->dma_context.tx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_txresource.base, priv->dma_txresource.channel);
+    dma_mgr_enable_chn_irq(&priv->dma_txresource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
+    dma_mgr_enable_channel(&priv->dma_txresource);
+  }
 #endif
 
 #ifdef CONFIG_PM

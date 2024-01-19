@@ -34,7 +34,7 @@ endif
 
 ifeq ($(CONFIG_HPM_SPI_DRV),y)
   ifeq ($(CONFIG_SPI_DRIVER),y)
-    CHIP_CSRCS += hpmicro$(DELIM)hpm_spi.c
+    CHIP_CSRCS += hpmicro$(DELIM)hpm_spi_master.c
   endif
   ifeq ($(CONFIG_SPI_SLAVE),y)
     CHIP_CSRCS += hpmicro$(DELIM)hpm_spi_slave.c
