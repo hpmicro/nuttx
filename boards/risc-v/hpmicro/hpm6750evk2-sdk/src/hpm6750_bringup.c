@@ -118,6 +118,10 @@
 #  include "hpm6750_dma_alloc.h"
 #endif
 
+#ifdef CONFIG_VIDEO_FB
+#include <nuttx/video/fb.h>
+#endif
+
 /****************************************************************************
  * Name: hpm6750_bringup
  ****************************************************************************/
@@ -198,11 +202,21 @@ int hpm6750_bringup(void)
     }
 #  endif
 
+
 #ifdef CONFIG_LCD_DEV
   ret = lcddev_register(0);
   if (ret < 0)
     {
       syslog(LOG_ERR, "ERROR: lcddev_register() failed: %d\n", ret);
+      return ret;
+    }
+#endif
+
+#ifdef CONFIG_VIDEO_FB
+  ret = fb_register(0, 0);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "Failed to initialize Frame Buffer Driver.\n");
       return ret;
     }
 #endif

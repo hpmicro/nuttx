@@ -36,7 +36,7 @@
 #include "board.h"
 #include "chip.h"
 #include "hpm.h"
-#include "hpm_spi.h"
+#include "hpm_spi_master.h"
 #include "hpm_spi_drv.h"
 
 #include "hpm_gpio_drv.h"
@@ -425,6 +425,21 @@ int board_lcd_initialize(void)
   return OK;
 }
 
+/****************************************************************************
+ * Name:  board_lcd_uninitialize
+ *
+ * Description:
+ *   Uninitialize the LCD support
+ *
+ ****************************************************************************/
+
+void board_lcd_uninitialize(void)
+{
+  /* Turn the display off */
+
+  g_lcd->setpower(g_lcd, 0);
+
+}
 
 #endif
 
