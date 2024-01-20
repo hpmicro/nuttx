@@ -45,6 +45,9 @@
 #define MMCSD_CMD6_BUSWIDTH_RWSHIFT   (16)
 #  define MMCSD_CMD6_BUSWIDTH_RW      ((uint32_t)0xb7 << MMCSD_CMD6_BUSWIDTH_RWSHIFT)  /* R/W */
 
+#define MMCSD_CMD6_HS_TIMING_RWSHIFT  (16)
+# define MMCSD_CMD6_HS_TIMING_RW      ((uint32_t)0xb9 << MMCSD_CMD6_HS_TIMING_RWSHIFT) /* R/W */
+
 #define MMCSD_CMD6_WRITE_BYTE_SHIFT   (24)
 #  define MMCSD_CMD6_MODE_CMD_SET     ((uint32_t)0x00 << MMCSD_CMD6_WRITE_BYTE_SHIFT)  /* Change the command set */
 #  define MMCSD_CMD6_MODE_SET_BITS    ((uint32_t)0x01 << MMCSD_CMD6_WRITE_BYTE_SHIFT)  /* Set bits which are 1 in value */
@@ -57,6 +60,13 @@
 #  define MMCSD_CMD6_CSD_BUS_WIDTH_8  ((uint32_t)0x02 << MMCSD_CMD6_BUS_WIDTH_SHIFT)  /* Card is in 8 bit mode */
 #  define MMCSD_CMD6_DDR_BUS_WIDTH_4  ((uint32_t)0x05 << MMCSD_CMD6_BUS_WIDTH_SHIFT)  /* Card is in 4 bit DDR mode */
 #  define MMCSD_CMD6_DDR_BUS_WIDTH_8  ((uint32_t)0x06 << MMCSD_CMD6_BUS_WIDTH_SHIFT)  /* Card is in 8 bit DDR mode */
+
+#define MMCSD_CMD6_HS_TIMING_SHIFT      (8)
+#  define MMCSD_CMD6_HS_TIMING_LEGACY     ((uint32_t)0x00 << MMCSD_CMD6_HS_TIMING_SHIFT)
+#  define MMCSD_CMD6_HS_TIMING_HIGHSPEED  ((uint32_t)0x01 << MMCSD_CMD6_HS_TIMING_SHIFT)
+#  define MMCSD_CMD6_HS_TIMING_HS200      ((uint32_t)0x02 << MMCSD_CMD6_HS_TIMING_SHIFT)
+#  define MMCSD_CMD6_HS_TIMING_HS400      ((uint32_t)0x03 << MMCSD_CMD6_HS_TIMING_SHIFT)
+
 
 /* CMD8 Argument:
  *    [31:12]: Reserved (shall be set to '0')

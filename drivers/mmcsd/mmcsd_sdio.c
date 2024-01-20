@@ -2513,9 +2513,8 @@ static int mmcsd_widebus(FAR struct mmcsd_state_s *priv)
         }
     }
 #ifdef CONFIG_MMCSD_MMCSUPPORT
-  else if (IS_MMC(priv->type) &&
-           ((priv->buswidth & MMCSD_SCR_BUSWIDTH_4BIT) != 0 &&
-           (priv->caps & SDIO_CAPS_1BIT_ONLY) == 0))
+  else if ((IS_MMC(priv->type) && ((priv->caps & SDIO_CAPS_1BIT_ONLY) == 0)) ||
+           ((priv->buswidth & MMCSD_SCR_BUSWIDTH_4BIT) != 0))
     {
       /* SD card supports 4-bit BUS and host settings is not 1-bit only.
        * Configuring MMC - Use MMC_SWITCH access modes.
@@ -2584,6 +2583,15 @@ static int mmcsd_widebus(FAR struct mmcsd_state_s *priv)
 #ifdef CONFIG_MMCSD_MMCSUPPORT
   else
     {
+      mmcsd_sendcmdpoll(priv, MMCSD_CMD6, MMCSD_CMD6_MODE_WRITE_BYTE | MMCSD_CMD6_HS_TIMING_RW |
+                        MMCSD_CMD6_HS_TIMING_HIGHSPEED);
+      ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+
+      if (ret != OK)
+        {
+          ferr("ERROR: (MMCSD_CMD6) Setting MMC HS_TIMING: %d\n", ret);
+          return ret;
+        }
       SDIO_CLOCK(priv->dev, CLOCK_MMC_TRANSFER);
     }
 #endif /* #ifdef CONFIG_MMCSD_MMCSUPPORT */
@@ -2749,7 +2757,6 @@ static int mmcsd_mmcinitialize(FAR struct mmcsd_state_s *priv)
   /* It's up to the driver to act on the widebus request.  mmcsd_widebus()
    * enables the CLOCK_MMC_TRANSFER, so call it here always.
    */
-
   ret = mmcsd_widebus(priv);
   if (ret != OK)
     {
