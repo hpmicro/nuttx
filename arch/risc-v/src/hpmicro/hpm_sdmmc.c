@@ -122,7 +122,7 @@ struct hpm_sdmmc_dev_s
 
     /* DMA data transfer support */
 
-    bool widebus; /* Required for DMA support */
+    uint32_t bus_width; /* Required for DMA support */
 };
 
 #ifdef CONFIG_SDIO_MUXBUS
@@ -238,6 +238,7 @@ struct hpm_sdmmc_dev_s hpm_sdxc0_dev_s = {
     .nc_ctx = &sdxc0_nc_ctx,
     .waitsem = SEM_INITIALIZER(0),
     .dma_mode = HPM_SDMMC_DMA_MODE_NONE,
+    .bus_width = 4,
 };
 #endif
 
@@ -288,6 +289,7 @@ struct hpm_sdmmc_dev_s hpm_sdxc1_dev_s = {
     .nc_ctx = &sdxc1_nc_ctx,
     .waitsem = SEM_INITIALIZER(0),
     .dma_mode = HPM_SDMMC_DMA_MODE_NONE,
+    .bus_width = 4,
 };
 #endif
 
@@ -416,7 +418,18 @@ static sdio_capset_t hpm_sdmmc_capabilities(FAR struct sdio_dev_s *dev)
 {
     sdio_capset_t caps = 0;
 
+    struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
+
     caps |= SDIO_CAPS_DMABEFOREWRITE | SDIO_CAPS_DMASUPPORTED;
+
+    if (priv->bus_width == 4)
+    {
+        caps |= SDIO_CAPS_4BIT;
+    }
+    if (priv->bus_width == 8)
+    {
+        caps |= SDIO_CAPS_4BIT | SDIO_CAPS_8BIT;
+    }
 
     return caps;
 }
@@ -450,8 +463,6 @@ static sdio_capset_t hpm_sdmmc_status(FAR struct sdio_dev_s *dev)
 static void hpm_sdmmc_widebus(FAR struct sdio_dev_s *dev, bool wide)
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
-
-    priv->widebus = wide;
     sdxc_bus_width_t bus_width = wide ? sdxc_bus_width_4bit : sdxc_bus_width_1bit;
     sdxc_set_data_bus_width(priv->base, bus_width);
 }
@@ -488,7 +499,7 @@ static void hpm_sdmmc_clock(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate)
     else
     {
         clock_add_to_group(priv->clock_name, 0);
-        board_sd_configure_clock(priv->base, clock_freq);
+        board_sd_configure_clock(priv->base, clock_freq, true);
     }
 }
 
@@ -547,8 +558,8 @@ static int hpm_sdmmc_interrupt(int irq, void *context, void *arg)
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)arg;
     uint32_t mask;
-    while ((mask = sdxc_get_interrupt_status(priv->base)) != 0)
-    {
+    do {
+        mask = sdxc_get_interrupt_status(priv->base) & ~SDXC_INT_STAT_CARD_INTERRUPT_MASK;
         if ((mask & SDXC_INT_STAT_BUF_RD_READY_MASK) != 0U)
         {
             hpm_sdmmc_recvfifo(priv);
@@ -580,7 +591,8 @@ static int hpm_sdmmc_interrupt(int irq, void *context, void *arg)
         }
 
         sdxc_clear_interrupt_status(priv->base, mask);
-    }
+    } while(mask != 0);
+
     return 0;
 }
 
@@ -1143,7 +1155,7 @@ static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffe
     {
         /* Cache coherency maintenance
          *  In case the buffer address is not cache-line aligned, the software need to flush all data
-         *  in the real memory first 
+         *  in the real memory first
          */
         uint32_t aligned_start = HPM_L1C_CACHELINE_ALIGN_DOWN(sys_addr);
         uint32_t aligned_end = HPM_L1C_CACHELINE_ALIGN_UP(sys_addr + buflen - 1U);
@@ -1207,8 +1219,22 @@ struct sdio_dev_s *sdio_initialize(int slotno)
 #endif
     if (priv != NULL)
     {
-        board_init_sd_pins(priv->base);
-        board_sd_configure_clock(priv->base, HPM_SDMMC_CLK_INIT_FREQ);
+#if defined(BOARD_APP_SDCARD_SUPPORT_POWER_SWITCH) && (BOARD_APP_SDCARD_SUPPORT_POWER_SWITCH == 1)
+        bool as_gpio = false;
+#if defined(BOARD_APP_SDCARD_POWER_SWITCH_USING_GPIO) && (BOARD_APP_SDCARD_POWER_SWITCH_USING_GPIO == 1)
+        as_gpio = true;
+#endif
+        init_sdxc_pwr_pin(priv->base, as_gpio);
+        if (as_gpio) {
+            uint32_t gpio_index = BOARD_APP_SDCARD_POWER_SWITCH_PIN / 32;
+            uint32_t pin_index = BOARD_APP_SDCARD_POWER_SWITCH_PIN % 32;
+            HPM_GPIO0->OE[gpio_index].SET = (1UL << pin_index);
+            HPM_GPIO0->DO[gpio_index].SET = (1UL << pin_index);
+        }
+#endif
+        init_sdxc_cmd_pin(priv->base, false, false);
+        init_sdxc_clk_data_pins(priv->base, priv->bus_width, false);
+        board_sd_configure_clock(priv->base, HPM_SDMMC_CLK_INIT_FREQ, true);
         hpm_sdmmc_reset(&priv->dev);
         return &priv->dev;
     }
