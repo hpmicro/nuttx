@@ -19,6 +19,15 @@
 #include "hpm_rtc_regs.h"
 #include <time.h>
 
+#ifndef __TIMEVAL_DEFINED
+#define __TIMEVAL_DEFINED
+struct timeval
+{
+  time_t tv_sec;         /* Seconds */
+  long tv_usec;          /* Microseconds */
+};
+#endif
+
 /**
  * @brief RTC alarm configuration
  */
