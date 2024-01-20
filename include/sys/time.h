@@ -128,11 +128,14 @@ typedef clock_t hrtime_t;
 
 /* struct timeval represents time as seconds plus microseconds */
 
+#ifndef __TIMEVAL_DEFINED
+#define __TIMEVAL_DEFINED
 struct timeval
 {
   time_t tv_sec;         /* Seconds */
   long tv_usec;          /* Microseconds */
 };
+#endif
 
 /* Type of the second argument to `getitimer' and
  * the second and third arguments `setitimer'.
