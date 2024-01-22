@@ -52,21 +52,19 @@ int hpm_configgpio(GPIO_Type *ptr, gpio_pin_t pin, enum gpio_pintype_e type)
 {
   int ret = 0;
   gpio_interrupt_trigger_t trigger;
+
+  HPM_IOC->PAD[pin].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(0);
+#ifndef CONFIG_ARCH_CHIP_HPM5361_SDK
   if (pin >= IOC_PAD_PZ00)
     {
-      HPM_IOC->PAD[pin].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(0);
       HPM_BIOC->PAD[pin].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(3); 
     }
-  else if (pin >= IOC_PAD_PY00)
+#endif
+   if (pin >= IOC_PAD_PY00)
     {
-      HPM_IOC->PAD[pin].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(0);
       HPM_PIOC->PAD[pin].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(3); 
     }
-  else
-    {
-      HPM_IOC->PAD[pin].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(0);
-    }
-
+  
   switch (type)
   {
   case GPIO_INPUT_PIN:

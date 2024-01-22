@@ -312,6 +312,8 @@ extern "C" {
 
 typedef void (*board_timer_cb)(void);
 
+void board_init(void);
+void board_init_console(void);
 void board_init_gpio_pins(void);
 void board_init_led_pins(void);
 void board_init_usb_pins(void);
@@ -335,7 +337,6 @@ void board_init_spi_pins_with_gpio_as_cs(SPI_Type *ptr);
 void board_init_lin_pins(LINV2_Type *ptr);
 uint32_t board_init_lin_clock(LINV2_Type *ptr);
 
-void board_init(void);
 void board_init_usb_dp_dm_pins(void);
 void board_init_clock(void);
 void board_delay_us(uint32_t us);
