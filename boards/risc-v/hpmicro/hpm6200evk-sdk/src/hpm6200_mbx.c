@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6200evk/src/hpm6200_mbx.c
+ * boards/risc-v/hpmicro/hpm6200evk-sdk/src/hpm6200_mbx.c
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with

@@ -1,5 +1,5 @@
 ############################################################################
-# boards/risc-v/hpm6750/hpm6750evk2/src/Makefile
+# boards/risc-v/hpmicro/hpm6750evk2-sdk/src/Makefile
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with

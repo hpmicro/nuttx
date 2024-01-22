@@ -1,6 +1,6 @@
 
 /****************************************************************************
- * boards/risc-v/hpmicro/hpm6750evk2/src/hpm6750_gpio.h
+ * boards/risc-v/hpmicro/hpm6750evk2-sdk/src/hpm6750_gpio.h
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with

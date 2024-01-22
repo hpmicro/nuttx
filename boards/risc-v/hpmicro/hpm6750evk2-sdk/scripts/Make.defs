@@ -1,5 +1,5 @@
 ############################################################################
-# boards/risc-v/hpmicro/hpm6750evk2/scripts/Make.defs
+# boards/risc-v/hpmicro/hpm6750evk2-sdk/scripts/Make.defs
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
