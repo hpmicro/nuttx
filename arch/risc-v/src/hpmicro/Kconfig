@@ -1166,7 +1166,7 @@ config HPM_ADC0
         # Blocking Read Setting
         if HPM_ADC0_CONV_MODE=0
             config HPM_ADC0_NON_BLOCKING_READ
-            bool "ADC0 Non-Blocking Read "
+            bool "ADC0 Non-Blocking Read"
             default y
         endif
         # End Of Blocking Read Setting
@@ -1270,7 +1270,7 @@ config HPM_ADC1
         # Blocking Read Setting
         if HPM_ADC1_CONV_MODE=0
             config HPM_ADC1_NON_BLOCKING_READ
-            bool "ADC1 Non-Blocking Read "
+            bool "ADC1 Non-Blocking Read"
             default y
         endif
         # End Of Blocking Read Setting
@@ -1374,7 +1374,7 @@ config HPM_ADC2
         # Blocking Read Setting
         if HPM_ADC2_CONV_MODE=0
             config HPM_ADC2_NON_BLOCKING_READ
-            bool "ADC2 Non-Blocking Read "
+            bool "ADC2 Non-Blocking Read"
             default y
         endif
         # End Of Blocking Read Setting
@@ -1459,7 +1459,7 @@ config HPM_ADC3
         # Blocking Read Setting
         if HPM_ADC3_CONV_MODE=0
             config HPM_ADC3_NON_BLOCKING_READ
-            bool "ADC3 Non-Blocking Read "
+            bool "ADC3 Non-Blocking Read"
             default y
         endif
         # End Of Blocking Read Setting
