@@ -50,24 +50,24 @@
  ****************************************************************************/
 
 struct up_dev_s
-{ 
+{
     const struct adc_callback_s *cb;
     char                        *name;
     char                        *path;
     ADC12_Type                  *base;
     int                          irq;
-    xcpt_t                       isr; 
+    xcpt_t                       isr;
     uint32_t                     mask;
     adc12_config_t               cfg;
     adc12_channel_config_t       ch_cfg;
     adc12_prd_config_t           prd_cfg;
-    adc12_seq_config_t           seq_cfg;    
-    adc12_dma_config_t           dma_cfg;   
-    adc12_pmt_config_t           pmt_cfg; 
+    adc12_seq_config_t           seq_cfg;
+    adc12_dma_config_t           dma_cfg;
+    adc12_pmt_config_t           pmt_cfg;
     uint32_t                     *seq_buff;
-    uint32_t                     *pmt_buff;           
+    uint32_t                     *pmt_buff;
     uint8_t                      *seq_channel_list;
-    uint8_t                      *trig_channel_list; 
+    uint8_t                      *trig_channel_list;
     __IO uint8_t                 seq_full_complete_flag;
     __IO uint8_t                 trig_complete_flag;
 };
@@ -94,13 +94,13 @@ static int adc_interrupt(int irq, void *context, void *arg);
 #if defined(CONFIG_HPM_ADC0) && CONFIG_HPM_ADC0
     #if defined(CONFIG_HPM_ADC0_CONV_MODE) && (CONFIG_HPM_ADC0_CONV_MODE == 2)
     static uint8_t adc0_seq_channel_list[] = {CONFIG_HPM_ADC0_CH};
-    static ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc0_seq_buff[BOARD_APP_ADC_SEQ_DMA_BUFF_LEN_IN_4BYTES];   
+    static ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc0_seq_buff[BOARD_APP_ADC_SEQ_DMA_BUFF_LEN_IN_4BYTES];
     #elif defined(CONFIG_HPM_ADC0_CONV_MODE) && (CONFIG_HPM_ADC0_CONV_MODE == 3)
     static uint8_t adc0_trig_channel_list[] = {CONFIG_HPM_ADC0_CH};
     static ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc0_pmt_buff[BOARD_APP_ADC_PMT_DMA_BUFF_LEN_IN_4BYTES];
     #endif
 #endif
- 
+
 #if defined(CONFIG_HPM_ADC1) && CONFIG_HPM_ADC1
     #if defined(CONFIG_HPM_ADC1_CONV_MODE) && (CONFIG_HPM_ADC1_CONV_MODE == 2)
     static uint8_t adc1_seq_channel_list[] = {CONFIG_HPM_ADC1_CH};
@@ -108,7 +108,7 @@ static int adc_interrupt(int irq, void *context, void *arg);
     #elif defined(CONFIG_HPM_ADC1_CONV_MODE) && (CONFIG_HPM_ADC1_CONV_MODE == 3)
     static uint8_t adc1_trig_channel_list[] = {CONFIG_HPM_ADC1_CH};
     static ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ADC_SOC_DMA_ADDR_ALIGNMENT) uint32_t adc1_pmt_buff[BOARD_APP_ADC_PMT_DMA_BUFF_LEN_IN_4BYTES];
-    #endif 
+    #endif
 #endif
 
 #if defined(CONFIG_HPM_ADC2) && CONFIG_HPM_ADC2
@@ -123,245 +123,245 @@ static int adc_interrupt(int irq, void *context, void *arg);
 
 static const struct adc_ops_s g_adc_ops =
 {
-  .ao_bind     = adc_bind,    
-  .ao_reset    = adc_reset,   
-  .ao_setup    = adc_setup,  
+  .ao_bind     = adc_bind,
+  .ao_reset    = adc_reset,
+  .ao_setup    = adc_setup,
   .ao_shutdown = adc_shutdown,
-  .ao_rxint    = adc_rxint,   
-  .ao_ioctl    = adc_ioctl,   
+  .ao_rxint    = adc_rxint,
+  .ao_ioctl    = adc_ioctl,
 };
 
 #if defined(CONFIG_HPM_ADC0) && CONFIG_HPM_ADC0
-static struct up_dev_s g_adc0_priv = 
-{ 
+static struct up_dev_s g_adc0_priv =
+{
     /* instance name */
     .name                   = "ADC0",
     /* device path */
     .path                   = "/dev/adc0",
     /* instance base */
-    .base                   = HPM_ADC0,   
-    /* interrupt config */    
-    .irq                    = HPM_IRQn_ADC0, 
+    .base                   = HPM_ADC0,
+    /* interrupt config */
+    .irq                    = HPM_IRQn_ADC0,
     .isr                    = adc_interrupt,
     .mask                   = 0,
-    /* common config */ 
-    .cfg                    = { .res          = CONFIG_HPM_ADC0_RES, 
-                                .conv_mode    = CONFIG_HPM_ADC0_CONV_MODE,  
-                                .adc_clk_div  = 2,                             
-                                .sel_sync_ahb = false,                      
-                                .wait_dis     = true,                        
-                                .adc_ahb_en   = false,                     
+    /* common config */
+    .cfg                    = { .res          = CONFIG_HPM_ADC0_RES,
+                                .conv_mode    = CONFIG_HPM_ADC0_CONV_MODE,
+                                .adc_clk_div  = 2,
+                                .sel_sync_ahb = false,
+                                .wait_dis     = true,
+                                .adc_ahb_en   = false,
                                 },
     /* channel config */
     .ch_cfg                 = {
-                                .ch                 = CONFIG_HPM_ADC0_CH,                
-                                .diff_sel           = CONFIG_HPM_ADC0_DIFF_SEL,      
+                                .ch                 = CONFIG_HPM_ADC0_CH,
+                                .diff_sel           = CONFIG_HPM_ADC0_DIFF_SEL,
                                 .thshdh             = 0,
                                 .thshdl             = 0,
-                                .sample_cycle_shift = 0,       
-                                .sample_cycle       = 20       
+                                .sample_cycle_shift = 0,
+                                .sample_cycle       = 20
                                 },
     /* oneshot mode */
-    #if CONFIG_HPM_ADC0_CONV_MODE == 0             
- 
+    #if CONFIG_HPM_ADC0_CONV_MODE == 0
+
     /* period mode */
-    #elif CONFIG_HPM_ADC0_CONV_MODE == 1 
+    #elif CONFIG_HPM_ADC0_CONV_MODE == 1
     .prd_cfg                = {
                                 .ch           = CONFIG_HPM_ADC0_CH,
-                                .prescale     = 22,                
-                                .period_count = 1                  
+                                .prescale     = 22,
+                                .period_count = 1
                                 },
     /* sequence mode */
-    #elif CONFIG_HPM_ADC0_CONV_MODE == 2 
+    #elif CONFIG_HPM_ADC0_CONV_MODE == 2
     .seq_cfg                = {
-                                .seq_len    = sizeof(adc0_seq_channel_list),   
-                                .restart_en = false,               
-                                .cont_en    = true,                
-                                .sw_trig_en = true,                
-                                .hw_trig_en = true                 
-                                 },                             
+                                .seq_len    = sizeof(adc0_seq_channel_list),
+                                .restart_en = false,
+                                .cont_en    = true,
+                                .sw_trig_en = true,
+                                .hw_trig_en = true
+                                 },
     .dma_cfg                = {
                                 .start_addr         = (uint32_t)adc0_seq_buff,
                                 .buff_len_in_4bytes = sizeof(adc0_seq_channel_list),
-                                .stop_en            = false,   
-                                .stop_pos           = 0           
+                                .stop_en            = false,
+                                .stop_pos           = 0
                                 },
     .seq_buff               = adc0_seq_buff,
     .seq_channel_list       = adc0_seq_channel_list,
-    /* preemption mode */                             
+    /* preemption mode */
     #elif CONFIG_HPM_ADC0_CONV_MODE == 3
-    .pmt_cfg                = {                            
-                                .trig_ch = CONFIG_HPM_ADC0_TRIG_SOURCE, 
+    .pmt_cfg                = {
+                                .trig_ch = CONFIG_HPM_ADC0_TRIG_SOURCE,
                                 .trig_len = sizeof(adc0_trig_channel_list)
                                 },
     .pmt_buff               = adc0_pmt_buff,
     .trig_channel_list      = adc0_trig_channel_list
     #else
         #error "Not supported mode!"
-    #endif                             
-}; 
+    #endif
+};
 #endif
 
 #if defined(CONFIG_HPM_ADC1) && CONFIG_HPM_ADC1
-static struct up_dev_s g_adc1_priv = 
+static struct up_dev_s g_adc1_priv =
 {
     /* instance name */
     .name                   = "ADC1",
     /* device path */
-    .path                   = "/dev/adc1", 
+    .path                   = "/dev/adc1",
     /* instance base */
-    .base                   = HPM_ADC1,  
-    /* interrupt config */    
-    .irq                    = HPM_IRQn_ADC1, 
+    .base                   = HPM_ADC1,
+    /* interrupt config */
+    .irq                    = HPM_IRQn_ADC1,
     .isr                    = adc_interrupt,
     .mask                   = 0,
     /* common config */
-    .cfg                    = { .res          = CONFIG_HPM_ADC1_RES, 
-                                .conv_mode    = CONFIG_HPM_ADC1_CONV_MODE,  
-                                .adc_clk_div  = 2,                             
-                                .sel_sync_ahb = false,                     
-                                .wait_dis     = true,                        
-                                .adc_ahb_en   = false,                     
+    .cfg                    = { .res          = CONFIG_HPM_ADC1_RES,
+                                .conv_mode    = CONFIG_HPM_ADC1_CONV_MODE,
+                                .adc_clk_div  = 2,
+                                .sel_sync_ahb = false,
+                                .wait_dis     = true,
+                                .adc_ahb_en   = false,
                                 },
     /* channel config */
     .ch_cfg                 = {
-                                .ch                 = CONFIG_HPM_ADC1_CH,                  
-                                .diff_sel           = CONFIG_HPM_ADC1_DIFF_SEL,      
+                                .ch                 = CONFIG_HPM_ADC1_CH,
+                                .diff_sel           = CONFIG_HPM_ADC1_DIFF_SEL,
                                 .thshdh             = 0,
                                 .thshdl             = 0,
-                                .sample_cycle_shift = 0,       
-                                .sample_cycle       = 20       
-                                }, 
+                                .sample_cycle_shift = 0,
+                                .sample_cycle       = 20
+                                },
     /* oneshot mode */
-    #if CONFIG_HPM_ADC1_CONV_MODE == 0             
+    #if CONFIG_HPM_ADC1_CONV_MODE == 0
 
     /* period mode */
-    #elif CONFIG_HPM_ADC1_CONV_MODE == 1 
+    #elif CONFIG_HPM_ADC1_CONV_MODE == 1
     .prd_cfg                = {
                                 .ch           = CONFIG_HPM_ADC1_CH,
-                                .prescale     = 22,                
-                                .period_count = 1                  
+                                .prescale     = 22,
+                                .period_count = 1
                                 },
     /* sequence mode */
-    #elif CONFIG_HPM_ADC1_CONV_MODE == 2 
+    #elif CONFIG_HPM_ADC1_CONV_MODE == 2
     .seq_cfg                = {
-                                .seq_len    = sizeof(adc1_seq_channel_list),   
-                                .restart_en = false,               
-                                .cont_en    = true,                
-                                .sw_trig_en = true,                
-                                .hw_trig_en = true                 
-                                 },                             
+                                .seq_len    = sizeof(adc1_seq_channel_list),
+                                .restart_en = false,
+                                .cont_en    = true,
+                                .sw_trig_en = true,
+                                .hw_trig_en = true
+                                 },
     .dma_cfg                = {
                                 .start_addr         = (uint32_t)adc1_seq_buff,
                                 .buff_len_in_4bytes = sizeof(adc1_seq_channel_list),
-                                .stop_en            = false,   
-                                .stop_pos           = 0           
+                                .stop_en            = false,
+                                .stop_pos           = 0
                                 },
     .seq_buff               = adc1_seq_buff,
     .seq_channel_list       = adc1_seq_channel_list,
-    /* preemption mode */                             
+    /* preemption mode */
     #elif CONFIG_HPM_ADC1_CONV_MODE == 3
-    .pmt_cfg                = {                            
-                                .trig_ch = CONFIG_HPM_ADC1_TRIG_SOURCE, 
+    .pmt_cfg                = {
+                                .trig_ch = CONFIG_HPM_ADC1_TRIG_SOURCE,
                                 .trig_len = sizeof(adc1_trig_channel_list)
                                 },
     .pmt_buff               = adc1_pmt_buff,
     .trig_channel_list      = adc1_trig_channel_list
     #else
         #error "Not supported mode!"
-    #endif                             
+    #endif
 };
 #endif
 
 #if defined(CONFIG_HPM_ADC2) && CONFIG_HPM_ADC2
-static struct up_dev_s g_adc2_priv = 
+static struct up_dev_s g_adc2_priv =
 {
     /* instance name */
     .name                   = "ADC2",
     /* device path */
-    .path                   = "/dev/adc2", 
+    .path                   = "/dev/adc2",
     /* instance base */
-    .base                   = HPM_ADC2,  
-    /* interrupt config */    
-    .irq                    = HPM_IRQn_ADC2, 
+    .base                   = HPM_ADC2,
+    /* interrupt config */
+    .irq                    = HPM_IRQn_ADC2,
     .isr                    = adc_interrupt,
-    .mask                   = 0, 
-    /* common config */ 
-    .cfg                    = { .res          = CONFIG_HPM_ADC2_RES, 
-                                .conv_mode    = CONFIG_HPM_ADC2_CONV_MODE,  
-                                .adc_clk_div  = adc12_clock_divider_3,                             
-                                .sel_sync_ahb = false,                     
-                                .wait_dis     = true,                        
-                                .adc_ahb_en   = false,                     
+    .mask                   = 0,
+    /* common config */
+    .cfg                    = { .res          = CONFIG_HPM_ADC2_RES,
+                                .conv_mode    = CONFIG_HPM_ADC2_CONV_MODE,
+                                .adc_clk_div  = adc12_clock_divider_3,
+                                .sel_sync_ahb = false,
+                                .wait_dis     = true,
+                                .adc_ahb_en   = false,
                                 },
     /* channel config */
     .ch_cfg                 = {
-                                .ch                 = CONFIG_HPM_ADC2_CH,                
-                                .diff_sel           = CONFIG_HPM_ADC2_DIFF_SEL,        
+                                .ch                 = CONFIG_HPM_ADC2_CH,
+                                .diff_sel           = CONFIG_HPM_ADC2_DIFF_SEL,
                                 .thshdh             = 0,
                                 .thshdl             = 0,
-                                .sample_cycle_shift = 0,       
-                                .sample_cycle       = 20       
+                                .sample_cycle_shift = 0,
+                                .sample_cycle       = 20
                                 },
     /* oneshot mode */
-    #if CONFIG_HPM_ADC2_CONV_MODE == 0           
- 
+    #if CONFIG_HPM_ADC2_CONV_MODE == 0
+
     /* period mode */
-    #elif CONFIG_HPM_ADC2_CONV_MODE == 1 
+    #elif CONFIG_HPM_ADC2_CONV_MODE == 1
     .prd_cfg                = {
                                 .ch           = CONFIG_HPM_ADC2_CH,
-                                .prescale     = 22,                
-                                .period_count = 5                  
+                                .prescale     = 22,
+                                .period_count = 5
                                 },
     /* sequence mode */
-    #elif CONFIG_HPM_ADC2_CONV_MODE == 2 
+    #elif CONFIG_HPM_ADC2_CONV_MODE == 2
     .seq_cfg                = {
-                                .seq_len    = sizeof(adc2_seq_channel_list),   
-                                .restart_en = false,               
-                                .cont_en    = true,                
-                                .sw_trig_en = true,                
-                                .hw_trig_en = true                 
-                                 },                             
+                                .seq_len    = sizeof(adc2_seq_channel_list),
+                                .restart_en = false,
+                                .cont_en    = true,
+                                .sw_trig_en = true,
+                                .hw_trig_en = true
+                                 },
     .dma_cfg                = {
                                 .start_addr         = (uint32_t)adc2_seq_buff,
                                 .buff_len_in_4bytes = sizeof(adc2_seq_channel_list),
-                                .stop_en            = false,   
-                                .stop_pos           = 0           
+                                .stop_en            = false,
+                                .stop_pos           = 0
                                 },
     .seq_buff               = adc2_seq_buff,
     .seq_channel_list       = adc2_seq_channel_list,
-    /* preemption mode */                             
+    /* preemption mode */
     #elif CONFIG_HPM_ADC2_CONV_MODE == 3
-    .pmt_cfg                = {                            
-                                .trig_ch = CONFIG_HPM_ADC2_TRIG_SOURCE, 
+    .pmt_cfg                = {
+                                .trig_ch = CONFIG_HPM_ADC2_TRIG_SOURCE,
                                 .trig_len = sizeof(adc2_trig_channel_list)
                                 },
     .pmt_buff               = adc2_pmt_buff,
     .trig_channel_list      = adc2_trig_channel_list
     #else
         #error "Not supported mode!"
-    #endif                             
+    #endif
 };
 #endif
 
-static struct adc_dev_s g_adc_dev[] = 
+static struct adc_dev_s g_adc_dev[] =
 {
     #if defined(CONFIG_HPM_ADC0) && CONFIG_HPM_ADC0
-    {   
+    {
         .ad_ops  = &g_adc_ops,
         .ad_priv = &g_adc0_priv
     },
     #endif
 
     #if defined(CONFIG_HPM_ADC1) && CONFIG_HPM_ADC1
-    {   
+    {
         .ad_ops  = &g_adc_ops,
         .ad_priv = &g_adc1_priv
     },
     #endif
 
     #if defined(CONFIG_HPM_ADC2) && CONFIG_HPM_ADC2
-    {   
+    {
         .ad_ops  = &g_adc_ops,
         .ad_priv = &g_adc2_priv
     },
@@ -374,7 +374,7 @@ static struct adc_dev_s g_adc_dev[] =
 
 static void init_trigger_cfg(struct adc_dev_s *dev, uint8_t trig_ch, bool inten)
 {
-    struct up_dev_s *priv = (struct up_dev_s *)dev->ad_priv;  
+    struct up_dev_s *priv = (struct up_dev_s *)dev->ad_priv;
 
     for (int i = 0; i < priv->pmt_cfg.trig_len; i++) {
         priv->pmt_cfg.adc_ch[i] = priv->trig_channel_list[i];
@@ -393,7 +393,7 @@ static void init_common_config(struct adc_dev_s *dev)
     if (priv->cfg.conv_mode == adc12_conv_mode_sequence || priv->cfg.conv_mode == adc12_conv_mode_preemption) {
         priv->cfg.adc_ahb_en = true;
     }
-                 
+
     if (priv->base == HPM_ADC0) {
         #if defined(CONFIG_HPM_ADC0_NON_BLOCKING_READ) && CONFIG_HPM_ADC0_NON_BLOCKING_READ
         priv->cfg.wait_dis = true;
@@ -403,21 +403,21 @@ static void init_common_config(struct adc_dev_s *dev)
     } else if (priv->base == HPM_ADC1) {
         #if defined(CONFIG_HPM_ADC1_NON_BLOCKING_READ) && CONFIG_HPM_ADC1_NON_BLOCKING_READ
         priv->cfg.wait_dis = true;
-        #else 
+        #else
         priv->cfg.wait_dis = false;
         #endif
-    } else if (priv->base == HPM_ADC2) { 
+    } else if (priv->base == HPM_ADC2) {
         #if defined(CONFIG_HPM_ADC2_NON_BLOCKING_READ) && CONFIG_HPM_ADC2_NON_BLOCKING_READ
         priv->cfg.wait_dis = true;
-        #else 
+        #else
         priv->cfg.wait_dis = false;
         #endif
     } else {
 
     }
 
-    adc12_init(priv->base, &priv->cfg); 
-    up_enable_irq(priv->irq);  
+    adc12_init(priv->base, &priv->cfg);
+    up_enable_irq(priv->irq);
 }
 
 static void init_oneshot_config(struct adc_dev_s *dev)
@@ -437,34 +437,34 @@ static void init_period_config(struct adc_dev_s *dev)
 
 static void init_sequence_config(struct adc_dev_s *dev)
 {
-    struct up_dev_s *priv = (struct up_dev_s *)dev->ad_priv;  
-     
+    struct up_dev_s *priv = (struct up_dev_s *)dev->ad_priv;
+
     for (int i = 0; i < priv->seq_cfg.seq_len; i++) {
         priv->ch_cfg.ch = priv->seq_channel_list[i];
         adc12_init_channel(priv->base, &priv->ch_cfg);
     }
 
-    for (int i = 0; i < priv->seq_cfg.seq_len; i++) { 
+    for (int i = 0; i < priv->seq_cfg.seq_len; i++) {
         priv->seq_cfg.queue[i].seq_int_en = 0;
         priv->seq_cfg.queue[i].ch = priv->seq_channel_list[i];
     }
 
-    /* Initialize a sequence */    
+    /* Initialize a sequence */
     adc12_set_seq_config(priv->base, &priv->seq_cfg);
 
     /* Set DMA config */
-    priv->dma_cfg.start_addr = (uint32_t *)core_local_mem_to_sys_address(BOARD_APP_CORE, (uint32_t)priv->seq_buff);   
+    priv->dma_cfg.start_addr = (uint32_t *)core_local_mem_to_sys_address(BOARD_APP_CORE, (uint32_t)priv->seq_buff);
 
     /* Initialize DMA for the sequence mode */
     adc12_init_seq_dma(priv->base, &priv->dma_cfg);
 
     /* Set interrupt mask */
-    priv->mask = adc12_event_seq_full_complete;  
+    priv->mask = adc12_event_seq_full_complete;
 }
-  
+
 static void init_preemption_config(struct adc_dev_s *dev)
 {
-    struct up_dev_s *priv = (struct up_dev_s *)dev->ad_priv;    
+    struct up_dev_s *priv = (struct up_dev_s *)dev->ad_priv;
 
     for (int i = 0; i < priv->pmt_cfg.trig_len; i++) {
         priv->ch_cfg.ch = priv->trig_channel_list[i];
@@ -475,7 +475,7 @@ static void init_preemption_config(struct adc_dev_s *dev)
     init_trigger_cfg(dev, priv->pmt_cfg.trig_ch, true);
 
     /* Set DMA start address for preemption mode */
-    adc12_init_pmt_dma(priv->base, core_local_mem_to_sys_address(BOARD_APP_CORE, (uint32_t)priv->pmt_buff));   
+    adc12_init_pmt_dma(priv->base, core_local_mem_to_sys_address(BOARD_APP_CORE, (uint32_t)priv->pmt_buff));
 
     /* Set interrupt mask */
     priv->mask = adc12_event_trig_complete;
@@ -490,7 +490,7 @@ static hpm_stat_t process_seq_data(struct adc_dev_s *dev)
 
     if (ADC12_IS_SEQ_DMA_BUFF_LEN_INVLAID(len)) {
         return status_invalid_argument;
-    }    
+    }
 
     ainfo("Sequence Mode - %s - ", priv->name);
 
@@ -499,7 +499,7 @@ static hpm_stat_t process_seq_data(struct adc_dev_s *dev)
         ainfo("Sequence Number:%02d ", dma_data[i].seq_num);
         ainfo("ADC Channel: %02d ", dma_data[i].adc_ch);
         ainfo("Result: 0x%04x\n", dma_data[i].result);
-    }    
+    }
 
     return status_success;
 }
@@ -509,20 +509,20 @@ static hpm_stat_t process_pmt_data(struct adc_dev_s *dev)
     struct up_dev_s *priv     = (struct up_dev_s *)dev->ad_priv;
     adc12_pmt_dma_data_t *dma_data = (adc12_pmt_dma_data_t *)priv->pmt_buff;
     int start_pos = priv->pmt_cfg.trig_ch * sizeof(adc12_pmt_dma_data_t);
-    uint32_t len = priv->pmt_cfg.trig_len;    
-    
+    uint32_t len = priv->pmt_cfg.trig_len;
+
     if (ADC12_IS_PMT_DMA_BUFF_LEN_INVLAID(len)) {
         return status_invalid_argument;
     }
 
-    ainfo("Preemption Mode - %s - ", priv->name); 
+    ainfo("Preemption Mode - %s - ", priv->name);
 
-    for (int i = start_pos; i < start_pos + len; i++) {        
+    for (int i = start_pos; i < start_pos + len; i++) {
         if (dma_data[i].cycle_bit) {
             ainfo("Trig Channel: %02d ", dma_data[i].trig_ch);
             ainfo("Cycle Bit: %02d ", dma_data[i].cycle_bit);
             ainfo("Sequence Number: %02d ", dma_data[i].seq_num);
-            ainfo("ADC Channel: %02d ", dma_data[i].adc_ch);    
+            ainfo("ADC Channel: %02d ", dma_data[i].adc_ch);
             ainfo("Result: 0x%04x\n", dma_data[i].result);
             dma_data[i].cycle_bit = 0;
         } else {
@@ -541,7 +541,7 @@ static void sequence_handler(struct adc_dev_s *dev)
     adc12_trigger_seq_by_sw(priv->base);
 
     while (priv->seq_full_complete_flag == 0) {
- 
+
     }
     /* Process data */
     process_seq_data(dev);
@@ -549,7 +549,7 @@ static void sequence_handler(struct adc_dev_s *dev)
     /* Clear the flag */
     priv->seq_full_complete_flag = 0;
 }
- 
+
 static void preemption_handler(struct adc_dev_s *dev)
 {
     struct up_dev_s *priv = (struct up_dev_s *)dev->ad_priv;
@@ -611,7 +611,7 @@ static int adc_bind(struct adc_dev_s *dev, const struct adc_callback_s *callback
         return -ENOBUFS;
     }
     priv->cb = callback;
-    
+
     return OK;
 }
 
@@ -635,7 +635,7 @@ static void adc_reset(struct adc_dev_s *dev)
     board_init_adc12_pins();
 
     /* ADC clock initialization */
-    board_init_adc12_clock(priv->base);
+    board_init_adc12_clock(priv->base, true);
 
     leave_critical_section(flags);
 }
@@ -663,7 +663,7 @@ static int adc_setup(struct adc_dev_s *dev)
     }
 
     up_enable_irq(priv->irq);
-  
+
     /* ADC12 common initialization */
     init_common_config(dev);
 
@@ -739,23 +739,23 @@ static void adc_rxint(struct adc_dev_s *dev, bool enable)
  *
  ****************************************************************************/
 
-static int adc_ioctl(struct adc_dev_s *dev, int cmd, unsigned long arg) 
+static int adc_ioctl(struct adc_dev_s *dev, int cmd, unsigned long arg)
 {
     struct up_dev_s *priv = (struct up_dev_s *)dev->ad_priv;
-    uint16_t result;      
+    uint16_t result;
     int cnt = 0;
-    int ret = OK;      
-    
+    int ret = OK;
+
     switch (cmd) {
         case ANIOC_TRIGGER:
-            {            
+            {
                 if (priv->cfg.conv_mode == adc12_conv_mode_oneshot) {
-                    while (cnt++ < 10) { 
+                    while (cnt++ < 10) {
                         if (adc12_get_oneshot_result(priv->base, priv->ch_cfg.ch, &result) == status_success) {
                             ainfo("oneshot mode: read result\n");
                             priv->cb->au_receive(dev, priv->ch_cfg.ch, (int32_t)result);
                             break;
-                        } 
+                        }
                     }
                     ret = cnt > 10 ? -EAGAIN : OK;
                 } else if (priv->cfg.conv_mode == adc12_conv_mode_period) {
@@ -814,17 +814,17 @@ static int adc_interrupt(int irq, void *context, void *arg)
  * Returned Value:
  *   Valid adc device structure reference on success; a NULL on failure
  *
- ****************************************************************************/ 
+ ****************************************************************************/
 int hpm_adc12_setup(void)
-{  
+{
     static bool initialized = false;
-    int ret;  
-    
+    int ret;
+
     /* Check if we have already initialized */
     if (!initialized)
-    { 
+    {
         /* Register the ADC driver at "/dev/adcx" */
-        for (int i = 0; i < sizeof(g_adc_dev) / sizeof(g_adc_dev[0]); i++) {           
+        for (int i = 0; i < sizeof(g_adc_dev) / sizeof(g_adc_dev[0]); i++) {
             ret = adc_register(((struct up_dev_s *)(g_adc_dev[i].ad_priv))->path, &g_adc_dev[i]);
             if (ret < 0)
             {
@@ -838,5 +838,5 @@ int hpm_adc12_setup(void)
 
     return OK;
 }
-    
-#endif 
+
+#endif
