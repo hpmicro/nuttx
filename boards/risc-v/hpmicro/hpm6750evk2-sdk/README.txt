@@ -30,11 +30,11 @@
   $ mkdir ./nuttxspace
   $ cd ./nuttxspace
   $ git clone https://github.com/hpmicro/nuttx.git nuttx
-  $ git clone https://github.com/apache/nuttx-apps.git apps
+  $ git clone https://github.com/hpmicro/nuttx_apps.git apps
   $ cd nuttx
   $ git checkout -b nuttx_v12.4_with_hpmsdk origin/nuttx_v12.4_with_hpmsdk
   $ cd ../apps
-  $ git checkout -b releases/12.4 origin/releases/12.4
+  $ git checkout -b nuttx_apps_v12.4 origin/nuttx_apps_v12.4
   $ cd ../nuttx
   $ make distclean
   $ ./tools/configure.sh -l hpm6750evk2-sdk:nsh
