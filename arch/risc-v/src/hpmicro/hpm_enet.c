@@ -38,7 +38,6 @@
 #include <nuttx/queue.h>
 #include <nuttx/wqueue.h>
 #include <nuttx/signal.h>
-#include <nuttx/net/arp.h>
 #include <nuttx/net/netdev.h>
 #if defined(CONFIG_NET_PKT)
 #  include <nuttx/net/pkt.h>
@@ -63,7 +62,7 @@
  ****************************************************************************/
 #define ETHWORK LPWORK
 
-#if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII 
+#if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
 #define ENET_INF_TYPE       enet_inf_rgmii
 #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
 #define ENET_INF_TYPE       enet_inf_rmii
@@ -110,7 +109,7 @@ struct hpm_enet_mac_s
 
   /* This holds the information visible to the NuttX network */
   struct net_driver_s  dev;         /* Interface understood by the network */
-  
+
   ENET_Type *base;
   enet_desc_t desc;
   enet_mac_config_t mac_config;
@@ -248,12 +247,12 @@ static int hpm_txpoll(struct net_driver_s *dev)
     DEBUGASSERT(priv->dev.d_buf != NULL);
 
     hpm_transmit(priv);
-    DEBUGASSERT(dev->d_len == 0 && dev->d_buf == NULL);   
+    DEBUGASSERT(dev->d_len == 0 && dev->d_buf == NULL);
 
     dma_tx_desc = tx_desc_list_cur;
     if (dma_tx_desc->tdes0_bm.own != 0) {
         return -EBUSY;
-    } 
+    }
 
     return 0;
 }
@@ -401,7 +400,7 @@ static inline void hpm_enet_gpioconfig(struct hpm_enet_mac_s *priv)
 
 static int hpm_recvframe(struct hpm_enet_mac_s *priv)
 {
-    enet_frame_t frame = {0, 0, 0};  
+    enet_frame_t frame = {0, 0, 0};
     enet_rx_desc_t *dma_rx_desc;
 
     frame = enet_get_received_frame_interrupt(&priv->desc.rx_desc_list_cur, &priv->desc.rx_frame_info, ENET_RX_BUFF_COUNT);
@@ -445,20 +444,20 @@ static int hpm_recvframe(struct hpm_enet_mac_s *priv)
  ****************************************************************************/
 
 static int hpm_transmit(struct hpm_enet_mac_s *priv)
-{   
+{
     __IO enet_tx_desc_t *dma_tx_desc;
-    uint16_t frame_length = 0;        
+    uint16_t frame_length = 0;
     enet_tx_desc_t  *tx_desc_list_cur = priv->desc.tx_desc_list_cur;
 
-    dma_tx_desc = tx_desc_list_cur;  
+    dma_tx_desc = tx_desc_list_cur;
     if (dma_tx_desc->tdes0_bm.own != 0) {
         return -EBUSY;
     }
- 
+
     /* pass payload to buffer */
-    priv->desc.tx_desc_list_cur->tdes2_bm.buffer1 = core_local_mem_to_sys_address(BOARD_APP_CORE, (uint32_t)priv->dev.d_buf);    
-    frame_length = priv->dev.d_len; 
- 
+    priv->desc.tx_desc_list_cur->tdes2_bm.buffer1 = core_local_mem_to_sys_address(BOARD_APP_CORE, (uint32_t)priv->dev.d_buf);
+    frame_length = priv->dev.d_len;
+
     /* Prepare transmit descriptors to give to DMA*/
     frame_length += 4;
     enet_prepare_tx_desc(priv->base, &priv->desc.tx_desc_list_cur, &priv->desc.tx_control_config, frame_length, priv->desc.tx_buff_cfg.size);
@@ -504,7 +503,7 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
       if (BUF->type == HTONS(ETHTYPE_IP))
         {
           /* Receive an IPv4 packet from the network device */
-          ipv4_input(&priv->dev); 
+          ipv4_input(&priv->dev);
 
           /* If the above function invocation resulted in data that should be
            * sent out on the network, d_len field will set to a value > 0.
@@ -521,7 +520,7 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
 #ifdef CONFIG_NET_ARP
       if (BUF->type == HTONS(ETHTYPE_ARP))
         {
-          /* Handle ARP packet */          
+          /* Handle ARP packet */
           arp_input(&priv->dev);
 
           /* If the above function invocation resulted in data that should be
@@ -582,11 +581,11 @@ static void hpm_interrupt_work(void *arg)
   intr_status = priv->base->INTR_STATUS;
 
   /* Process pending Ethernet interrupts */
- 
+
   net_lock();
 
   /* Check if there are pending "normal" interrupts */
-    
+
     if (ENET_DMA_STATUS_GLPII_GET(status)) {
        /* read LPI_CSR to clear interrupt status */
        priv->base->LPI_CSR;
@@ -637,7 +636,7 @@ static int hpm_interrupt(int irq, void *context, void *arg)
 
   /* Get the DMA interrupt status bits (no MAC interrupts are expected) */
   dmasr = priv->base->DMA_STATUS;
-  
+
   if (dmasr != 0)
     {
       /* Disable further Ethernet interrupts.  Because Ethernet interrupts
@@ -657,7 +656,7 @@ static int hpm_interrupt(int irq, void *context, void *arg)
  * Function: hpm_enet_init
  *
  * Description:
- *  Configure the Ethernet Controller and DMA 
+ *  Configure the Ethernet Controller and DMA
  *
  * Input Parameters:
  *   priv - A reference to the private driver state structure
@@ -672,14 +671,14 @@ static int hpm_interrupt(int irq, void *context, void *arg)
 static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 {
     enet_int_config_t int_config = {.int_enable = 0, .int_mask = 0};
-    enet_mac_config_t enet_config;  
+    enet_mac_config_t enet_config;
 
-    #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII    
+    #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
         rtl8211_config_t phy_config;
-    #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII     
+    #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
         rtl8201_config_t phy_config;
     #endif
-    
+
     /* Initialize td, rd and the corresponding buffers */
     memset((uint8_t *)dma_tx_desc_tab, 0x00, sizeof(dma_tx_desc_tab));
     memset((uint8_t *)dma_rx_desc_tab, 0x00, sizeof(dma_rx_desc_tab));
@@ -699,20 +698,20 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 
     /*Get a default control config for tx descriptor */
     enet_get_default_tx_control_config(priv->base, &priv->desc.tx_control_config);
-    
+
     priv->desc.tx_control_config.cic = 0;
 
     /* Set the control config for tx descriptor */
-    memcpy(&priv->desc.tx_control_config, &priv->desc.tx_control_config, sizeof(enet_tx_control_config_t));    
+    memcpy(&priv->desc.tx_control_config, &priv->desc.tx_control_config, sizeof(enet_tx_control_config_t));
 
-    /* Set MAC0 address */   
-    enet_config.mac_addr_high[0] = priv->dev.d_mac.ether.ether_addr_octet[5] << 8 | 
+    /* Set MAC0 address */
+    enet_config.mac_addr_high[0] = priv->dev.d_mac.ether.ether_addr_octet[5] << 8 |
                                    priv->dev.d_mac.ether.ether_addr_octet[4];
-    enet_config.mac_addr_low[0]  = priv->dev.d_mac.ether.ether_addr_octet[3] << 24 | 
-                                   priv->dev.d_mac.ether.ether_addr_octet[2] << 16 | 
-                                   priv->dev.d_mac.ether.ether_addr_octet[1] << 8 | 
+    enet_config.mac_addr_low[0]  = priv->dev.d_mac.ether.ether_addr_octet[3] << 24 |
+                                   priv->dev.d_mac.ether.ether_addr_octet[2] << 16 |
+                                   priv->dev.d_mac.ether.ether_addr_octet[1] << 8 |
                                    priv->dev.d_mac.ether.ether_addr_octet[0];
-   
+
     enet_config.valid_max_count  = 1;
 
     /* Set DMA PBL */
@@ -745,7 +744,7 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
         rtl8201_reset(priv->base);
         rtl8201_basic_mode_default_config(priv->base, &phy_config);
         if (rtl8201_basic_mode_init(priv->base, &phy_config) == true) {
-    #endif   
+    #endif
             ninfo("Enet phy init passed !\n");
             return status_success;
         } else {
@@ -777,10 +776,10 @@ static int hpm_enet_config(struct hpm_enet_mac_s *priv)
   /* Reset an enet PHY */
   board_reset_enet_phy(priv->base);
 
-  #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII 
+  #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
       /* Set RGMII clock delay */
       board_init_enet_rgmii_clock_delay(priv->base);
-  #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII 
+  #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
       /* Set RMII reference clock */
       board_init_enet_rmii_reference_clock(priv->base, CONFIG_RMII_REFCLK);
       ninfo("Reference Clock: %s\n", CONFIG_RMII_REFCLK ? "Internal Clock" : "External Clock");
@@ -788,7 +787,7 @@ static int hpm_enet_config(struct hpm_enet_mac_s *priv)
 
   /* Initialize the MAC and DMA */
   ninfo("Initialize the MAC and DMA\n");
- 
+
   ret = hpm_enet_init(priv);
   ninfo("%d: ret value: %d\n", __LINE__, ret);
   if (ret < 0)
@@ -827,9 +826,9 @@ int hpm_enet_initialize(int intf)
 {
   struct hpm_enet_mac_s *priv;
   int ret;
-  
+
   /* Get the interface structure associated with this interface number. */
-  priv = &g_hpmethmac;  
+  priv = &g_hpmethmac;
 
   /* Initialize the driver structure */
   memset(priv, 0, sizeof(struct hpm_enet_mac_s));
