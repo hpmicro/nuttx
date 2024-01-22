@@ -32,16 +32,16 @@
   $ git clone https://github.com/hpmicro/nuttx.git nuttx
   $ git clone https://github.com/apache/nuttx-apps.git apps
   $ cd nuttx
-  $ git checkout -b nuttx_with_hpmsdk origin/nuttx_with_hpmsdk
+  $ git checkout -b nuttx_v12.4_with_hpmsdk origin/nuttx_v12.4_with_hpmsdk
   $ cd ../apps
-  $ git checkout -b releases/12.0 origin/releases/12.0
+  $ git checkout -b releases/12.4 origin/releases/12.4
   $ cd ../nuttx
   $ make distclean
   $ ./tools/configure.sh -l hpm6200evk-sdk:nsh
   $ make V=1
 
   note:
-  [1] The nuttx and apps version is release/12.0.
+  [1] The nuttx and apps version is releases/12.4.
   [2] You can use "make menuconfig" to make any modifications to the installed ".config" file. Then you can do "make savedefconfig" to generate a new defconfig file that includes your modifications.
   [3] Default linker file is flash_xip.ld, you can config to ram.ld.
 
