@@ -4,15 +4,18 @@ Overview
 ==========================================
 This sample shows FPU feature.
 This sample will call apps/examples/fpu_test/fpu_test_main.c,
-On fpu_test_main.c, main_task will calcaute 'pai' and wait a radom delay,
-and also will create 2 while_thread and the thread will calaute the 'pai' on while function.
+On fpu_test_main.c, main_task will calcaute 'pi' and wait a random delay,
+and also will create 2 while_thread and the thread will calaute the 'pi' on while function.
+
+Compile Version
+==========================================
+flash_xip(ram.ld is small so not support ram version)
 
 
 Configuration & Build NuttX
 ==========================================
 $ make distclean
 $ ./tools/configure.sh -l hpm6300evk-sdk:fpu
-$ make menuconfig and enable FPU/DP-FPU
 $ make -j
 
 

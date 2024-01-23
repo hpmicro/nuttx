@@ -31,15 +31,15 @@ config ARCH_CHIP_HPM5361_SDK
 
 endchoice # HPMicro Chip Selection
 
-config HPMICRO_ENABLE_FPU
+config HPM_ENABLE_FPU
 	bool "HPMICRO FPU Support"
 	default n
 	select ARCH_HAVE_FPU
 	---help---
 		Enable the RISC-V Floating Point Unit (FPU).
 
-if HPMICRO_ENABLE_FPU
-config HPMICRO_ENABLE_DPFPU
+if HPM_ENABLE_FPU
+config HPM_ENABLE_DPFPU
 	bool "HPMICRO DP-FPU Support"
 	default n
 	select ARCH_HAVE_DPFPU
