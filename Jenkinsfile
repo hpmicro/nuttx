@@ -17,8 +17,9 @@ class Globals {
     static linuxReportStash = [:] //buildnode: stashreport
     static String buildCodeClone = "git clone git@192.168.11.211:swtesting/ci_build.git -b release_3.1.0"
     static String nuttxCodeClone = "git@192.168.11.211:oss/nuttx.git"
-    // static String appsCodeClone = "git clone https://github.com/apache/nuttx-apps.git apps --depth=1 -b releases/12.0"
-    static String appsPackage = "nuttx-apps-nuttx-12.4.*"
+    static String appsCodeClone = "git clone git@192.168.11.211:oss/nuttx_apps.git apps -b nuttx_apps_v12.4"
+    // static String appsPackage = "nuttx-apps-nuttx-12.4.*"
+    static String appsPatch = "/home/builder/build/workspace/nuttx_apps.patch"
 }
 
 pipeline {
@@ -237,7 +238,8 @@ def getParallelStageByCaseBalance(cases, os){
                             def outputPath = "$WORKSPACE/$BUILD_ID/output"
                             def buildPath = "$WORKSPACE/ci_build"
                             def nuttxPath = "$WORKSPACE/nuttx"
-                            sh("$Globals.buildCodeClone && unzip -q /home/builder/${Globals.appsPackage}.zip && mv ${Globals.appsPackage} apps && git clone $Globals.nuttxCodeClone -b $branchName")
+                            sh("$Globals.appsCodeClone && cd apps && git apply $Globals.appsPatch")
+                            sh("$Globals.buildCodeClone && git clone $Globals.nuttxCodeClone -b $branchName")
                             sh("export PATH=$PATH:/home/builder/nuttx_toolchain/riscv32-unknown-elf-newlib-multilib/bin && cd $buildPath/test_build/test_nuttx_build && /home/builder/.local/bin/pytest --suppress-tests-failed-exit-code --jenkins_project $projectName $casesStr --project_src_dir $nuttxPath --build_dir $outputPath --junit-xml=$buildPath/report_${buildNode}.xml --jenkins_build_id $BUILD_ID --jenkins_branch $BRANCH_NAME -p no:warnings")
                             
                             stash includes: "ci_build/report_${buildNode}.xml", name:"report_${buildNode}"
