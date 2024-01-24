@@ -36,7 +36,7 @@
     - configs: add gpio
     - configs: add nsh
 
-## [v0.2.0] - 20240118
+## [v0.2.0] - 20240124
 
 ### Version
 - Nuttx: release v12.4.0
@@ -44,6 +44,16 @@
 - Hpm_sdk: release v1.4.0
 
 ### Added:
+- hpm6750evk2-sdk
+    - configs: add fpu
+
+- hpm6300evk-sdk
+    - configs: add fpu
+    
+- hpm6200evk-sdk
+    - configs: add fpu
+
 - hpm5300evk-sdk
     - configs: add gpio
     - configs: add nsh
+    - configs: add fpu
