@@ -19,8 +19,8 @@ st7789 lcd connector             board interface              pin
     CS                               J11[7]                   PE31
     CLK                              J11[8]                   PE27
     SDA                              J11[10]                  PE30
-    RES                              J11[5]                   PE09
-    BLK                              J11[4]                   PE10
+    RES                              J11[5]                   PZ09
+    BLK                              J11[4]                   PZ10
 Notice:you can access your lcd module(st7789) at the info pin above
 
 Configure NuttX
