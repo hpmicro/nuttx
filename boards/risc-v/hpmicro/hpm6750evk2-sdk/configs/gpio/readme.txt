@@ -19,7 +19,7 @@ device             board interface               use                    pin
  gpio1   <----->       D42           <----->    output     <----->      PZ04
  gpio2   <----->       D43           <----->    output     <----->      PZ05
  gpio3   <----->      WBUTN(sw2)     <----->   interrupt   <----->      PZ03
-Notice: J12 J13 interface must be shorted
+Notice: J112 J113 interface must be shorted
 
 
 Configure NuttX
