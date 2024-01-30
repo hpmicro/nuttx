@@ -76,5 +76,16 @@ Opening /dev/rtc0
 Alarm 1 set in 3 seconds
 nsh> alarm_daemon: alarm 1 received
 
-nsh>
+5. if want to read the remaining alarm time, you can use the command.
+
+nsh> alarm -r
+Opening /dev/rtc0
+Alarm 0 is active with 6 seconds to expiration
+
+   if the alarm is invalid, the following log will appear:
+
+nsh> alarm -r
+Opening /dev/rtc0
+Alarm 0 is inactive with -155 seconds to expiration
+
 
