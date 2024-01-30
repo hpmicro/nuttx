@@ -54,6 +54,15 @@
 #define HPM_ALARM1          (1)
 
 /****************************************************************************
+ * Public Data
+ ****************************************************************************/
+
+/* g_rtc_enabled is set true after the RTC has successfully initialized */
+
+volatile bool g_rtc_enabled = false;
+static struct rtc_time g_rtc_alarm[HPM_ALARMS_NUM];
+
+/****************************************************************************
  * Private Types
  ****************************************************************************/
 
@@ -103,7 +112,6 @@ typedef struct
 /* Prototypes for static methods in struct rtc_ops_s */
 
 static int hpm_rtcinterrupt(int irq, void *context, void *arg);
-static hpm_stat_t hpm_rtc_config_absolute_alarm(RTC_Type *base, rtc_alarm_config_t *config);
 
 static int hpm_rdtime(struct rtc_lowerhalf_s *lower,
                         struct rtc_time *rtctime);
@@ -191,53 +199,6 @@ static int hpm_rtcinterrupt(int irq, void *context, void *arg)
   return 0;
 }
 
-/****************************************************************************
- * Name: hpm_rtcinterrupt
- *
- * Description:
- *  RTC interrupt handler
- *
- ****************************************************************************/
-
-static hpm_stat_t hpm_rtc_config_absolute_alarm(RTC_Type *base, rtc_alarm_config_t *config)
-{
-  hpm_stat_t status = status_invalid_argument;
-  do {
-    if ((config == NULL) || (config->index > 1U) || (config->type > RTC_ALARM_TYPE_PERIODIC)) 
-      {
-        break;
-      }
-    uint32_t alarm_inc = 0;
-    uint32_t current_sec = base->SECOND;
-    uint32_t alarm = config->period;
-    if (config->type == RTC_ALARM_TYPE_ONE_SHOT) 
-      {
-        alarm_inc = 0;
-      } 
-    else 
-      {
-        alarm_inc = config->period;
-      }
-    if (alarm < current_sec) 
-      {
-        break;
-      }
-
-    if (config->index == 0U) 
-      {
-        base->ALARM0 = alarm;
-        base->ALARM0_INC = alarm_inc;
-      } 
-    else 
-      {
-        base->ALARM1 = alarm;
-        base->ALARM1_INC = alarm_inc;
-      }
-    status = status_success;
-  } while (false);
-
-  return status;
-}
 
 /****************************************************************************
  * Name: hpm_rdtime
@@ -370,6 +331,7 @@ static int hpm_setalarm(struct rtc_lowerhalf_s *lower,
 
   hpm_lowerhalf_s *priv = (hpm_lowerhalf_s *)lower;
   struct timespec ts;
+  time_t rtc_ts;
 
     /* Get exclusive access to the alarm */
 
@@ -397,18 +359,24 @@ static int hpm_setalarm(struct rtc_lowerhalf_s *lower,
       ts.tv_sec  = timegm((struct tm *)&alarminfo->time);
       ts.tv_nsec = 0;
 
-      /* Configure RTC alarm */ 
+      rtc_ts = rtc_get_time(HPM_RTC);
+      if (ts.tv_sec <= rtc_ts)
+        {
+          return -1;
+        }
+      memcpy(&g_rtc_alarm[alarminfo->id], &alarminfo->time, sizeof(struct rtc_time));
+
+      /* Convert the RTC time to a timespec (1 second accuracy) */
+      /* Configure RTC alarm */
 
       rtc_alarm_config_t alarm_cfg;
       alarm_cfg.index = alarminfo->id;
-      alarm_cfg.period = ts.tv_sec;
+      alarm_cfg.period = ts.tv_sec - rtc_ts;
       alarm_cfg.type = RTC_ALARM_TYPE_ONE_SHOT;
-      if(hpm_rtc_config_absolute_alarm(HPM_RTC, &alarm_cfg) == status_success)
-        {
-          rtc_clear_alarm_flag(HPM_RTC, alarminfo->id);
-          rtc_enable_alarm_interrupt(HPM_RTC, alarminfo->id, true);
-          ret = 0;
-        }
+      rtc_config_alarm(HPM_RTC, &alarm_cfg);
+      rtc_clear_alarm_flag(HPM_RTC, alarminfo->id);
+      rtc_enable_alarm_interrupt(HPM_RTC, alarminfo->id, true);
+      ret = 0;
     }
 
   nxmutex_unlock(&priv->devlock);
@@ -437,6 +405,10 @@ static int hpm_setrelative(struct rtc_lowerhalf_s *lower,
                              const struct lower_setrelative_s *alarminfo)
 {
   int ret = -EINVAL;
+  struct lower_setalarm_s setalarm;
+  struct tm *time;
+  time_t rtc_ts;
+  time_t seconds;
 
   DEBUGASSERT(lower != NULL && alarminfo != NULL && alarminfo->id == 0);
   hpm_lowerhalf_s *priv = (hpm_lowerhalf_s *)lower;
@@ -454,29 +426,17 @@ static int hpm_setrelative(struct rtc_lowerhalf_s *lower,
 
   if ((alarminfo->id == HPM_ALARM0 || alarminfo->id == HPM_ALARM1) && (alarminfo->reltime > 0))
     {
-
-      rtc_enable_alarm_interrupt(HPM_RTC, alarminfo->id, false);
-
-      /* Remember the callback information */
-
-      priv->alarm_cbinfo[alarminfo->id].id   = alarminfo->id;
-      priv->alarm_cbinfo[alarminfo->id].cb   = alarminfo->cb;
-      priv->alarm_cbinfo[alarminfo->id].priv = alarminfo->priv;
-
-      /* Convert the RTC time to a timespec (1 second accuracy) */
-      /* Configure RTC alarm */ 
-
-      rtc_alarm_config_t alarm_cfg;
-      alarm_cfg.index = alarminfo->id;
-      alarm_cfg.period = alarminfo->reltime;
-      alarm_cfg.type = RTC_ALARM_TYPE_ONE_SHOT;
-      rtc_config_alarm(HPM_RTC, &alarm_cfg);
-      rtc_clear_alarm_flag(HPM_RTC, alarminfo->id);
-      rtc_enable_alarm_interrupt(HPM_RTC, alarminfo->id, true);
-      ret = 0;
+      rtc_ts = rtc_get_time(HPM_RTC);
+      time = gmtime(&rtc_ts);
+      seconds = timegm(time);
+      seconds += alarminfo->reltime;
+      gmtime_r(&seconds, (struct tm *)&setalarm.time);
+      setalarm.id   = alarminfo->id;
+      setalarm.cb   = alarminfo->cb;
+      setalarm.priv = alarminfo->priv;
+      nxmutex_unlock(&priv->devlock);
+      ret = hpm_setalarm(lower, &setalarm);
     }
-
-  nxmutex_unlock(&priv->devlock);
   return ret;
 }
 
@@ -503,9 +463,15 @@ static int hpm_cancelalarm(struct rtc_lowerhalf_s *lower, int alarmid)
    * interrupt.
    */
 
-  rtc_clear_alarm_flag(HPM_RTC, alarmid);
-  rtc_enable_alarm_interrupt(HPM_RTC, alarmid, true);
-  return OK;
+  if (alarmid == HPM_ALARM0 || alarmid == HPM_ALARM1)
+   {
+      memset(&g_rtc_alarm[alarmid], 0, sizeof(struct rtc_time));
+      rtc_clear_alarm_flag(HPM_RTC, alarmid);
+      rtc_enable_alarm_interrupt(HPM_RTC, alarmid, false);
+      return OK;
+   }
+   return ERROR;
+
 }
 
 /****************************************************************************
@@ -535,21 +501,8 @@ static int hpm_rdalarm(struct rtc_lowerhalf_s *lower,
 
   if (alarminfo->id == HPM_ALARM0 || alarminfo->id == HPM_ALARM1)
     {
-      time_t alarm;
-
-      /* Get the current alarm setting in seconds */
-
-      alarm = (time_t)rtc_get_time(HPM_RTC);
-
-      /* Convert the one second epoch time to a struct tm */
-
       ret = OK;
-      if (gmtime_r(&alarm, (struct tm *)alarminfo->time) == 0)
-        {
-          int errcode = get_errno();
-          DEBUGASSERT(errcode > 0);
-          ret = -errcode;
-        }
+      memcpy(alarminfo->time, &g_rtc_alarm[alarminfo->id], sizeof(struct rtc_time));
     }
 
   return ret;
@@ -593,9 +546,12 @@ struct rtc_lowerhalf_s *hpm_rtc_lowerhalf(void)
 
   up_enable_irq(g_rtc_lowerhalf.irq_num);
 
+  g_rtc_enabled = true;
+
   return (struct rtc_lowerhalf_s *)&g_rtc_lowerhalf;
 }
 
+#if defined(CONFIG_RTC) && !defined(CONFIG_RTC_HIRES)
 /****************************************************************************
  * Name: up_rtc_time
  *
@@ -620,6 +576,34 @@ time_t up_rtc_time(void)
 
   return rtc_get_time(HPM_RTC);
 }
+#endif
+
+#if defined(CONFIG_RTC_DATETIME)
+int up_rtc_getdatetime(struct tm *tp)
+{
+  struct tm *d_tm;
+  time_t rtc_tm;
+  if (!tp)
+    {
+      return -1;
+    }
+  rtc_tm = rtc_get_time(HPM_RTC);
+  d_tm = gmtime(&rtc_tm);
+  memcpy(tp, d_tm, sizeof(struct tm));
+  return 0;
+}
+#endif
+
+#if defined(CONFIG_RTC_HIRES)
+int up_rtc_gettime(FAR struct timespec *tp)
+{
+  struct timeval tm;
+  tm = rtc_get_timeval(HPM_RTC);
+  tp->tv_nsec = tm.tv_usec;
+  tp->tv_sec = tm.tv_sec;
+  return 0;
+}
+#endif
 
 /****************************************************************************
  * Name: up_rtc_initialize
@@ -638,6 +622,15 @@ time_t up_rtc_time(void)
 
 int up_rtc_initialize(void)
 {
+  struct tm cfg_date_time;
+  cfg_date_time.tm_year = CONFIG_START_YEAR - 1900;        /* Year: (start from 1900) */
+  cfg_date_time.tm_mon = CONFIG_START_MONTH - 1;   /* Month:(start from 0) */
+  cfg_date_time.tm_mday = CONFIG_START_DAY;      /* Day in Month */
+  cfg_date_time.tm_hour = 1;               /* Hour */
+  cfg_date_time.tm_min = 0;              /* Minute */
+  cfg_date_time.tm_sec = 0;              /* Second */
+  time_t cfg_time = mktime(&cfg_date_time); /* Convert date time to tick */
+  rtc_config_time(HPM_RTC, cfg_time);
   return 0;
 }
 
