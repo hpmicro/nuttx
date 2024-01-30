@@ -1139,12 +1139,16 @@ static int netlink_ipv6_addr_callback(FAR struct net_driver_s *dev,
 }
 #endif
 
+#if defined(CONFIG_NET_IPv4) || defined(CONFIG_NET_IPv6)
+
 static int netlink_addr_callback(FAR struct net_driver_s *dev, FAR void *arg)
 {
+#if defined(CONFIG_NET_IPv4) || defined(CONFIG_NET_IPv6)
   FAR struct nlroute_info_s *info = arg;
-  FAR struct netlink_response_s *resp;
+#endif
 
 #ifdef CONFIG_NET_IPv4
+    FAR struct netlink_response_s *resp;
   if (info->req->gen.rtgen_family == AF_INET)
     {
       resp = netlink_get_ifaddr(dev, AF_INET, RTM_NEWADDR, &dev->d_ipaddr,
@@ -1168,7 +1172,9 @@ static int netlink_addr_callback(FAR struct net_driver_s *dev, FAR void *arg)
 
   return OK;
 }
+#endif
 
+#if defined(CONFIG_NET_IPv4) || defined(CONFIG_NET_IPv6)
 static int netlink_get_addr(NETLINK_HANDLE handle,
                             FAR const struct nlroute_sendto_request_s *req)
 {
@@ -1190,6 +1196,8 @@ static int netlink_get_addr(NETLINK_HANDLE handle,
 
   return netlink_add_terminator(handle, req);
 }
+#endif
+
 #endif
 
 /****************************************************************************
