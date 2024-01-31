@@ -443,7 +443,7 @@ static void adc_reset(struct adc_dev_s *dev)
     board_init_adc16_pins();
 
     /* ADC clock initialization */
-    board_init_adc16_clock(priv->base);
+    board_init_adc16_clock(priv->base, true);
 
     leave_critical_section(flags);
 }
