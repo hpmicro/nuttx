@@ -38,17 +38,25 @@ Running
     nsh     sercon  serdis  sh
   nsh>
 
-[1] Connect a USB cable to hpm6750evk2 board USB0 and execute `sercon` commands, PC will enumerate a device with a com port.
+  Beacause board does not provide circuitry for control of the "soft connect" USB pullup. As a result, the host PC does not know the USB has been logically connected or disconnected. You have to follow these steps to use USB:
 
-  nsh> sercon
-  sercon: Registering CDC/ACM serial driver
-  sercon: Successfully registered the CDC/ACM serial driver
+[1] Attach the serial device with the command 'sercon'. 
 
-[2] You can detach the serial device with the command 'serdis'.
+  1) Start NSH with USB disconnected
 
-  nsh> serdis
-  serdis: Disconnected
+  2) enter to 'sercon' command to start the CDC/ACM device
+      nsh> sercon
+      sercon: Registering CDC/ACM serial driver
+      sercon: Successfully registered the CDC/ACM serial driver
 
+  3) Connect the USB device to the host, PC will enumerate a device with a com port.
 
+[2] Detach the serial device with the command 'serdis'. 
 
+  1) Disconnect the USB device from the host
 
+  2) Enter the 'serdis' command
+      nsh> serdis
+      serdis: Disconnected
+
+Note: Default USB port is USB0.
