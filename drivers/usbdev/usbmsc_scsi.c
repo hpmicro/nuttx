@@ -2235,10 +2235,11 @@ static int usbmsc_cmdreadstate(FAR struct usbmsc_dev_s *priv)
   FAR struct usbdev_req_s *req;
   irqstate_t flags;
   ssize_t nread;
-  uint8_t *src;
-  uint8_t *dest;
+  // uint8_t *src;
+  // uint8_t *dest;
   int nbytes;
   int ret;
+  uint32_t xfrlen;
 
   /* Loop transferring data until either (1) all of the data has been
    * transferred, or (2) we have used up all of the write requests that we
@@ -2248,27 +2249,6 @@ static int usbmsc_cmdreadstate(FAR struct usbmsc_dev_s *priv)
   while (priv->u.xfrlen > 0 || priv->nsectbytes > 0)
     {
       usbtrace(TRACE_CLASSSTATE(USBMSC_CLASSSTATE_CMDREAD), priv->u.xfrlen);
-
-      /* Is the I/O buffer empty? */
-
-      if (priv->nsectbytes <= 0)
-        {
-          /* Yes.. read the next sector */
-
-          nread = USBMSC_DRVR_READ(lun, priv->iobuffer, priv->sector, 1);
-          if (nread < 0)
-            {
-              usbtrace(TRACE_CLSERROR(USBMSC_TRACEERR_CMDREADREADFAIL),
-                       -nread);
-              lun->sd     = SCSI_KCQME_UNRRE1;
-              lun->sdinfo = priv->sector;
-              break;
-            }
-
-          priv->nsectbytes = lun->sectorsize;
-          priv->u.xfrlen--;
-          priv->sector++;
-        }
 
       /* Check if there is a request in the wrreqlist that we will be able to
        * use for data transfer.
@@ -2291,21 +2271,30 @@ static int usbmsc_cmdreadstate(FAR struct usbmsc_dev_s *priv)
 
       req = privreq->req;
 
-      /* Transfer all of the data that will (1) fit into the request buffer,
-       * OR (2) all of the data available in the sector buffer.
-       */
+      /* Is the I/O buffer empty? */
 
-      src    = &priv->iobuffer[lun->sectorsize - priv->nsectbytes];
-      dest   = &req->buf[priv->nreqbytes];
+      if (priv->nsectbytes <= 0)
+        {
+          /* Yes.. read the next sector */
 
-      nbytes = MIN(priv->epbulkin->maxpacket - priv->nreqbytes,
-                   priv->nsectbytes);
+          xfrlen = MIN(priv->u.xfrlen, CONFIG_USBMSC_BULKINREQLEN / lun->sectorsize);
 
-      /* Copy the data from the sector buffer to the USB request and update
-       * counts
-       */
+          nread = USBMSC_DRVR_READ(lun, req->buf, priv->sector, xfrlen);
+          if (nread < 0)
+            {
+              usbtrace(TRACE_CLSERROR(USBMSC_TRACEERR_CMDREADREADFAIL),
+                       -nread);
+              lun->sd     = SCSI_KCQME_UNRRE1;
+              lun->sdinfo = priv->sector;
+              break;
+            }
 
-      memcpy(dest, src, nbytes);
+          priv->nsectbytes = lun->sectorsize * xfrlen;
+          priv->u.xfrlen -= xfrlen;
+          priv->sector += xfrlen;
+        }
+
+      nbytes = priv->nsectbytes;
       priv->nreqbytes  += nbytes;
       priv->nsectbytes -= nbytes;
 
@@ -2314,7 +2303,7 @@ static int usbmsc_cmdreadstate(FAR struct usbmsc_dev_s *priv)
        * then submit the request
        */
 
-      if (priv->nreqbytes >= priv->epbulkin->maxpacket ||
+      if (priv->nreqbytes >= CONFIG_USBMSC_BULKINREQLEN ||
           (priv->u.xfrlen <= 0 && priv->nsectbytes <= 0))
         {
           /* Remove the request that we just filled from wrreqlist (we've
@@ -2392,9 +2381,10 @@ static int usbmsc_cmdwritestate(FAR struct usbmsc_dev_s *priv)
   ssize_t nwritten;
   uint16_t xfrd;
   uint8_t *src;
-  uint8_t *dest;
+  // uint8_t *dest;
   int nbytes;
   int ret;
+  uint32_t xfrlen;
 
   /* Loop transferring data until either (1) all of the data has been
    * transferred, or (2) we have written all of the data in the available
@@ -2442,7 +2432,7 @@ static int usbmsc_cmdwritestate(FAR struct usbmsc_dev_s *priv)
            */
 
           src  = &req->buf[xfrd - priv->nreqbytes];
-          dest = &priv->iobuffer[priv->nsectbytes];
+          // dest = &priv->iobuffer[priv->nsectbytes];
 
 #ifdef CONFIG_USBMSC_WRMULTIPLE
           /* nbytes may end up being zero, after which the loop no longer
@@ -2460,13 +2450,13 @@ static int usbmsc_cmdwritestate(FAR struct usbmsc_dev_s *priv)
               nbytes = priv->nreqbytes;
             }
 #else
-          nbytes = MIN(lun->sectorsize - priv->nsectbytes, priv->nreqbytes);
+          nbytes = priv->nreqbytes;
 #endif
           /* Copy the data from the sector buffer to the USB request and
            * update counts
            */
 
-          memcpy(dest, src, nbytes);
+          // memcpy(dest, src, nbytes);
           priv->nsectbytes += nbytes;
           priv->nreqbytes  -= nbytes;
 
@@ -2500,9 +2490,10 @@ static int usbmsc_cmdwritestate(FAR struct usbmsc_dev_s *priv)
           if ((priv->nsectbytes >= lun->sectorsize))
             {
               /* Yes.. Write the next sector */
+              xfrlen = (MIN(priv->nsectbytes, CONFIG_USBMSC_BULKOUTREQLEN)) / lun->sectorsize;
 
-              nwritten = USBMSC_DRVR_WRITE(lun, priv->iobuffer,
-                                           priv->sector, 1);
+              nwritten = USBMSC_DRVR_WRITE(lun, src,
+                                           priv->sector, xfrlen);
               if (nwritten < 0)
                 {
                   usbtrace(TRACE_CLSERROR(USBMSC_TRACEERR_CMDWRITEWRITEFAIL),
@@ -2513,9 +2504,9 @@ static int usbmsc_cmdwritestate(FAR struct usbmsc_dev_s *priv)
                 }
 
               priv->nsectbytes = 0;
-              priv->residue   -= lun->sectorsize;
-              priv->u.xfrlen--;
-              priv->sector++;
+              priv->residue   -= (lun->sectorsize * xfrlen);
+              priv->u.xfrlen -= xfrlen;
+              priv->sector += xfrlen;
             }
 #endif
         }
@@ -2525,7 +2516,14 @@ static int usbmsc_cmdwritestate(FAR struct usbmsc_dev_s *priv)
        * top and attempt to get the next read request.
        */
 
-      req->len      = priv->epbulkout->maxpacket;
+      if (priv->u.xfrlen > 0)
+        {
+          req->len  = MIN(priv->u.xfrlen * lun->sectorsize, CONFIG_USBMSC_BULKOUTREQLEN);
+        }
+      else
+        {
+          req->len  = priv->epbulkout->maxpacket;
+        }
       req->priv     = privreq;
       req->callback = usbmsc_rdcomplete;
 
@@ -2538,7 +2536,7 @@ static int usbmsc_cmdwritestate(FAR struct usbmsc_dev_s *priv)
 
       /* Did the host decide to stop early? */
 
-      if (xfrd != priv->epbulkout->maxpacket)
+      if ((xfrd % priv->epbulkout->maxpacket) != 0)
         {
           priv->shortpacket = 1;
           goto errout;

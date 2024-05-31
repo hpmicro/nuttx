@@ -1001,7 +1001,7 @@ int usbmsc_setconfig(FAR struct usbmsc_dev_s *priv, uint8_t config)
     {
       privreq       = &priv->rdreqs[i];
       req           = privreq->req;
-      req->len      = CONFIG_USBMSC_BULKOUTREQLEN;
+      req->len      = priv->epbulkout->maxpacket;
       req->priv     = privreq;
       req->callback = usbmsc_rdcomplete;
 
