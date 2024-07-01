@@ -54,7 +54,7 @@
  *
  ****************************************************************************/
 
-void up_udelay(useconds_t microseconds)
+void weak_function up_udelay(useconds_t microseconds)
 {
   volatile int i;
 

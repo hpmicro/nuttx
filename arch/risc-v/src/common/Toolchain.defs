@@ -103,7 +103,7 @@ ifeq ($(CONFIG_DEBUG_LINK_MAP),y)
 endif
 
 ifeq ($(CONFIG_DEBUG_SYMBOLS),y)
-  ARCHOPTIMIZATION += -g
+  ARCHOPTIMIZATION += -gdwarf-2
 endif
 
 # Generic GNU RVG toolchain
@@ -112,7 +112,7 @@ ifeq ($(CONFIG_RISCV_TOOLCHAIN),GNU_RVG)
 
   # Generic GNU RVG toolchain
 
-  CROSSDEV ?= riscv64-unknown-elf-
+  CROSSDEV ?= riscv32-unknown-elf-
 
   # Detect cpu ISA support flags
 
@@ -123,7 +123,7 @@ ifeq ($(CONFIG_RISCV_TOOLCHAIN),GNU_RVG)
   ifeq ($(CONFIG_ARCH_RV_ISA_A),y)
     ARCHRVISAA = a
   endif
-  
+
   ifeq ($(CONFIG_ARCH_RV_ISA_C),y)
     ARCHRVISAC = c
   endif

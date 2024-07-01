@@ -527,7 +527,7 @@ config ARCH_BOARD_IMXRT1064_EVK
 	---help---
 		This is the board configuration for the port of NuttX to the NXP i.MXRT
 		evaluation kit, MIMXRT1064-EVK.  This board features the MIMXRT1064DVL6A MCU.
-		
+
 config ARCH_BOARD_IMXRT1170_EVK
 	bool "NXP i.MX RT 1170 EVK"
 	depends on ARCH_CHIP_MIMXRT1176DVMAA
@@ -2524,6 +2524,34 @@ config ARCH_BOARD_XX3823
 	---help---
 		none
 
+config ARCH_BOARD_HPM6750EVK2_SDK
+	bool "HPMicro evaluation board for HPM6750 with hpmsdk"
+	depends on ARCH_CHIP_HPM6750_SDK
+	---help---
+		This is the board configuration for the port of NuttX to the
+		HPMicro hpm6750evk2 board with hpmsdk. This board features the RISC-V D45.
+
+config ARCH_BOARD_HPM6300EVK_SDK
+	bool "HPMicro evaluation board for HPM6360 with hpmsdk"
+	depends on ARCH_CHIP_HPM6360_SDK
+	---help---
+		This is the board configuration for the port of NuttX to the
+		HPMicro hpm6300evk board with hpmsdk. This board features the RISC-V D45.
+
+config ARCH_BOARD_HPM6200EVK_SDK
+	bool "HPMicro evaluation board for HPM6280 with hpmsdk"
+	depends on ARCH_CHIP_HPM6280_SDK
+	---help---
+		This is the board configuration for the port of NuttX to the
+		HPMicro hpm6200evk board with hpmsdk. This board features the RISC-V D45.
+
+config ARCH_BOARD_HPM5300EVK_SDK
+	bool "HPMicro evaluation board for HPM5361 with hpmsdk"
+	depends on ARCH_CHIP_HPM5361_SDK
+	---help---
+		This is the board configuration for the port of NuttX to the
+		HPMicro hpm5300evk board with hpmsdk. This board features the RISC-V D25.
+
 config ARCH_BOARD_SIM
 	bool "User mode simulation"
 	select ARCH_HAVE_BUTTONS
@@ -2858,6 +2886,10 @@ config ARCH_BOARD
 	default "spresense"                if ARCH_BOARD_SPRESENSE
 	default "xx3803"                   if ARCH_BOARD_XX3803
 	default "xx3823"                   if ARCH_BOARD_XX3823
+	default "hpm6750evk2-sdk"           if ARCH_BOARD_HPM6750EVK2_SDK
+	default "hpm6300evk-sdk"            if ARCH_BOARD_HPM6300EVK_SDK
+	default "hpm6200evk-sdk"            if ARCH_BOARD_HPM6200EVK_SDK
+	default "hpm5300evk-sdk"            if ARCH_BOARD_HPM5300EVK_SDK
 
 comment "Common Board Options"
 
@@ -3657,6 +3689,18 @@ source "boards/sparc/bm3823/xx3823/Kconfig"
 endif
 if ARCH_BOARD_TLSR8278ADK80D
 source "boards/arm/tlsr82/tlsr8278adk80d/Kconfig"
+endif
+if ARCH_BOARD_HPM6750EVK2_SDK
+source "boards/risc-v/hpmicro/hpm6750evk2-sdk/Kconfig"
+endif
+if ARCH_BOARD_HPM6300EVK_SDK
+source "boards/risc-v/hpmicro/hpm6300evk-sdk/Kconfig"
+endif
+if ARCH_BOARD_HPM6200EVK_SDK
+source "boards/risc-v/hpmicro/hpm6200evk-sdk/Kconfig"
+endif
+if ARCH_BOARD_HPM5300EVK_SDK
+source "boards/risc-v/hpmicro/hpm5300evk-sdk/Kconfig"
 endif
 
 comment "Board-Common Options"

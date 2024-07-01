@@ -1,0 +1,21 @@
+#
+# For a description of the syntax of this configuration file,
+# see misc/tools/kconfig-language.txt.
+#
+
+if ARCH_BOARD_HPM5300EVK_SDK
+
+config SYSTEM_HEAPSIZE
+	int "system heap size"
+	default 16384
+
+config HAVE_LEDS
+	bool "Have user leds"
+	default n
+	select ARCH_HAVE_LEDS
+
+config INCLUDE_BOOTHEADER
+	bool
+	default n
+
+endif
