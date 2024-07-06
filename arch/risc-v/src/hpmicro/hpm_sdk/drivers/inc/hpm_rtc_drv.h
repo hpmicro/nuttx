@@ -17,16 +17,12 @@
 
 #include "hpm_common.h"
 #include "hpm_rtc_regs.h"
+
+#ifndef __ICCRISCV__
+#include <sys/time.h>
+#endif
 #include <time.h>
 
-#ifndef __TIMEVAL_DEFINED
-#define __TIMEVAL_DEFINED
-struct timeval
-{
-  time_t tv_sec;         /* Seconds */
-  long tv_usec;          /* Microseconds */
-};
-#endif
 
 /**
  * @brief RTC alarm configuration
