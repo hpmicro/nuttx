@@ -495,13 +495,13 @@ static int can_set_add_exdfilters(struct can_dev_s *dev, struct canioc_extfilter
       priv->filter_index = 0;
       return -1;
     }
-  
+
   if (priv->filter_num > CAN_FILTER_NUM_MAX)
     {
       canerr("ERROR: filter number max: %ld\n", priv->filter_num);
       return -1;
     }
-  
+
   index = priv->filter_index;
   priv->filter_list[index].index   = index;
   priv->filter_list[index].code    = filter->xf_id1;
@@ -523,14 +523,14 @@ static int can_set_add_exdfilters(struct can_dev_s *dev, struct canioc_extfilter
           mask &= tmp;
           mask = ~mask;
         }
-      priv->filter_list[index].mask = mask;      
+      priv->filter_list[index].mask = mask;
     }
   else
     {
       canerr("ERROR: the xf type is not support: %d\n", filter->xf_type);
       return -1;
     }
-  
+
   priv->filter_num ++;
   priv->filter_index ++;
 
@@ -565,13 +565,13 @@ static int can_set_add_stdfilters(struct can_dev_s *dev, struct canioc_stdfilter
       priv->filter_index = 0;
       return -1;
     }
-  
+
   if (priv->filter_num > CAN_FILTER_NUM_MAX)
     {
       canerr("ERROR: filter number max: %ld\n", priv->filter_num);
       return -1;
     }
-  
+
   index = priv->filter_index;
   priv->filter_list[index].index   = index;
   priv->filter_list[index].code    = filter->sf_id1;
@@ -593,16 +593,16 @@ static int can_set_add_stdfilters(struct can_dev_s *dev, struct canioc_stdfilter
           mask &= tmp;
           mask = ~mask;
         }
-      priv->filter_list[index].mask = mask;      
+      priv->filter_list[index].mask = mask;
     }
   else
     {
       canerr("ERROR: the xf type is not support: %d\n", filter->sf_type);
       return -1;
     }
-  
+
   priv->filter_num ++;
-  priv->filter_index ++;   
+  priv->filter_index ++;
 
   return index;
 }
@@ -633,7 +633,7 @@ static int can_set_del_filters(struct can_dev_s *dev, int ndx)
       return -1;
     }
   priv->filter_num --;
-  priv->filter_index --; 
+  priv->filter_index --;
 
   return 0;
 }
@@ -657,13 +657,13 @@ static uint8_t can_get_data_bytes_from_dlc(uint32_t dlc)
     uint32_t data_bytes = 0;
 
     dlc &= 0xFU;
-    if (dlc <= 8U) 
+    if (dlc <= 8U)
       {
           data_bytes = dlc;
-      } 
-    else 
+      }
+    else
       {
-        switch (dlc) 
+        switch (dlc)
           {
             case can_payload_size_12:
                 data_bytes = 12U;
@@ -751,7 +751,7 @@ static int hpm_can_setup(struct can_dev_s *dev)
 
   clock_enable(priv->clock_name);
   clock_add_to_group(priv->clock_name, BOARD_RUNNING_CORE);
-  
+
   if (hpm_init_can_pins(priv->port) < 0)
     {
       return -1;
@@ -761,7 +761,7 @@ static int hpm_can_setup(struct can_dev_s *dev)
     {
       return -1;
     }
-  
+
   ret = irq_attach(priv->irq_num, hpm_can_interrupt, dev);
   if (ret != OK)
     {
@@ -801,7 +801,7 @@ static void hpm_can_shutdown(struct can_dev_s *dev)
 #ifdef CONFIG_DEBUG_CAN_INFO
   caninfo("shutdown CAN%" PRIu8 "\n", priv->port);
 #endif
- 
+
   clock_remove_from_group(priv->clock_name, BOARD_RUNNING_CORE);
   clock_disable(priv->clock_name);
 
@@ -920,10 +920,17 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
 
           DEBUGASSERT(bt != NULL);
 
-          bt->bt_baud  = priv->can_config.can_timing.prescaler;
-          bt->bt_tseg1 = priv->can_config.can_timing.num_seg1;
-          bt->bt_tseg2 = priv->can_config.can_timing.num_seg2;
-          bt->bt_sjw   = priv->can_config.can_timing.num_sjw;
+          uint32_t prescaler = CAN_S_PRESC_S_PRESC_GET(priv->can_base->S_PRESC) + 1;
+          uint32_t num_seg1 = CAN_S_PRESC_S_SEG_1_GET(priv->can_base->S_PRESC) + 2;
+          uint32_t num_seg2 = CAN_S_PRESC_S_SEG_2_GET(priv->can_base->S_PRESC) + 1;
+          uint32_t num_sjw = CAN_S_PRESC_S_SJW_GET(priv->can_base->S_PRESC) + 1;
+
+          uint32_t baudrate = clock_get_frequency(priv->clock_name) / (prescaler * (num_seg1 + num_seg2));
+
+          bt->bt_baud  = baudrate;
+          bt->bt_tseg1 = num_seg1 - 1;
+          bt->bt_tseg2 = num_seg2;
+          bt->bt_sjw   = num_sjw;
 
           ret = OK;
         }
@@ -951,11 +958,18 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
           struct canioc_bittiming_s *bt =
             (struct canioc_bittiming_s *)arg;
 
-          DEBUGASSERT(bt != NULL);   
-          priv->can_config.use_lowlevel_timing_setting = true; 
-          priv->can_config.can_timing.prescaler   = bt->bt_baud;
-          priv->can_config.can_timing.num_seg1    = bt->bt_tseg1;
-          priv->can_config.can_timing.num_seg2    = bt->bt_tseg2;
+          DEBUGASSERT(bt != NULL);
+
+          uint32_t num_seg1 = bt->bt_tseg1 + 1;
+          uint32_t num_seg2 = bt->bt_tseg2;
+
+          uint32_t precaler = clock_get_frequency(priv->clock_name) / (bt->bt_baud * (num_seg1 + num_seg2));
+
+
+          priv->can_config.use_lowlevel_timing_setting = true;
+          priv->can_config.can_timing.prescaler   = precaler;
+          priv->can_config.can_timing.num_seg1    = num_seg1;
+          priv->can_config.can_timing.num_seg2    = num_seg2;
           priv->can_config.can_timing.num_sjw     = bt->bt_sjw;
 #ifdef CONFIG_CAN_FD
           priv->can_config.enable_canfd = true;
@@ -994,7 +1008,7 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
             {
               bm->bm_loopback = 0;
             }
-          
+
           if (priv->can_config.mode == can_mode_listen_only)
             {
               bm->bm_silent  = 1;
@@ -1004,10 +1018,10 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
               bm->bm_silent  = 0;
             }
 
-          ret = OK;      
+          ret = OK;
         }
         break;
-        
+
       /* CANIOC_SET_CONNMODES:
        *   Description:    Set new bus connection modes values
        *   Argument:       A pointer to a read-able instance of struct
@@ -1051,7 +1065,7 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
           ret = OK;
         }
         break;
-      
+
 
 #ifdef CONFIG_CAN_EXTID
       /* CANIOC_ADD_EXTFILTER:
@@ -1068,7 +1082,7 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
           if (can_set_add_exdfilters(dev, (struct canioc_extfilter_s *)arg) >= 0)
             {
               flag =1;
-            } 
+            }
         }
         break;
 
@@ -1104,11 +1118,11 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
       case CANIOC_ADD_STDFILTER:
         {
           DEBUGASSERT(arg != 0);
-          
+
           if (can_set_add_stdfilters(dev, (struct canioc_stdfilter_s *)arg) >= 0)
             {
               flag =1;
-            } 
+            }
         }
         break;
 
@@ -1158,7 +1172,7 @@ static int hpm_can_ioctl(struct can_dev_s *dev, int cmd,
         *                   nature of the error.
         *   Dependencies:   None
         */
-      
+
       case CANIOC_SET_ABOM:
         {
           if (can_is_in_bus_off_mode(priv->can_base) == false)
@@ -1229,15 +1243,15 @@ static int hpm_can_send(struct can_dev_s *dev,
           priv->port, (uint32_t)msg->cm_hdr.ch_id, msg->cm_hdr.ch_dlc);
 
   can_transmit_buf_t tx_buf = { 0 };
-  
+
   tx_buf.id = msg->cm_hdr.ch_id;
-  
+
 #ifdef CONFIG_CAN_EXTID
   tx_buf.extend_id = msg->cm_hdr.ch_extid;
 #else
   tx_buf.extend_id = false;
 #endif
-  
+
   if (msg->cm_hdr.ch_rtr == 1)
     {
       tx_buf.remote_frame = true;
@@ -1246,7 +1260,7 @@ static int hpm_can_send(struct can_dev_s *dev,
     {
       tx_buf.remote_frame = false;
     }
- 
+
 #ifdef CONFIG_CAN_FD
   tx_buf.canfd_frame = true;
   if (msg->cm_hdr.ch_brs)
@@ -1254,7 +1268,7 @@ static int hpm_can_send(struct can_dev_s *dev,
       tx_buf.bitrate_switch = 1;
     }
 #endif
-  
+
   len = can_get_data_bytes_from_dlc((uint32_t)msg->cm_hdr.ch_dlc);
 
   if (len > CAN_MAXDATALEN)
@@ -1293,11 +1307,11 @@ static bool hpm_can_txready(struct can_dev_s *dev)
 {
   struct hpmcan_dev_s *priv = dev->cd_priv;
 
-  if (can_is_secondary_transmit_buffer_full(priv->can_base) == true) 
+  if (can_is_secondary_transmit_buffer_full(priv->can_base) == true)
   {
     return false;
   }
-  
+
   return true;
 }
 
@@ -1323,7 +1337,7 @@ static bool hpm_can_txempty(struct can_dev_s *dev)
 {
   struct hpmcan_dev_s *priv = dev->cd_priv;
 
-  if (can_get_secondary_transmit_buffer_status(priv->can_base) == 0) 
+  if (can_get_secondary_transmit_buffer_status(priv->can_base) == 0)
   {
     return true;
   }
@@ -1356,19 +1370,19 @@ static int hpm_can_interrupt(int irq, void *context, void *arg)
   struct can_hdr_s hdr;
   uint8_t error_flags;
 
-  if (irq == priv->irq_num) 
+  if (irq == priv->irq_num)
     {
       uint8_t flags = can_get_tx_rx_flags(priv->can_base);
-      if ((flags & CAN_EVENT_RECEIVE) != 0) 
+      if ((flags & CAN_EVENT_RECEIVE) != 0)
         {
           can_read_received_message(priv->can_base, (can_receive_buf_t *)&s_can_rx_buf);
           hdr.ch_id    = s_can_rx_buf.id;
           hdr.ch_dlc   = s_can_rx_buf.dlc;
           hdr.ch_rtr   = s_can_rx_buf.remote_frame;
 
-#ifdef CONFIG_CAN_EXTID         
+#ifdef CONFIG_CAN_EXTID
           hdr.ch_extid = s_can_rx_buf.extend_id;
-#endif          
+#endif
 
 #ifdef CONFIG_CAN_FD
           hdr.ch_edl   = s_can_rx_buf.canfd_frame;
@@ -1381,7 +1395,7 @@ static int hpm_can_interrupt(int irq, void *context, void *arg)
 #endif
           can_receive(dev, &hdr, s_can_rx_buf.data);
         }
-      
+
       if ((flags & (CAN_EVENT_TX_PRIMARY_BUF | CAN_EVENT_TX_SECONDARY_BUF)))
        {
 
@@ -1463,7 +1477,7 @@ struct can_dev_s *hpm_caninitialize(int port)
   hpm_can_reset(candev);
 
   hpm_can_setup(candev);
-  
+
   leave_critical_section(flags);
 
   return candev;
