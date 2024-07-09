@@ -33,7 +33,6 @@
 #include <time.h>
 
 #include <nuttx/arch.h>
-#include <nuttx/mutex.h>
 #include <nuttx/timers/rtc.h>
 
 #include "chip.h"
@@ -91,7 +90,7 @@ typedef struct
    * this file.
    */
 
-  mutex_t devlock;                  /* Threads can only exclusively access the RTC */
+  sem_t devsem;         /* Threads can only exclusively access the RTC */
 
   bool is_time_set;
 
@@ -164,7 +163,6 @@ static const struct rtc_ops_s g_rtc_ops =
 static hpm_lowerhalf_s  g_rtc_lowerhalf =
 {
   .ops         = &g_rtc_ops,
-  .devlock     = NXMUTEX_INITIALIZER,
   .is_time_set = false,
   .irq_num     = HPM_IRQn_RTC,
 };
@@ -335,7 +333,7 @@ static int hpm_setalarm(struct rtc_lowerhalf_s *lower,
 
     /* Get exclusive access to the alarm */
 
-  ret = nxmutex_lock(&priv->devlock);
+  ret = nxsem_wait(&priv->devsem);
   if (ret < 0)
     {
       rtcerr("ERROR: mutex_lock failed: %d\n", ret);
@@ -379,7 +377,7 @@ static int hpm_setalarm(struct rtc_lowerhalf_s *lower,
       ret = 0;
     }
 
-  nxmutex_unlock(&priv->devlock);
+  nxsem_post(&priv->devsem);
   return ret;
 
 }
@@ -415,7 +413,7 @@ static int hpm_setrelative(struct rtc_lowerhalf_s *lower,
 
   /* Get exclusive access to the alarm */
 
-  ret = nxmutex_lock(&priv->devlock);
+  ret = nxsem_wait(&priv->devsem);
   if (ret < 0)
     {
       rtcerr("ERROR: nxmutex_lock failed: %d\n", ret);
@@ -434,7 +432,7 @@ static int hpm_setrelative(struct rtc_lowerhalf_s *lower,
       setalarm.id   = alarminfo->id;
       setalarm.cb   = alarminfo->cb;
       setalarm.priv = alarminfo->priv;
-      nxmutex_unlock(&priv->devlock);
+      nxsem_post(&priv->devsem);
       ret = hpm_setalarm(lower, &setalarm);
     }
   return ret;
@@ -538,7 +536,9 @@ static int hpm_rdalarm(struct rtc_lowerhalf_s *lower,
 
 struct rtc_lowerhalf_s *hpm_rtc_lowerhalf(void)
 {
-    /* Attach RTC interrupt vectors */
+  nxsem_init(&g_rtc_lowerhalf.devsem, 0, 1);
+
+  /* Attach RTC interrupt vectors */
 
   irq_attach(g_rtc_lowerhalf.irq_num, hpm_rtcinterrupt, NULL);
 
