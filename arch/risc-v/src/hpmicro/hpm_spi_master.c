@@ -60,7 +60,7 @@
 #include <nuttx/irq.h>
 #include <nuttx/arch.h>
 #include <nuttx/compiler.h>
-#include <nuttx/mutex.h>
+#include <nuttx/semaphore.h>
 #include <nuttx/spi/spi.h>
 #include <nuttx/power/pm.h>
 
@@ -74,6 +74,8 @@
 #include "hpm_spi_drv.h"
 #include "hpm_spi_regs.h"
 #include "hpm_soc_feature.h"
+#include "hpm_sysctl_drv.h"
+#include "hpm_pllctl_drv.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -128,7 +130,7 @@ struct hpm_spidev_s
   sem_t            txsem;        /* Wait for TX DMA to complete */
 #endif
   bool             initialized;  /* Has SPI interface been initialized */
-  mutex_t          lock;         /* Held while chip is selected for mutual exclusion */
+  sem_t            exclsem;      /* Held while chip is selected for mutual exclusion */
   uint32_t         frequency;    /* Requested clock frequency */
   uint32_t         actual;       /* Actual clock frequency */
   int8_t           nbits;        /* Width of word in bits */
@@ -148,9 +150,6 @@ struct hpm_spidev_s
 
 /* Helpers */
 
-static inline uint32_t spi_readword(struct hpm_spidev_s *priv);
-static inline void spi_writeword(struct hpm_spidev_s *priv,
-                                 uint32_t byte);
 #ifdef CONFIG_DEBUG_SPI_INFO
 static inline void spi_dumpregs(struct hpm_spidev_s *priv);
 #endif
@@ -287,14 +286,11 @@ static struct hpm_spidev_s g_spi0dev =
   .spiirq                  = IRQn_SPI0,
 #ifdef CONFIG_HPM_SPI0_DMA
   .spi_context             = &spi0_context,
-  .rxsem                   = SEM_INITIALIZER(0),
-  .txsem                   = SEM_INITIALIZER(0),
 #endif
-  .lock                    = NXMUTEX_INITIALIZER,
 #ifdef CONFIG_PM
   .pm_cb.prepare           = spi_pm_prepare,
 #endif
-  .config                  = SIMPLEX_TX,
+  .config                  = FULL_DUPLEX,
 };
 
 #endif /* CONFIG_HPMICRO_SPI0 */
@@ -368,14 +364,11 @@ static struct hpm_spidev_s g_spi1dev =
   .spiirq                  = IRQn_SPI1,
 #if defined(CONFIG_HPM_SPI1_DMA) 
   .spi_context             = &spi1_context,
-  .rxsem                   = SEM_INITIALIZER(0),
-  .txsem                   = SEM_INITIALIZER(0),
 #endif
-  .lock                    = NXMUTEX_INITIALIZER,
 #ifdef CONFIG_PM
   .pm_cb.prepare           = spi_pm_prepare,
 #endif
-  .config                  = SIMPLEX_TX,
+  .config                  = FULL_DUPLEX,
 };
 
 #endif /* CONFIG_HPM_SPI1 */
@@ -449,14 +442,11 @@ static struct hpm_spidev_s g_spi2dev =
   .spiirq                  = IRQn_SPI2,
 #if defined(CONFIG_HPM_SPI2_DMA)
   .spi_context             = &spi2_context,
-  .rxsem                   = SEM_INITIALIZER(0),
-  .txsem                   = SEM_INITIALIZER(0),
 #endif
-  .lock                    = NXMUTEX_INITIALIZER,
 #ifdef CONFIG_PM
   .pm_cb.prepare           = spi_pm_prepare,
 #endif
-  .config                  = SIMPLEX_TX,
+  .config                  = FULL_DUPLEX,
 };
 
 #endif /* CONFIG_HPM_SPI2 */
@@ -530,14 +520,11 @@ static struct hpm_spidev_s g_spi3dev =
   .spiirq                  = IRQn_SPI3,
 #if defined(CONFIG_HPM_SPI3_DMA)
   .spi_context             = &spi3_context,
-  .rxsem                   = SEM_INITIALIZER(0),
-  .txsem                   = SEM_INITIALIZER(0),
 #endif
-  .lock                    = NXMUTEX_INITIALIZER,
 #ifdef CONFIG_PM
   .pm_cb.prepare           = spi_pm_prepare,
 #endif
-  .config                  = SIMPLEX_TX,
+  .config                  = FULL_DUPLEX,
 };
 
 #endif /* CONFIG_HPM_SPI3 */
@@ -547,123 +534,45 @@ static struct hpm_spidev_s g_spi3dev =
  * Private Functions
  ****************************************************************************/
 
-/****************************************************************************
- * Name: spi_readword
- *
- * Description:
- *   Read one byte from SPI
- *
- * Input Parameters:
- *   priv - Device-specific state data
- *
- * Returned Value:
- *   Byte as read
- *
- ****************************************************************************/
-
-static inline uint32_t spi_readword(struct hpm_spidev_s *priv)
+uint32_t get_frequency_for_clock_source(clock_source_t source)
 {
-  /* Can't receive in tx only mode */
-
-  if (priv->config == SIMPLEX_TX)
-    {
-      return 0;
+    uint32_t clk_freq = 0UL;
+    uint32_t div = 1;
+    switch (source) {
+    case clock_source_osc0_clk0:
+        clk_freq = 24000000UL;
+        break;
+    case clock_source_pll0_clk0:
+        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 0U);
+        break;
+    case clock_source_pll1_clk0:
+        div = pllctl_get_div(HPM_PLLCTL, 1, 0);
+        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 1U) / div;
+        break;
+    case clock_source_pll1_clk1:
+        div = pllctl_get_div(HPM_PLLCTL, 1, 1);
+        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 1U) / div;
+        break;
+    case clock_source_pll2_clk0:
+        div = pllctl_get_div(HPM_PLLCTL, 2, 0);
+        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 2U) / div;
+        break;
+    case clock_source_pll2_clk1:
+        div = pllctl_get_div(HPM_PLLCTL, 2, 1);
+        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 2U) / div;
+        break;
+    case clock_source_pll3_clk0:
+        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 3U);
+        break;
+    case clock_source_pll4_clk0:
+        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 4U);
+        break;
+    default:
+        clk_freq = 0UL;
+        break;
     }
 
-  /* Then return the received 32 bit word */
-  uint32_t data = 0;
-  spi_read_data(priv->spibase, spi_get_data_length_in_bytes(priv->spibase), (uint8_t *)&data, 4);
-  return data;
-}
-
-/****************************************************************************
- * Name: spi_writeword
- *
- * Description:
- *   Write one byte to SPI
- *
- * Input Parameters:
- *   priv - Device-specific state data
- *   byte - Byte to send
- *
- * Returned Value:
- *   None
- *
- ****************************************************************************/
-
-static inline void spi_writeword(struct hpm_spidev_s *priv,
-                                 uint32_t word)
-{
-  /* Can't transmit in rx only mode */
-
-  if (priv->config == SIMPLEX_RX)
-    {
-      return;
-    }
-
-  /* Then send the 32 bit word */
-
-  spi_write_data(priv->spibase, spi_get_data_length_in_bytes(priv->spibase), (uint8_t *)&word, 4);
-}
-
-/****************************************************************************
- * Name: spi_readbyte
- *
- * Description:
- *   Read one byte from SPI
- *
- * Input Parameters:
- *   priv - Device-specific state data
- *
- * Returned Value:
- *   Byte as read
- *
- ****************************************************************************/
-
-static inline uint8_t spi_readbyte(struct hpm_spidev_s *priv)
-{
-  /* Can't receive in tx only mode */
-
-  if (priv->config == SIMPLEX_TX)
-    {
-      return 0;
-    }
-
-  /* Then return the received byte */
-
-  uint8_t data = 0;
-  spi_read_data(priv->spibase, spi_get_data_length_in_bytes(priv->spibase), (uint8_t *)&data, 1);
-  return data;
-}
-
-/****************************************************************************
- * Name: spi_writebyte
- *
- * Description:
- *   Write one 8-bit frame to the SPI FIFO
- *
- * Input Parameters:
- *   priv - Device-specific state data
- *   byte - Byte to send
- *
- * Returned Value:
- *   None
- *
- ****************************************************************************/
-
-static inline void spi_writebyte(struct hpm_spidev_s *priv,
-                                 uint8_t byte)
-{
-  /* Can't transmit in rx only mode */
-
-  if (priv->config == SIMPLEX_RX)
-    {
-      return;
-    }
-
-  /* Then send the byte */
-
-  spi_write_data(priv->spibase, spi_get_data_length_in_bytes(priv->spibase), (uint8_t *)&byte, 1);
+    return clk_freq;
 }
 
 /****************************************************************************
@@ -819,11 +728,11 @@ static int spi_lock(struct spi_dev_s *dev, bool lock)
 
   if (lock)
     {
-      ret = nxmutex_lock(&priv->lock);
+      ret = nxsem_wait_uninterruptible(&priv->exclsem);
     }
   else
     {
-      ret = nxmutex_unlock(&priv->lock);
+      ret = nxsem_post(&priv->exclsem);
     }
 
   return ret;
@@ -872,7 +781,15 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
   uint32_t actual  = 0;
   spi_timing_config_t timing_config = {0};
-
+  SPI_Type *spi_ptr = (SPI_Type *)priv->spibase;
+  int freq_list[clock_source_general_source_end] = {0};
+  int min_diff_freq;
+  int current_diff_freq;
+  int best_freq;
+  uint32_t div, i;
+  clock_source_t clock_source;
+  clk_src_t clk_src;
+  uint32_t pll_clk = 0;
   /* Limit to max possible (if STM32_SPI_CLK_MAX is defined in board.h) */
 
   if (frequency > HPMICRO_SPI_CLK_MAX)
@@ -884,12 +801,58 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
 
   if (frequency != priv->frequency)
     {
-      /* set SPI sclk frequency for master */
-      spi_master_get_default_timing_config(&timing_config);
-      timing_config.master_config.clk_src_freq_in_hz = clock_get_frequency(priv->spiclock);
-      timing_config.master_config.sclk_freq_in_hz = frequency;
-      spi_master_timing_init((SPI_Type *)priv->spibase, &timing_config);
-
+      if (frequency <= 40000000)
+        {
+          /* set SPI sclk frequency for master */
+          spi_master_get_default_timing_config(&timing_config);
+          timing_config.master_config.clk_src_freq_in_hz = clock_get_frequency(priv->spiclock);
+          timing_config.master_config.sclk_freq_in_hz = frequency;
+          actual = frequency;
+          if (spi_master_timing_init((SPI_Type *)priv->spibase, &timing_config) !=status_success)
+            {
+                spi_ptr->TIMING = (spi_ptr->TIMING & ~SPI_TIMING_SCLK_DIV_MASK) | SPI_TIMING_SCLK_DIV_SET(0); /* 40 M */
+                actual = 40000000;
+            }
+        }
+      else
+        {
+          spi_ptr->TIMING = (spi_ptr->TIMING & ~SPI_TIMING_SCLK_DIV_MASK) | SPI_TIMING_SCLK_DIV_SET(0xFF);
+          for (clock_source = (clock_source_t)0; clock_source < clock_source_general_source_end; clock_source++)
+            {
+              pll_clk = get_frequency_for_clock_source(clock_source);
+              div = pll_clk / frequency;
+                /* The division factor ranges from 1 to 256 as any integer */
+              if ((div > 0) && (div <= 0x100))
+                {
+                  freq_list[clock_source] = pll_clk / div;
+                }
+            }
+            /* Find the best sclk frequency */
+            min_diff_freq = abs(freq_list[0] - frequency);
+            best_freq = freq_list[0];
+            for (i = 1; i < clock_source_general_source_end; i++)
+              {
+                current_diff_freq = abs(freq_list[i] - frequency);
+                if (current_diff_freq < min_diff_freq)
+                {
+                  min_diff_freq = current_diff_freq;
+                  best_freq = freq_list[i];
+                }
+              }
+            /* Find the best spi clock frequency */
+            for (i = 0; i < clock_source_general_source_end; i++)
+              {
+                if (best_freq == freq_list[i])
+                  {
+                    pll_clk = get_frequency_for_clock_source((clock_source_t)i);
+                    clk_src = MAKE_CLK_SRC(CLK_SRC_GROUP_COMMON, i);
+                    div = pll_clk / best_freq;
+                    clock_set_source_divider(priv->spiclock, clk_src, div);
+                    break;
+                  }
+              }
+            actual =  clock_get_frequency(priv->spiclock);
+        }
       spiinfo("Frequency %" PRId32 "->%" PRId32 "\n", frequency, actual);
       priv->frequency = frequency;
       priv->actual    = actual;
@@ -955,7 +918,7 @@ static void spi_setmode(struct spi_dev_s *dev, enum spi_mode_e mode)
     {
       /* set SPI format config for master */
       format_config.common_config.data_len_in_bits  = SPI_TRANSFMT_DATALEN_GET(transfmt);
-      format_config.common_config.data_merge        = SPI_TRANSFMT_DATAMERGE_GET(transfmt);
+      format_config.common_config.data_merge        = false;
       format_config.common_config.lsb               = SPI_TRANSFMT_LSB_GET(transfmt);
       format_config.common_config.mode              = SPI_TRANSFMT_SLVMODE_SET(transfmt);
       format_config.common_config.mosi_bidir        = SPI_TRANSFMT_MOSIBIDIR_GET(transfmt);
@@ -1024,7 +987,7 @@ static void spi_setbits(struct spi_dev_s *dev, int nbits)
   if (nbits != priv->nbits)
     {
       /* set SPI format config for master */    
-      format_config.common_config.data_merge        = SPI_TRANSFMT_DATAMERGE_GET(transfmt);
+      format_config.common_config.data_merge        = false;
       format_config.common_config.lsb               = SPI_TRANSFMT_LSB_GET(transfmt);
       format_config.common_config.mode              = SPI_TRANSFMT_SLVMODE_SET(transfmt);
       format_config.common_config.mosi_bidir        = SPI_TRANSFMT_MOSIBIDIR_GET(transfmt);
@@ -1196,10 +1159,21 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
   while(len > 0)
     {
       dummy_len = (len > SPI_SOC_TRANSFER_COUNT_MAX) ? SPI_SOC_TRANSFER_COUNT_MAX : len;
-      hpm_spi_transfer(priv->spibase,
+      if(!tx_buffer)
+        {
+          hpm_spi_transfer(priv->spibase, &control_config, NULL, NULL, NULL, 0, (uint8_t *)&rx_buffer[inc_len], dummy_len);
+        }
+      else if(!rx_buffer)
+        {
+          hpm_spi_transfer(priv->spibase, &control_config, NULL, NULL, (uint8_t *)&tx_buffer[inc_len], dummy_len, NULL, 0);
+        }
+      else if(tx_buffer && rx_buffer)
+        {
+          hpm_spi_transfer(priv->spibase,
             &control_config,
             NULL, NULL,
-            (uint8_t *)&tx_buffer[inc_len * spi_get_data_length_in_bytes((SPI_Type *)priv->spibase)], dummy_len,(uint8_t *)&rx_buffer[inc_len * spi_get_data_length_in_bytes((SPI_Type *)priv->spibase)], dummy_len);
+            (uint8_t *)&tx_buffer[inc_len], dummy_len,(uint8_t *)&rx_buffer[inc_len], dummy_len);
+        }
       len      -= dummy_len;
       inc_len  += dummy_len;
     }
@@ -1244,7 +1218,6 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
   size_t len = 0 ;
   size_t inc_len = 0;
   size_t dummy_len = 0;
-  nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
   len = nwords;
   if ((priv->dma_rxresource.base == NULL) || (priv->dma_txresource.base == NULL))
     {
@@ -1253,6 +1226,8 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
     }
   else
     { 
+    nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
+    len = nwords;
         /* set SPI control config for master */
     spi_master_get_default_control_config(&control_config);
     control_config.master_config.cmd_enable     = false;
@@ -1315,6 +1290,8 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
           len      -= dummy_len;
           inc_len  += dummy_len;
       }
+      /* change config status */
+      priv->config = FULL_DUPLEX;
     }
 #else
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
@@ -1442,6 +1419,48 @@ static void spi_recvblock(struct spi_dev_s *dev,
 static int spi_pm_prepare(struct pm_callback_s *cb, int domain,
                           enum pm_state_e pmstate)
 {
+  struct hpm_spidev_s *priv =
+      (struct hpm_spidev_s *)((char *)cb -
+                                    offsetof(struct hpm_spidev_s, pm_cb));
+  int sval;
+
+  /* Logic to prepare for a reduced power state goes here. */
+
+  switch (pmstate)
+    {
+    case PM_NORMAL:
+    case PM_IDLE:
+      break;
+
+    case PM_STANDBY:
+    case PM_SLEEP:
+
+      /* Check if exclusive lock for SPI bus is held. */
+
+      if (nxsem_get_value(&priv->exclsem, &sval) < 0)
+        {
+          DEBUGPANIC();
+          return -EINVAL;
+        }
+
+      if (sval <= 0)
+        {
+          /* Exclusive lock is held, do not allow entry to deeper PM
+           * states.
+           */
+
+          return -EBUSY;
+        }
+
+      break;
+
+    default:
+
+      /* Should not get here */
+
+      break;
+    }
+
   return OK;
 }
 #endif
@@ -1549,9 +1568,18 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
 
           hpm_spibus_pins_init(bus);
 
+          /* Initialize the SPI semaphore that enforces mutually exclusive access. */
+
+          nxsem_init(&priv->exclsem, 0, 1);
+
           /* Set up default configuration: Master, 8-bit, etc. */
 
 #if defined(CONFIG_HPM_SPI0_DMA) 
+          nxsem_init(&priv->rxsem, 0, 0);
+          nxsem_init(&priv->txsem, 0, 0);
+
+          nxsem_set_protocol(&priv->rxsem, SEM_PRIO_NONE);
+          nxsem_set_protocol(&priv->txsem, SEM_PRIO_NONE);
           priv->spi_context->cs_pin   = hpm_spibus_get_cs_pin(bus);
           priv->spi_context->write_cs = write_spi0_cs;
 #endif
@@ -1576,9 +1604,19 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
 
           hpm_spibus_pins_init(bus);
 
+          /* Initialize the SPI semaphore that enforces mutually exclusive access. */
+
+          nxsem_init(&priv->exclsem, 0, 1);
+
           /* Set up default configuration: Master, 8-bit, etc. */
 
-#if defined(CONFIG_HPM_SPI1_DMA) 
+#if defined(CONFIG_HPM_SPI1_DMA)
+          nxsem_init(&priv->rxsem, 0, 0);
+          nxsem_init(&priv->txsem, 0, 0);
+
+          nxsem_set_protocol(&priv->rxsem, SEM_PRIO_NONE);
+          nxsem_set_protocol(&priv->txsem, SEM_PRIO_NONE);
+
           priv->spi_context->cs_pin   = hpm_spibus_get_cs_pin(bus);
           priv->spi_context->write_cs = write_spi1_cs;
 #endif
@@ -1603,8 +1641,18 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
 
           hpm_spibus_pins_init(bus);
 
+          /* Initialize the SPI semaphore that enforces mutually exclusive access. */
+
+          nxsem_init(&priv->exclsem, 0, 1);
+
           /* Set up default configuration: Master, 8-bit, etc. */
 #if defined(CONFIG_HPM_SPI2_DMA) 
+          nxsem_init(&priv->rxsem, 0, 0);
+          nxsem_init(&priv->txsem, 0, 0);
+
+          nxsem_set_protocol(&priv->rxsem, SEM_PRIO_NONE);
+          nxsem_set_protocol(&priv->txsem, SEM_PRIO_NONE);
+
           priv->spi_context->cs_pin   = hpm_spibus_get_cs_pin(bus);
           priv->spi_context->write_cs = write_spi2_cs;
 #endif
@@ -1629,9 +1677,19 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
 
           hpm_spibus_pins_init(bus);
 
+          /* Initialize the SPI semaphore that enforces mutually exclusive access. */
+
+          nxsem_init(&priv->exclsem, 0, 1);
+
           /* Set up default configuration: Master, 8-bit, etc. */
 
 #if defined(CONFIG_HPM_SPI3_DMA) 
+          nxsem_init(&priv->rxsem, 0, 0);
+          nxsem_init(&priv->txsem, 0, 0);
+
+          nxsem_set_protocol(&priv->rxsem, SEM_PRIO_NONE);
+          nxsem_set_protocol(&priv->txsem, SEM_PRIO_NONE);
+
           priv->spi_context->cs_pin   = hpm_spibus_get_cs_pin(bus);
           priv->spi_context->write_cs = write_spi3_cs;
 #endif

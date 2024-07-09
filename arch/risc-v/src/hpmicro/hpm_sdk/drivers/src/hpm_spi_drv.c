@@ -326,8 +326,8 @@ void spi_slave_get_default_control_config(spi_control_config_t *config)
 hpm_stat_t spi_master_timing_init(SPI_Type *ptr, spi_timing_config_t *config)
 {
     uint8_t sclk_div;
-    uint8_t div_remainder;
-    uint8_t div_integer;
+    uint32_t div_remainder;
+    uint32_t div_integer;
     if (config->master_config.sclk_freq_in_hz == 0) {
         return status_invalid_argument;
     }
