@@ -33,7 +33,7 @@
 #include <assert.h>
 
 #include <nuttx/arch.h>
-#include <nuttx/mutex.h>
+#include <nuttx/semaphore.h>
 #include <nuttx/i2c/i2c_master.h>
 
 #include <nuttx/irq.h>
@@ -71,7 +71,7 @@ struct hpm_i2cdev_s
   int8_t              port;       /* Port number */
   uint32_t            base_freq;  /* branch frequency */
 
-  mutex_t             lock;       /* Only one thread can access at a time */
+  sem_t               mutex;      /* Only one thread can access at a time */
   sem_t               wait;       /* Place to wait for transfer completion */
   uint32_t            frequency;  /* Current I2C frequency */
 
@@ -99,8 +99,6 @@ static struct hpm_i2cdev_s g_i2c0dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C0_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C0_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C0,
-  .lock                           = NXMUTEX_INITIALIZER,
-  .wait                           = SEM_INITIALIZER(0),
   .rx_data_count                  = 0,
   .tx_start_index                 = 0,
   .tx_stop_index                  = 0,
@@ -121,8 +119,6 @@ static struct hpm_i2cdev_s g_i2c1dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C1_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C1_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C1,
-  .lock                           = NXMUTEX_INITIALIZER,
-  .wait                           = SEM_INITIALIZER(0),
   .rx_data_count                  = 0,
   .tx_start_index                 = 0,
   .tx_stop_index                  = 0,
@@ -143,8 +139,6 @@ static struct hpm_i2cdev_s g_i2c2dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C2_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C2_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C2,
-  .lock                           = NXMUTEX_INITIALIZER,
-  .wait                           = SEM_INITIALIZER(0),
   .rx_data_count                  = 0,
   .tx_start_index                 = 0,
   .tx_stop_index                  = 0,
@@ -165,8 +159,6 @@ static struct hpm_i2cdev_s g_i2c3dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C3_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C3_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C3,
-  .lock                           = NXMUTEX_INITIALIZER,
-  .wait                           = SEM_INITIALIZER(0),
   .rx_data_count                  = 0,
   .tx_start_index                 = 0,
   .tx_stop_index                  = 0,
@@ -190,6 +182,24 @@ static int  hpm_i2c_transfer(struct i2c_master_s *dev,
 #ifdef CONFIG_I2C_RESET
 static int hpm_i2c_reset(struct i2c_master_s *dev);
 #endif
+
+/****************************************************************************
+ * Name: i2c_takesem
+ ****************************************************************************/
+
+static inline int i2c_takesem(sem_t *sem)
+{
+  return nxsem_wait_uninterruptible(sem);
+}
+
+/****************************************************************************
+ * Name: i2c_givesem
+ ****************************************************************************/
+
+static inline int i2c_givesem(sem_t *sem)
+{
+  return nxsem_post(sem);
+}
 
 /****************************************************************************
  * I2C device operations
@@ -309,7 +319,7 @@ static int hpm_i2c_interrupt(int irq, void *context, void *arg)
         i2c_disable_irq(priv->base, I2C_EVENT_TRANSACTION_COMPLETE);
         i2c_clear_status(priv->base, I2C_EVENT_TRANSACTION_COMPLETE);
         priv->msgs->length = priv->rw_size;
-        nxsem_post(&priv->wait);
+        i2c_givesem(&priv->wait);
     }
     return 0;
 }
@@ -381,7 +391,7 @@ static int hpm_i2c_transfer(struct i2c_master_s *dev,
 
   /* Get exclusive access to the I2C bus */
 
-  nxmutex_lock(&priv->lock);
+  i2c_takesem(&priv->mutex);
 
     /* Check wait semaphore value. If the value is not 0, the transfer can not
    * be performed normally.
@@ -437,7 +447,7 @@ static int hpm_i2c_transfer(struct i2c_master_s *dev,
       
     }
   (sta == status_success) ? (ret = 0) : (ret = -1);
-  nxmutex_unlock(&priv->lock);
+  i2c_givesem(&priv->mutex);
   return ret;
 }
 
@@ -462,7 +472,7 @@ static int hpm_i2c_reset(struct hpm_i2cdev_s *dev)
 
   /* Lock out other clients */
 
-  nxmutex_lock(&priv->lock);
+  i2c_takesem(&priv->mutex);
 
   priv->frequency                      = 100000;
   priv->i2c_config.i2c_mode            = CONFIG_HPM_I2C0_MASTER_MODE,
@@ -470,7 +480,7 @@ static int hpm_i2c_reset(struct hpm_i2cdev_s *dev)
   priv->base_freq = clock_get_frequency(priv.i2c_clock);
   stat = i2c_init_master(priv->base, priv->base_freq, &priv->i2c_config);
 
-  nxmutex_unlock(&priv->lock);
+  i2c_givesem(&priv->mutex);
   return ret;
 }
 #endif /* CONFIG_I2C_RESET */
@@ -490,6 +500,10 @@ static int hpm_i2c_reset(struct hpm_i2cdev_s *dev)
 struct i2c_master_s *hpm_i2cbus_initialize(int port)
 {
   struct hpm_i2cdev_s *priv;
+
+  irqstate_t flags;
+
+  flags = enter_critical_section();
 
 #ifdef CONFIG_HPM_I2C0_MASTER
   if (port == 0)
@@ -524,16 +538,22 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
   else
 #endif
     {
+      leave_critical_section(flags);
       i2cerr("I2C Only support 0,1,2,3\n");
       return NULL;
     }
     
   if (hpm_i2cbus_pins_initialize(priv->port) < 0)
     {
+      leave_critical_section(flags);
       return NULL;
     }
   hpm_i2c_init(priv, priv->frequency, false);
-  nxmutex_lock(&priv->lock);
+  leave_critical_section(flags);
+
+  nxsem_init(&priv->mutex, 0, 1);
+  nxsem_init(&priv->wait, 0, 0);
+  nxsem_set_protocol(&priv->wait, SEM_PRIO_NONE);
 
   /* Attach Interrupt Handler */
 
@@ -543,7 +563,6 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
 
   up_enable_irq(priv->irqid);
 
-  nxmutex_unlock(&priv->lock);
   return &priv->dev;
 }
 
@@ -559,12 +578,11 @@ int hpm_i2cbus_uninitialize(struct i2c_master_s *dev)
 {
   struct hpm_i2cdev_s *priv = (struct hpm_i2cdev_s *)dev;
 
-  nxmutex_lock(&priv->lock);
-
   up_disable_irq(priv->irqid);
   irq_detach(priv->irqid);
 
-  nxmutex_unlock(&priv->lock);
+  nxsem_destroy(&priv->mutex);
+  nxsem_destroy(&priv->wait);
 
   return OK;
 }
