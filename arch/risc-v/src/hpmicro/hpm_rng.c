@@ -28,7 +28,6 @@
 #include <nuttx/fs/fs.h>
 #include <nuttx/irq.h>
 #include <nuttx/arch.h>
-#include <nuttx/mutex.h>
 #include <nuttx/semaphore.h>
 #include <nuttx/fs/ioctl.h>
 #include <nuttx/drivers/drivers.h>
@@ -55,17 +54,14 @@ static ssize_t hpm_rng_read(struct file *filep, char *buffer,
 
 struct rng_dev_s
 {
-  mutex_t  lock;           /* mutex for access RNG dev */
+  sem_t    excl_sem;       /* semaphore for access RNG dev */
 };
 
 /****************************************************************************
  * Private Data
  ****************************************************************************/
 
-static struct rng_dev_s g_rngdev =
-{
-  .lock   = NXMUTEX_INITIALIZER,
-};
+static struct rng_dev_s g_rngdev;
 
 static const struct file_operations g_rngops =
 {
@@ -83,14 +79,14 @@ static ssize_t hpm_rng_read(struct file *filep, char *buffer,
   hpm_stat_t stat;
   ssize_t read_len;
 
-  if (nxmutex_lock(&priv->lock) != OK)
+  if (nxsem_wait(&priv->excl_sem) != OK)
     {
       return -EBUSY;
     }
   stat = rng_rand_wait(HPM_RNG, buffer, buflen);
   (stat == status_success) ? (read_len = buflen) : (read_len = 0);
 
-  nxmutex_unlock(&priv->lock);
+  nxsem_post(&priv->excl_sem);
 
   return read_len;
 }
@@ -117,6 +113,13 @@ static ssize_t hpm_rng_read(struct file *filep, char *buffer,
 #ifdef CONFIG_DEV_RANDOM
 void devrandom_register(void)
 {
+  _info("Initializing RNG\n");
+
+  memset(&g_rngdev, 0, sizeof(struct rng_dev_s));
+
+  nxsem_init(&g_rngdev.excl_sem, 0, 1);
+  nxsem_set_protocol(&g_rngdev.excl_sem, SEM_PRIO_NONE);
+
   rng_init(HPM_RNG);
   register_driver("/dev/random", &g_rngops, 0444, NULL);
 }
@@ -140,6 +143,13 @@ void devrandom_register(void)
 void devurandom_register(void)
 {
 #ifndef CONFIG_DEV_RANDOM
+  _info("Initializing RNG\n");
+
+  memset(&g_rngdev, 0, sizeof(struct rng_dev_s));
+
+  nxsem_init(&g_rngdev.excl_sem, 0, 1);
+  nxsem_set_protocol(&g_rngdev.excl_sem, SEM_PRIO_NONE);
+
   rng_init(HPM_RNG);
 #endif
   register_driver("dev/urandom", &g_rngops, 0444, NULL);
