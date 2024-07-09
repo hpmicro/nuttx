@@ -75,7 +75,7 @@ void up_irqinitialize(void)
 
 #if defined(CONFIG_STACK_COLORATION) && CONFIG_ARCH_INTERRUPTSTACK > 15
   size_t intstack_size = (CONFIG_ARCH_INTERRUPTSTACK & ~15);
-  riscv_stack_color(g_intstackalloc, intstack_size);
+  riscv_stack_color((void *)&g_intstackalloc, intstack_size);
 #endif
 
   /* Set priority for all global interrupts to 1 (lowest) */
@@ -88,6 +88,10 @@ void up_irqinitialize(void)
   /* Set irq threshold to 0 (permits all global interrupts) */
 
   intc_m_set_threshold(0);
+
+  /* currents_regs is non-NULL only while processing an interrupt */
+
+  CURRENT_REGS = NULL;
 
   /* Attach the common interrupt handler */
 
