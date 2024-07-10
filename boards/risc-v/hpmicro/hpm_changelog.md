@@ -1,11 +1,11 @@
-# HPM Nuttx Change Log
+# PX4 Nuttx With HPM_SDK Change Log
 
-## [v0.1.0] - 20230731
+## [v0.1.0] - 20240710
 
 ### Version
-- Nuttx: release v12.0.0
-- Apps: release v12.0.0
-- Hpm_sdk: release v1.2.0
+- PX4 Nuttx: release v10.3.0+
+- PX4 Apps: release v10.3.0+
+- Hpm_sdk: release v1.4.0
 
 ### Added:
 - hpm6750evk2-sdk
@@ -20,37 +20,22 @@
     - configs: add nx_lcd_demo
     - configs: add pwm
     - configs: add random
-    - configs: add rtc
     - configs: add tcpecho
     - configs: add timers
     - configs: add usb_dev_cdcacm
     - configs: add usb_dev_msc
     - configs: add usb_host
     - configs: add userled
+    - configs: add fpu
 
 - hpm6300evk-sdk
     - configs: add gpio
     - configs: add nsh
+    - configs: add fpu
     
 - hpm6200evk-sdk
     - configs: add gpio
     - configs: add nsh
-
-## [v0.2.0] - 20240124
-
-### Version
-- Nuttx: release v12.4.0
-- Apps: release v12.4.0
-- Hpm_sdk: release v1.4.0
-
-### Added:
-- hpm6750evk2-sdk
-    - configs: add fpu
-
-- hpm6300evk-sdk
-    - configs: add fpu
-    
-- hpm6200evk-sdk
     - configs: add fpu
 
 - hpm5300evk-sdk
