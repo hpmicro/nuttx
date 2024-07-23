@@ -53,7 +53,8 @@ ifeq ($(CONFIG_HPM_BUILD_TYPE_FLASH_SDRAM_XIP),y)
 endif
 
 LDFLAGS += --defsym=_stack_size=$(CONFIG_IDLETHREAD_STACKSIZE)
-LDFLAGS += --defsym=_heap_size=$(CONFIG_SYSTEM_HEAPSIZE)
+LDFLAGS += --defsym=_heap_size=$(CONFIG_NON_OS_HEAPSIZE)
+LDFLAGS += --defsym=_nx_heap_size=$(CONFIG_SYSTEM_HEAPSIZE)
 ARCHSCRIPT += $(CHIP_DIR)$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)toolchains$(DELIM)gcc$(DELIM)$(LDSCRIPT)
 
 # Add include directories

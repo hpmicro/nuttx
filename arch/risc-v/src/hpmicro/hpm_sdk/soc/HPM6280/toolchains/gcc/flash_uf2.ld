@@ -7,6 +7,7 @@ ENTRY(__start)
 
 STACK_SIZE = _stack_size;
 HEAP_SIZE = _heap_size;
+NX_HEAP_SIZE = _nx_heap_size;
 UF2_BOOTLOADER_RESERVED_LENGTH = DEFINED(_uf2_bl_length) ? _uf2_bl_length : 0x20000;
 
 MEMORY
@@ -235,6 +236,13 @@ SECTIONS
 
     .fast_ram (NOLOAD) : {
         KEEP(*(.fast_ram))
+    } > DLM
+
+    .nx_heap (NOLOAD) : {
+        . = ALIGN(8);
+        __nx_heap_start__ = .;
+        . += NX_HEAP_SIZE;
+        __nx_heap_end__ = .;
     } > DLM
 
     .heap (NOLOAD) : {

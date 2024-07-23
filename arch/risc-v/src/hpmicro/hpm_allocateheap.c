@@ -28,8 +28,8 @@
  * Public Variables
  ****************************************************************************/
 
-extern uint8_t __heap_start__[];
-extern uint8_t __heap_end__[];
+extern uint8_t __nx_heap_start__[];
+extern uint8_t __nx_heap_end__[];
 
 /****************************************************************************
  * Public Functions
@@ -54,8 +54,8 @@ void up_allocate_heap(void **heap_start, size_t *heap_size)
 {
   uint32_t len;
 
-  len = (uint32_t)__heap_end__ - (uint32_t)__heap_start__;
-  *heap_start = (void *)__heap_start__;
+  len = (uint32_t)__nx_heap_end__ - (uint32_t)__nx_heap_start__;
+  *heap_start = (void *)__nx_heap_start__;
   *heap_size  = (size_t)len;
 }
 
