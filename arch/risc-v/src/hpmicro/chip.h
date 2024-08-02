@@ -27,4 +27,12 @@
 
 #include <nuttx/config.h>
 
+/****************************************************************************
+ * Pre-processor Definitions
+ ****************************************************************************/
+
+/* Section for exception handler. */
+
+#define EXCEPTION_SECTION .isr_vector
+
 #endif /* __ARCH_RISCV_SRC_HPMICRO_CHIP_H */
