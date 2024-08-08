@@ -59,13 +59,6 @@ SECTIONS
 
     .text (__vector_load_addr__ + SIZEOF(.vectors)) : {
         . = ALIGN(8);
-        *(EXCLUDE_FILE (nx*.o*) .text)
-        *(EXCLUDE_FILE (nx*.o*) .text*)
-        *(EXCLUDE_FILE (nx*.o*) .rodata)
-        *(EXCLUDE_FILE (nx*.o*) .rodata*)
-        *(EXCLUDE_FILE (nx*.o*) .srodata)
-        *(EXCLUDE_FILE (nx*.o*) .srodata*)
-
         *(.hash)
         *(.dyn*)
         *(.gnu*)
@@ -178,12 +171,6 @@ SECTIONS
         PROVIDE(__ramfunc_start__ = .);
         *(.fast)
         *(.fast.*)
-        nx*.o*(.text)
-        nx*.o*(.text*)
-        nx*.o*(.rodata)
-        nx*.o*(.rodata*)
-        nx*.o*(.srodata)
-        nx*.o*(.srodata*)
         . = ALIGN(8);
         PROVIDE(__ramfunc_end__ = .);
     } > ILM
