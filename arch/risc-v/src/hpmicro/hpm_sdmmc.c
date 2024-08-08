@@ -396,7 +396,7 @@ static void hpm_sdmmc_reset(FAR struct sdio_dev_s *dev)
     flags = enter_critical_section();
     clock_add_to_group(priv->clock_name, 0);
     sdxc_config_t sdxc_config;
-    sdxc_config.data_timeout = 0xf;
+    sdxc_config.data_timeout = 1000;
     sdxc_init(priv->base, &sdxc_config);
     leave_critical_section(flags);
 }
@@ -472,7 +472,7 @@ static void hpm_sdmmc_clock(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate)
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
 
     bool need_disable = false;
-    bool clock_freq = 0;
+    uint32_t clock_freq = 0;
     switch (rate)
     {
     default:
@@ -588,6 +588,7 @@ static int hpm_sdmmc_interrupt(int irq, void *context, void *arg)
         {
             priv->remaining = 0;
             hpm_sdmmc_endxfer(priv, SDIOWAIT_ERROR);
+            break;
         }
 
         sdxc_clear_interrupt_status(priv->base, mask);
@@ -681,6 +682,11 @@ static int hpm_sdmmc_sendcmd(FAR struct sdio_dev_s *dev, uint32_t cmd, uint32_t 
         break;
     }
 
+    if (cmd & MMCSD_MULTIBLOCK)
+    {
+        sdxc_cmd->cmd_flags |= SDXC_CMD_XFER_MULTI_BLK_SEL_MASK | SDXC_CMD_XFER_BLOCK_COUNT_ENABLE_MASK;
+    }
+
     if ((sdxc_cmd->cmd_flags & SDXC_CMD_XFER_DATA_PRESENT_SEL_MASK) != 0U)
     {
         if (priv->dma_mode == HPM_SDMMC_DMA_MODE_ADMA2)
@@ -753,7 +759,7 @@ static int hpm_sdmmc_waitresponse(FAR struct sdio_dev_s *dev, uint32_t cmd)
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
 
-    int32_t timeout;
+    int32_t timeout = HPM_SDMMC_CMDTIMEOUT;
     uint32_t events = SDXC_INT_STAT_CMD_COMPLETE_MASK;
     switch (cmd & MMCSD_RESPONSE_MASK)
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 HPMicro
+ * Copyright (c) 2021-2024 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -15,6 +15,14 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Enable TMCLK (for Data timeout detection)
+*/
+static inline void sdxc_enable_tm_clock(SDXC_Type *base)
+{
+    volatile uint32_t *reg = (base == HPM_SDXC0) ? &HPM_CONCTL->CTRL4 : &HPM_CONCTL->CTRL5;
+    (*reg) |= (1UL << 10);
+}
 
 /**
  * @brief Wait at least 74 clocks until card is ready to receive the first command

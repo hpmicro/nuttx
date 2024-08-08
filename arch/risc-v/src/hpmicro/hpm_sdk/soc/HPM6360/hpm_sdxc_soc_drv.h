@@ -79,21 +79,22 @@ static inline void sdxc_select_cardclk_delay_source(SDXC_Type *base, bool loopba
     }
 }
 
+/**
+ * @brief Set the Card Clock Delay chain
+ * @note This feature is not supported on this SoC
+ */
 static inline void sdxc_set_cardclk_delay_chain(SDXC_Type *base, uint32_t number_of_delaycells)
 {
-    base->MISC_CTRL1 = (base->MISC_CTRL1 & ~SDXC_MISC_CTRL1_CARDCLK_DLYSEL_MASK) |
-                       SDXC_MISC_CTRL1_CARDCLK_DLYSEL_SET(number_of_delaycells);
 }
 
 /**
  * @brief Set SDXC data strobe delay chain
+ * @note This feature is not supported on this SoC
  * @param [in] base SDXC base
  * @param [in] num_of_delaycells Number of delay cells for Data strobe
  */
 static inline void sdxc_set_data_strobe_delay(SDXC_Type *base, uint8_t num_of_delaycells)
 {
-    base->MISC_CTRL1 = (base->MISC_CTRL1 & ~SDXC_MISC_CTRL1_STROBE_DLYSEL_MASK) |
-                       SDXC_MISC_CTRL1_STROBE_DLYSEL_SET(num_of_delaycells);
 }
 
 static inline uint32_t sdxc_get_default_strobe_delay(SDXC_Type *base)

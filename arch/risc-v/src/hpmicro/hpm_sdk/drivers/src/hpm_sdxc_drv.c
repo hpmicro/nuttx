@@ -498,6 +498,8 @@ void sdxc_init(SDXC_Type *base, const sdxc_config_t *config)
 
     prot_ctrl |= SDXC_PROT_CTRL_SD_BUS_PWR_VDD1_MASK;
 
+    sdxc_enable_tm_clock(base);
+
     sdxc_set_data_timeout(base, config->data_timeout, NULL);
 
     base->PROT_CTRL = prot_ctrl;
