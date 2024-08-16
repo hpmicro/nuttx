@@ -690,8 +690,8 @@ void board_init_clock(void)
     /* Connect Group1 to CPU1 */
     clock_connect_group_to_cpu(1, 1);
 
-    /* Bump up DCDC voltage to 1200mv */
-    pcfg_dcdc_set_voltage(HPM_PCFG, 1200);
+    /* Bump up DCDC voltage to 1250mv */
+    pcfg_dcdc_set_voltage(HPM_PCFG, 1250);
     pcfg_dcdc_switch_to_dcm_mode(HPM_PCFG);
 
     if (status_success != pllctl_init_int_pll_with_freq(HPM_PLLCTL, 0, BOARD_CPU_FREQ)) {
