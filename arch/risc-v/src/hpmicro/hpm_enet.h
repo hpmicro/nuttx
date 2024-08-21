@@ -30,10 +30,10 @@
  * Pre-processor Definitions
  ****************************************************************************/
 
-#define ENET_TX_BUFF_COUNT  (10U)
-#define ENET_RX_BUFF_COUNT  (20U)
-#define ENET_RX_BUFF_SIZE   ENET_MAX_FRAME_SIZE
-#define ENET_TX_BUFF_SIZE   ENET_MAX_FRAME_SIZE
+#define ENET_TX_BUFF_COUNT  (40U)
+#define ENET_RX_BUFF_COUNT  (40U)
+#define ENET_RX_BUFF_SIZE   1528
+#define ENET_TX_BUFF_SIZE   1528
 
 /****************************************************************************
  * Public Types

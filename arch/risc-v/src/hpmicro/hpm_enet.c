@@ -35,7 +35,6 @@
 
 #include <nuttx/arch.h>
 #include <nuttx/irq.h>
-#include <nuttx/queue.h>
 #include <nuttx/wqueue.h>
 #include <nuttx/signal.h>
 #include <nuttx/net/netdev.h>
@@ -88,10 +87,10 @@ __RW enet_rx_desc_t dma_rx_desc_tab[ENET_RX_BUFF_COUNT] ; /* Ethernet Rx DMA Des
 ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ENET_SOC_DESC_ADDR_ALIGNMENT)
 __RW enet_tx_desc_t dma_tx_desc_tab[ENET_TX_BUFF_COUNT] ; /* Ethernet Tx DMA Descriptor */
 
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ENET_SOC_BUFF_ADDR_ALIGNMENT)
+ATTR_PLACE_AT_WITH_ALIGNMENT(".fast_ram", ENET_SOC_BUFF_ADDR_ALIGNMENT)
 __RW uint8_t rx_buff[ENET_RX_BUFF_COUNT][ENET_RX_BUFF_SIZE]; /* Ethernet Receive Buffer */
 
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(ENET_SOC_BUFF_ADDR_ALIGNMENT)
+ATTR_PLACE_AT_WITH_ALIGNMENT(".fast_ram", ENET_SOC_BUFF_ADDR_ALIGNMENT)
 __RW uint8_t tx_buff[ENET_TX_BUFF_COUNT][ENET_TX_BUFF_SIZE]; /* Ethernet Transmit Buffer */
 
 /****************************************************************************
@@ -109,6 +108,9 @@ struct hpm_enet_mac_s
 
   /* This holds the information visible to the NuttX network */
   struct net_driver_s  dev;         /* Interface understood by the network */
+
+  enet_tx_desc_t       *txtail;     /* First "in_flight" TX descriptor */
+  uint16_t             inflight;    /* Number of TX transfers "in_flight" */
 
   ENET_Type *base;
   enet_desc_t desc;
@@ -241,17 +243,25 @@ static int hpm_ifdown(struct net_driver_s *dev)
 static int hpm_txpoll(struct net_driver_s *dev)
 {
     struct hpm_enet_mac_s *priv = (struct hpm_enet_mac_s *)dev->d_private;
-     enet_tx_desc_t  *tx_desc_list_cur = priv->desc.tx_desc_list_cur;
-    __IO enet_tx_desc_t *dma_tx_desc;
 
     DEBUGASSERT(priv->dev.d_buf != NULL);
 
-    hpm_transmit(priv);
-    DEBUGASSERT(dev->d_len == 0 && dev->d_buf == NULL);
+    if (priv->dev.d_len > 0)
+    {
+        arp_out(&priv->dev);
 
-    dma_tx_desc = tx_desc_list_cur;
-    if (dma_tx_desc->tdes0_bm.own != 0) {
-        return -EBUSY;
+        if (!devif_loopback(&priv->dev)) 
+        {
+            hpm_transmit(priv);
+            DEBUGASSERT(dev->d_len == 0 && dev->d_buf == NULL);
+
+            if (priv->desc.tx_desc_list_cur->tdes0_bm.own != 0) {
+                return -EBUSY;
+            } 
+
+            /* CPU owns the descriptor and continues the poll. */          
+            dev->d_buf = (uint8_t *)sys_address_to_core_local_mem(0, (uint32_t)priv->desc.tx_desc_list_cur->tdes2_bm.buffer1); 
+        }
     }
 
     return 0;
@@ -276,10 +286,24 @@ static int hpm_txpoll(struct net_driver_s *dev)
 
 static void hpm_dopoll(struct hpm_enet_mac_s *priv)
 {
+    enet_tx_desc_t  *tx_desc_list_cur = priv->desc.tx_desc_list_cur;
     struct net_driver_s *dev = &priv->dev;
 
-    devif_poll(dev, hpm_txpoll);
+    if (tx_desc_list_cur->tdes0_bm.own == 0) {
+        /* If we have the descriptor, then poll the network for new XMIT data. */
+        DEBUGASSERT(dev->d_len == 0 && dev->d_buf == NULL);
+
+        dev->d_buf = (uint8_t *)sys_address_to_core_local_mem(0, (uint32_t)tx_desc_list_cur->tdes2_bm.buffer1); 
+      
+        devif_poll(dev, hpm_txpoll);
+
+        if (dev->d_buf) {
+            DEBUGASSERT(dev->d_len == 0);
+            dev->d_buf = NULL;
+        }
+    }
 }
+
 
 /****************************************************************************
  * Function: hpm_txavail_work
@@ -378,6 +402,41 @@ static inline void hpm_enet_gpioconfig(struct hpm_enet_mac_s *priv)
 }
 
 /****************************************************************************
+ * Function: hpm_freesegment
+ *
+ * Description:
+ *   The function is called when a received frame is completely processed.
+ *   interrupt.  
+ *
+ * Input Parameters:
+ *   priv  - Reference to the driver state structure
+ *
+ * Returned Value:
+ *   None
+ *
+ *
+ ****************************************************************************/
+
+static void hpm_freesegment(struct hpm_enet_mac_s *priv)
+{
+    enet_rx_frame_info_t *rx_frame_info;
+    enet_rx_desc_t *rx_desc;
+
+    rx_frame_info = &priv->desc.rx_frame_info;
+    rx_desc = rx_frame_info->fs_rx_desc;
+
+    /* Release buffers to DMA */
+    for (int i = 0; i < rx_frame_info->seg_count; i++) {
+        rx_desc->rdes0_bm.own = 1;
+        rx_desc = rx_desc->rdes3_bm.next_desc;
+    }
+
+    rx_frame_info->seg_count = 0;
+
+    enet_rx_resume(priv->base);
+}
+
+/****************************************************************************
  * Function: hpm_recvframe
  *
  * Description:
@@ -402,25 +461,28 @@ static int hpm_recvframe(struct hpm_enet_mac_s *priv)
 {
     enet_frame_t frame = {0, 0, 0};
     enet_rx_desc_t *dma_rx_desc;
+    int ret = -EAGAIN;
 
     frame = enet_get_received_frame_interrupt(&priv->desc.rx_desc_list_cur, &priv->desc.rx_frame_info, ENET_RX_BUFF_COUNT);
-    priv->dev.d_buf = (uint8_t *)frame.buffer;
+    priv->dev.d_buf = (uint8_t *)sys_address_to_core_local_mem(0, (uint32_t)frame.buffer); //frame.buffer;
     priv->dev.d_len = (uint16_t)frame.length;
 
     if (priv->dev.d_len > 0 && priv->dev.d_buf != NULL) {
-        dma_rx_desc = frame.rx_desc;
-
-        for (int i = 0; i < priv->desc.rx_frame_info.seg_count; i++) {
-            dma_rx_desc->rdes0_bm.own = 1;
-            dma_rx_desc = (enet_rx_desc_t *)(dma_rx_desc->rdes3_bm.next_desc);
+   
+        if (priv->dev.d_len > ENET_RX_BUFF_SIZE || priv->desc.rx_frame_info.seg_count > 1) 
+        {
+            printf("ERROR: Dropped, RX descriptor Too big: %d in %d segments\n", priv->dev.d_len, priv->desc.rx_frame_info.seg_count);            
+            hpm_freesegment(priv);
+        } else if (priv->desc.rx_frame_info.ls_rx_desc->rdes0_bm.es) {
+            printf("ERROR: Dropped, RX descriptor errors: %08x\n", priv->desc.rx_frame_info.fs_rx_desc);
+            hpm_freesegment(priv);
         }
+        else {
+            ret = OK;
+        }
+    } 
 
-        priv->desc.rx_frame_info.seg_count = 0;
-
-        return OK;
-    } else {
-        return -EAGAIN;
-    }
+    return ret;
 }
 
 /****************************************************************************
@@ -445,24 +507,60 @@ static int hpm_recvframe(struct hpm_enet_mac_s *priv)
 
 static int hpm_transmit(struct hpm_enet_mac_s *priv)
 {
-    __IO enet_tx_desc_t *dma_tx_desc;
+    enet_tx_desc_t *tx_desc_list_cur;
+    enet_tx_desc_t *tx_first;    
     uint16_t frame_length = 0;
-    enet_tx_desc_t  *tx_desc_list_cur = priv->desc.tx_desc_list_cur;
 
-    dma_tx_desc = tx_desc_list_cur;
-    if (dma_tx_desc->tdes0_bm.own != 0) {
-        return -EBUSY;
+    tx_desc_list_cur = priv->desc.tx_desc_list_cur;
+    tx_first = tx_desc_list_cur;
+
+    if (core_local_mem_to_sys_address(BOARD_APP_CORE, (uint32_t)priv->dev.d_buf) == priv->desc.rx_frame_info.fs_rx_desc->rdes2_bm.buffer1) {      
+
+        priv->desc.rx_frame_info.fs_rx_desc->rdes2_bm.buffer1 = priv->desc.tx_desc_list_cur->tdes2_bm.buffer1;
     }
 
-    /* pass payload to buffer */
+    /* Set the buffer1 address pointer */
     priv->desc.tx_desc_list_cur->tdes2_bm.buffer1 = core_local_mem_to_sys_address(BOARD_APP_CORE, (uint32_t)priv->dev.d_buf);
-    frame_length = priv->dev.d_len;
 
-    /* Prepare transmit descriptors to give to DMA*/
-    frame_length += 4;
+    /* Set frame size */
+    frame_length = priv->dev.d_len + 4;
+    
+    /* Prepare transmit descriptors to DMA */
     enet_prepare_tx_desc(priv->base, &priv->desc.tx_desc_list_cur, &priv->desc.tx_control_config, frame_length, priv->desc.tx_buff_cfg.size);
+
+    /* Detach the buffer from priv->dev structure. That buffer is now "in-flight" */
     priv->dev.d_buf = NULL;
     priv->dev.d_len = 0;
+    
+    /* If there is no other TX buffer, in flight, then remember the location
+     * of the TX descriptor.  This is the location to check for TX done events.
+     */
+    if (!priv->txtail)
+    {
+        DEBUGASSERT(priv->inflight == 0);
+        priv->txtail = tx_first;
+     }
+
+    /* Increment the number of TX transfer in-flight */    
+    priv->inflight++;
+
+    /* If all TX descriptors are in-flight, then we have to disable receive
+     * interrupts too. This is because receive events can trigger more
+     * un-stoppable transmit events.
+     */
+    if (priv->inflight >= ENET_TX_BUFF_COUNT) {
+        priv->base->DMA_INTR_EN &= ~ENET_DMA_INTR_EN_RIE_MASK;
+    }
+
+    if (ENET_DMA_STATUS_TU_GET(priv->base->DMA_STATUS) != 0) {
+        priv->base->DMA_STATUS |= ENET_DMA_STATUS_TU_MASK;
+        priv->base->DMA_TX_POLL_DEMAND = 0;
+    }
+
+    /* Enable Tx interrupt */
+    if (ENET_DMA_INTR_EN_TIE_GET(priv->base->DMA_INTR_EN) == 0) {
+        priv->base->DMA_INTR_EN |= ENET_DMA_INTR_EN_TIE_MASK;
+    }
 
     return OK;
 }
@@ -543,11 +641,64 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
        */
       if (dev->d_buf)
         {
-          /* Free the receive packet buffer */
+          /* Free the receive packet segment */
           dev->d_buf = NULL;
           dev->d_len = 0;
         }
+
+        hpm_freesegment(priv);
     }
+}
+
+static void hpm_freeframe(struct hpm_enet_mac_s *priv)
+{
+    enet_tx_desc_t *txdesc;
+    ninfo("%d: tx_desc_list_cur: %p txtail: %p inflight: %d\n", __LINE__, priv->desc.tx_desc_list_cur, priv->txtail, priv->inflight);
+
+    txdesc = priv->txtail;
+    if (txdesc) {
+        for (int i = 0; txdesc->tdes0_bm.own == 0; i++) {
+            /* Check if this is the last segment of a TX frame */
+            if (txdesc->tdes0_bm.ls) {
+                /* Decrement the number of frames "in-flight". */
+                priv->inflight--;
+
+                /* If all of the TX descriptors were in-flight,
+                 * then RX interrupts may have been disabled...
+                 * we can re-enable them now.
+                 */
+                priv->base->DMA_INTR_EN |= ENET_DMA_INTR_EN_RIE_MASK;
+
+                /* If there are no more frames in-flight, then bail. */
+                if (priv->inflight <= 0) {
+                    priv->txtail = NULL;
+                    priv->inflight = 0;                
+                    return;
+                }
+
+                /* Try the next descriptor in the TX chain */
+                txdesc = (enet_tx_desc_t *)(txdesc->tdes3_bm.next_desc);
+            }
+        }
+
+        priv->txtail = txdesc;
+        ninfo("%d: tx_desc_list_cur: %p txtail: %p inflight: %d\n", __LINE__, priv->desc.tx_desc_list_cur, priv->txtail, priv->inflight);
+    }
+}
+
+static void hpm_txdone(struct hpm_enet_mac_s *priv)
+{
+    /* Scan the TX descriptor change */
+    hpm_freeframe(priv);
+    
+    /* If no further xmits are pending, then cancel the TX timeout */
+    if (priv->inflight <= 0) {
+
+        /* And disable further TX interrupt. */
+        priv->base->DMA_INTR_EN &= ~ENET_DMA_INTR_EN_TIE_MASK;
+    }
+
+    hpm_dopoll(priv);
 }
 
 /****************************************************************************
@@ -569,20 +720,19 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
 
 static void hpm_interrupt_work(void *arg)
 {
-  struct hpm_enet_mac_s *priv = (struct hpm_enet_mac_s *)arg;
-  uint32_t status;
-  uint32_t rxgbfrmis;
-  uint32_t intr_status;
+    struct hpm_enet_mac_s *priv = (struct hpm_enet_mac_s *)arg;
+    uint32_t status;
+    uint32_t rxgbfrmis;
+    uint32_t intr_status;
 
-  DEBUGASSERT(priv);
+    DEBUGASSERT(priv);
 
-  status = priv->base->DMA_STATUS;
-  rxgbfrmis = priv->base->MMC_INTR_RX;
-  intr_status = priv->base->INTR_STATUS;
+    net_lock();
 
-  /* Process pending Ethernet interrupts */
-
-  net_lock();
+    /* Process pending Ethernet interrupts */
+    status = priv->base->DMA_STATUS;
+    rxgbfrmis = priv->base->MMC_INTR_RX;
+    intr_status = priv->base->INTR_STATUS;
 
   /* Check if there are pending "normal" interrupts */
 
@@ -596,12 +746,18 @@ static void hpm_interrupt_work(void *arg)
         priv->base->XMII_CSR;
     }
 
+    if (ENET_DMA_STATUS_TI_GET(status)) {
+        priv->base->DMA_STATUS |= ENET_DMA_STATUS_TI_MASK;
+        /* Handle the transmitted package */
+        hpm_txdone(priv);
+    }
+
     if (ENET_DMA_STATUS_RI_GET(status)) {
         priv->base->DMA_STATUS |= ENET_DMA_STATUS_RI_MASK;
         /* Handle the received package */
         hpm_receive(priv);
     }
-
+    
     if (ENET_MMC_INTR_RX_RXCTRLFIS_GET(rxgbfrmis)) {
         priv->base->RXFRAMECOUNT_GB;
     }
@@ -700,6 +856,7 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
     enet_get_default_tx_control_config(priv->base, &priv->desc.tx_control_config);
 
     priv->desc.tx_control_config.cic = 0;
+    priv->desc.tx_control_config.enable_ioc = true;
 
     /* Set the control config for tx descriptor */
     memcpy(&priv->desc.tx_control_config, &priv->desc.tx_control_config, sizeof(enet_tx_control_config_t));
@@ -725,7 +882,8 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 
     /* Set the interrupt enable mask */
     int_config.int_enable = enet_normal_int_sum_en    /* Enable normal interrupt summary */
-                          | enet_receive_int_en;      /* Enable receive interrupt */
+                          | enet_receive_int_en       /* Enable receive interrupt */
+                          | enet_transmit_int_en;
 
     int_config.int_mask = enet_rgsmii_int_mask; /* Disable RGSMII interrupt */
 
@@ -794,6 +952,9 @@ static int hpm_enet_config(struct hpm_enet_mac_s *priv)
     {
       return ret;
     }
+  
+  priv->txtail = NULL;
+  priv->inflight = 0;
 
   return 0;
 }
