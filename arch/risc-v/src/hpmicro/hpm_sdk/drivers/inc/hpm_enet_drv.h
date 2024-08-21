@@ -59,7 +59,8 @@
 typedef enum {
     enet_normal_int_sum_en   = ENET_DMA_INTR_EN_NIE_MASK,
     enet_aboarmal_int_sum_en = ENET_DMA_INTR_EN_AIE_MASK,
-    enet_receive_int_en      = ENET_DMA_INTR_EN_RIE_MASK
+    enet_receive_int_en      = ENET_DMA_INTR_EN_RIE_MASK,
+    enet_transmit_int_en     = ENET_DMA_INTR_EN_TIE_MASK
 } enet_interrupt_enable_t;
 
 /** @brief interrupt mask type */
