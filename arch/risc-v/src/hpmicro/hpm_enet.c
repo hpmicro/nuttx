@@ -37,6 +37,7 @@
 #include <nuttx/irq.h>
 #include <nuttx/wqueue.h>
 #include <nuttx/signal.h>
+#include <nuttx/net/arp.h>
 #include <nuttx/net/netdev.h>
 #if defined(CONFIG_NET_PKT)
 #  include <nuttx/net/pkt.h>
@@ -601,6 +602,7 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
       if (BUF->type == HTONS(ETHTYPE_IP))
         {
           /* Receive an IPv4 packet from the network device */
+          arp_ipin(&priv->dev);
           ipv4_input(&priv->dev);
 
           /* If the above function invocation resulted in data that should be
@@ -609,6 +611,7 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
           if (priv->dev.d_len > 0)
             {
               /* And send the packet */
+              arp_out(&priv->dev);
               hpm_transmit(priv);
             }
         }
