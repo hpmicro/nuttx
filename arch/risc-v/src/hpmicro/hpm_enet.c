@@ -619,7 +619,7 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
       if (BUF->type == HTONS(ETHTYPE_ARP))
         {
           /* Handle ARP packet */
-          arp_input(&priv->dev);
+          arp_arpin(&priv->dev);
 
           /* If the above function invocation resulted in data that should be
            * sent out on the network, d_len field will set to a value > 0.
