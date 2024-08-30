@@ -57,3 +57,13 @@
 - set EXCEPTION_SECTION to .isr_vector section for improve performance
 - fix sdmmc several bugs
 - fix enet function error
+
+## [v0.2.1] - 20240830
+
+### Version
+- PX4 Nuttx: release v10.3.0+
+- PX4 Apps: release v10.3.0+
+- Hpm_sdk: release v1.4.0
+
+### Changed
+- fix enet some errors
