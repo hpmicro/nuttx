@@ -4,7 +4,7 @@
 #
 
 #####################################################################
-#  HPMicro SOC Selection 
+#  HPMicro SOC Selection
 #####################################################################
 
 comment "HPMicro Configuration Options"
@@ -82,7 +82,7 @@ config HPM_PLLCTLV2_DRV
 	default n
 
 config HPM_SDP_DRV
-	bool 
+	bool
 	default n
 
 config HPM_LCDC_DRV
@@ -94,7 +94,7 @@ config HPM_I2C_DRV
 	default n
 
 config HPM_RNG_DRV
-	bool 
+	bool
 	default n
 
 config HPM_SPI_DRV
@@ -106,7 +106,7 @@ config HPM_PDMA_DRV
 	default n
 
 config HPM_WDG_DRV
-	bool 
+	bool
 	default n
 
 config HPM_DMA_DRV
@@ -122,7 +122,7 @@ config HPM_GPTMR_DRV
 	default n
 
 config HPM_PWM_DRV
-	bool 
+	bool
 	default n
 
 config HPM_USB_DRV
@@ -134,7 +134,7 @@ config HPM_RTC_DRV
 	default n
 
 config HPM_ACMP_DRV
-	bool 
+	bool
 	default n
 
 config HPM_I2S_DRV
@@ -146,7 +146,7 @@ config HPM_DAO_DRV
 	default n
 
 config HPM_PDM_DRV
-	bool 
+	bool
 	default n
 
 config HPM_VAD_DRV
@@ -198,7 +198,7 @@ config HPM_DAC_DRV
 	default n
 
 #####################################################################
-#  HPM_SDK components support 
+#  HPM_SDK components support
 #####################################################################
 
 config HPM_COMPONENTS_DMA_MANAGER
@@ -526,7 +526,7 @@ config HPM_SPI1
 	bool "SPI1"
 	default n
 	select HPM_SPI_DRV
-	
+
 config HPM_SPI1_DMA
 	bool "SPI1_DMA"
 	default n
@@ -542,7 +542,7 @@ config HPM_SPI2
 	bool "SPI2"
 	default n
 	select HPM_SPI_DRV
-	
+
 config HPM_SPI2_DMA
 	bool "SPI2_DMA"
 	default n
@@ -558,7 +558,7 @@ config HPM_SPI3
 	bool "SPI3"
 	default n
 	select HPM_SPI_DRV
-	
+
 config HPM_SPI3_DMA
 	bool "SPI3_DMA"
 	default n
@@ -574,7 +574,7 @@ config HPM_CAN0
 	bool "CAN0"
 	select HPM_CAN_DRV
 	default n
-	
+
 	menu "CAN0 device driver options"
 		depends on HPM_CAN0
 
@@ -599,7 +599,7 @@ config HPM_CAN0
 	config HPM_CAN0_USER_SET_TINING
 		bool "CAN0_USER_SET_TINING"
 		default n
-	
+
 	config HPM_CAN0_NUM_SEG1
 		depends on HPM_CAN0_USER_SET_TINING
 		int "CAN0_NUM_SEG1"
@@ -711,7 +711,7 @@ config HPM_CAN1
 	config HPM_CAN1_USER_SET_TINING
 		bool "CAN1_USER_SET_TINING"
 		default n
-	
+
 	config HPM_CAN1_NUM_SEG1
 		depends on HPM_CAN1_USER_SET_TINING
 		int "CAN1_NUM_SEG1"
@@ -823,7 +823,7 @@ config HPM_CAN2
 	config HPM_CAN2_USER_SET_TINING
 		bool "CAN2_USER_SET_TINING"
 		default n
-	
+
 	config HPM_CAN2_NUM_SEG1
 		depends on HPM_CAN2_USER_SET_TINING
 		int "CAN2_NUM_SEG1"
@@ -935,7 +935,7 @@ config HPM_CAN3
 	config HPM_CAN3_USER_SET_TINING
 		bool "CAN3_USER_SET_TINING"
 		default n
-	
+
 	config HPM_CAN3_NUM_SEG1
 		depends on HPM_CAN3_USER_SET_TINING
 		int "CAN3_NUM_SEG1"
@@ -1114,30 +1114,30 @@ config HPM_TIMER7
 config HPM_ADC0
     bool "ADC0"
     default n
-    select HPM_ADC12_DRV	
+    select HPM_ADC12_DRV
 
     menu "ADC0 device driver options"
         depends on HPM_ADC0
 
         # Channel Value Setting
         config HPM_ADC0_CH
-        int 
+        int
         default 7
         depends on HPM_ADC0_CH7
 
         config HPM_ADC0_CH
-        int 
+        int
         default 10
         depends on HPM_ADC0_CH10
 
         config HPM_ADC0_CH
-        int 
+        int
         default 11
         depends on HPM_ADC0_CH11
         # End Of Channel Value Setting
 
         # Channel Setting
-        choice 
+        choice
             prompt "ADC0 Channel"
             default HPM_ADC0_CH11
 
@@ -1150,7 +1150,7 @@ config HPM_ADC0
             config HPM_ADC0_CH11
             bool "CH11"
         endchoice
-        # End Of Chanenl Setting 
+        # End Of Chanenl Setting
 
         # Conversion Mode Setting
         config HPM_ADC0_CONV_MODE
@@ -1161,8 +1161,8 @@ config HPM_ADC0
         comment "1: period mode"
         comment "2: sequence mode"
         comment "3: preemption mode"
-        # End Of Conversion Mode Setting        
-       
+        # End Of Conversion Mode Setting
+
         # Blocking Read Setting
         if HPM_ADC0_CONV_MODE=0
             config HPM_ADC0_NON_BLOCKING_READ
@@ -1171,7 +1171,7 @@ config HPM_ADC0
         endif
         # End Of Blocking Read Setting
 
-        # Trigger Source Setting      
+        # Trigger Source Setting
         config HPM_ADC0_TRIG_SOURCE
         int "ADC0 Trigger Source"
         range 0 11
@@ -1187,14 +1187,14 @@ config HPM_ADC0
         comment "8:  TRG2C"
         comment "9:  TRG3A"
         comment "10: TRG3B"
-        comment "11: TRG3C"         
+        comment "11: TRG3C"
         # End Of Trigger Source Setting
 
         # Resolution Setting
         config HPM_ADC0_RES
         int "ADC0 Resolution"
         range 0 3
-        default 3   
+        default 3
         comment "0: 6-bit resolution"
         comment "1: 8-bit resolution"
         comment "2: 10-bit resolution"
@@ -1205,9 +1205,9 @@ config HPM_ADC0
         config HPM_ADC0_DIFF_SEL
         int "ADC0 Signal Type"
         range 0 1
-        default 0   
+        default 0
         comment "0: signal-ended signal"
-        comment "1: differential signal"     
+        comment "1: differential signal"
         # Endi Of Signal Type Setting
     endmenu # ADC0 device driver options
 
@@ -1216,8 +1216,8 @@ config HPM_ADC0
 #####################################################################
 
 config HPM_ADC1
-    bool  "ADC1"		
-    default n 
+    bool  "ADC1"
+    default n
     select HPM_ADC12_DRV
 
     menu "ADC1 device driver options"
@@ -1225,23 +1225,23 @@ config HPM_ADC1
 
          # Channel Value Setting
         config HPM_ADC1_CH
-        int 
+        int
         default 7
         depends on HPM_ADC1_CH7
 
         config HPM_ADC1_CH
-        int 
+        int
         default 10
         depends on HPM_ADC1_CH10
 
         config HPM_ADC1_CH
-        int 
+        int
         default 11
         depends on HPM_ADC1_CH11
         # End Of Channel Value Setting
 
         # Channel Setting
-        choice 
+        choice
             prompt "ADC1 Channel"
             default HPM_ADC1_CH11
 
@@ -1254,7 +1254,7 @@ config HPM_ADC1
             config HPM_ADC1_CH11
             bool "CH11"
         endchoice
-        # End Of Chanenl Setting 
+        # End Of Chanenl Setting
 
         # Conversion Mode Setting
         config HPM_ADC1_CONV_MODE
@@ -1266,7 +1266,7 @@ config HPM_ADC1
         comment "2: sequence mode"
         comment "3: preemption mode"
         # End Of Conversion Mode Setting
-        
+
         # Blocking Read Setting
         if HPM_ADC1_CONV_MODE=0
             config HPM_ADC1_NON_BLOCKING_READ
@@ -1275,7 +1275,7 @@ config HPM_ADC1
         endif
         # End Of Blocking Read Setting
 
-        # Trigger Source Setting      
+        # Trigger Source Setting
         config HPM_ADC1_TRIG_SOURCE
         int "ADC1 Trigger Source"
         range 0 11
@@ -1291,14 +1291,14 @@ config HPM_ADC1
         comment "8:  TRG2C"
         comment "9:  TRG3A"
         comment "10: TRG3B"
-        comment "11: TRG3C"         
+        comment "11: TRG3C"
         # End Of Trigger Source Setting
 
         # Resolution Setting
         config HPM_ADC1_RES
         int "ADC1 Resolution"
         range 0 3
-        default 3   
+        default 3
         comment "0: 6-bit resolution"
         comment "1: 8-bit resolution"
         comment "2: 10-bit resolution"
@@ -1309,9 +1309,9 @@ config HPM_ADC1
         config HPM_ADC1_DIFF_SEL
         int "ADC1 Signal Type"
         range 0 1
-        default 0   
+        default 0
         comment "0: signal-ended signal"
-        comment "1: differential signal"     
+        comment "1: differential signal"
         # Endi Of Signal Type Setting
     endmenu # ADC1 device driver options
 
@@ -1320,8 +1320,8 @@ config HPM_ADC1
 #####################################################################
 
 config HPM_ADC2
-    bool "ADC2"		
-    default n 
+    bool "ADC2"
+    default n
     select HPM_ADC12_DRV
 
     menu "ADC2 device driver options"
@@ -1329,23 +1329,23 @@ config HPM_ADC2
 
         # Channel Value Setting
         config HPM_ADC2_CH
-        int 
+        int
         default 7
         depends on HPM_ADC2_CH7
 
         config HPM_ADC2_CH
-        int 
+        int
         default 10
         depends on HPM_ADC2_CH10
 
         config HPM_ADC2_CH
-        int 
+        int
         default 11
         depends on HPM_ADC2_CH11
         # End Of Channel Value Setting
 
         # Channel Setting
-        choice 
+        choice
             prompt "ADC2 Channel"
             default HPM_ADC2_CH11
 
@@ -1358,7 +1358,7 @@ config HPM_ADC2
             config HPM_ADC2_CH11
             bool "CH11"
         endchoice
-        # End Of Chanenl Setting 
+        # End Of Chanenl Setting
 
         # Conversion Mode Setting
         config HPM_ADC2_CONV_MODE
@@ -1370,7 +1370,7 @@ config HPM_ADC2
         comment "2: sequence mode"
         comment "3: preemption mode"
         # End Of Conversion Mode Setting
-        
+
         # Blocking Read Setting
         if HPM_ADC2_CONV_MODE=0
             config HPM_ADC2_NON_BLOCKING_READ
@@ -1379,7 +1379,7 @@ config HPM_ADC2
         endif
         # End Of Blocking Read Setting
 
-        # Trigger Source Setting      
+        # Trigger Source Setting
         config HPM_ADC2_TRIG_SOURCE
         int "ADC2 Trigger Source"
         range 0 11
@@ -1395,14 +1395,14 @@ config HPM_ADC2
         comment "8:  TRG2C"
         comment "9:  TRG3A"
         comment "10: TRG3B"
-        comment "11: TRG3C"         
+        comment "11: TRG3C"
         # End Of Trigger Source Setting
 
         # Resolution Setting
         config HPM_ADC2_RES
         int "ADC2 Resolution"
         range 0 3
-        default 3   
+        default 3
         comment "0: 6-bit resolution"
         comment "1: 8-bit resolution"
         comment "2: 10-bit resolution"
@@ -1413,9 +1413,9 @@ config HPM_ADC2
         config HPM_ADC2_DIFF_SEL
         int "ADC2 Signal Type"
         range 0 1
-        default 0   
+        default 0
         comment "0: signal-ended signal"
-        comment "1: differential signal"     
+        comment "1: differential signal"
         # End Of Signal Type Setting
     endmenu # ADC2 device driver options
 
@@ -1424,26 +1424,26 @@ config HPM_ADC2
 #####################################################################
 
 config HPM_ADC3
-    bool "ADC3"		
-    default n 
+    bool "ADC3"
+    default n
     select HPM_ADC16_DRV
 
     menu "ADC3 device driver options"
     depends on HPM_ADC3
         # Channel Setting
         config HPM_ADC3_CH
-        int 
+        int
         default 2
         depends on HPM_ADC3_CH2
 
-        choice          
+        choice
             prompt "ADC3 Channel"
             default HPM_ADC3_CH2
 
-            config HPM_ADC3_CH2  
+            config HPM_ADC3_CH2
             bool "CH2"
         endchoice
-        # End Of Chanenl Setting 
+        # End Of Chanenl Setting
 
         # Conversion Mode Setting
         config HPM_ADC3_CONV_MODE
@@ -1452,10 +1452,10 @@ config HPM_ADC3
         default 0
         comment "0: oneshot mode"
         comment "1: period mode"
-        comment "2: sequence mode"  
+        comment "2: sequence mode"
         comment "3: preemption mode"
         # End Of Conversion Mode Setting
-         
+
         # Blocking Read Setting
         if HPM_ADC3_CONV_MODE=0
             config HPM_ADC3_NON_BLOCKING_READ
@@ -1464,7 +1464,7 @@ config HPM_ADC3
         endif
         # End Of Blocking Read Setting
 
-        # Trigger Source Setting      
+        # Trigger Source Setting
         config HPM_ADC3_TRIG_SOURCE
         int "ADC3 Trigger Source"
         range 0 11
@@ -1480,32 +1480,32 @@ config HPM_ADC3
         comment "8:  TRG2C"
         comment "9:  TRG3A"
         comment "10: TRG3B"
-        comment "11: TRG3C"         
+        comment "11: TRG3C"
         # End Of Trigger Source Setting
 
-        # Resolution Value Setting            
-        config HPM_ADC3_RES 
-        int 
+        # Resolution Value Setting
+        config HPM_ADC3_RES
+        int
         default 9
         depends on ADC3_RES_8BIT
-        	
-        config HPM_ADC3_RES 
-        int 
+
+        config HPM_ADC3_RES
+        int
         default 11
         depends on ADC3_RES_10BIT
 
-        config HPM_ADC3_RES 
-        int 
+        config HPM_ADC3_RES
+        int
         default 14
         depends on ADC3_RES_12BIT
 
-        config HPM_ADC3_RES 
-        int     
+        config HPM_ADC3_RES
+        int
         default 21
         depends on ADC3_RES_16BIT
-        # End Of Resolution Value Setting      
+        # End Of Resolution Value Setting
 
-        # Resolution Setting      
+        # Resolution Setting
         choice
             prompt "ADC3 Resolution"
             default ADC3_RES_16BIT
@@ -1631,7 +1631,7 @@ config HPM_USBDEV
 		default 0
 		---help---
 			0 - use USB0;  1 - use USB1
-			
+
 	endmenu # USB host controller driver (HCD) options
 
 #####################################################################
@@ -1657,11 +1657,11 @@ config HPM_SDXC1
 #  Enet Configuration
 #####################################################################
 config ENET_RGMII
-    bool 
+    bool
     default n
 
 config ENET_RMII
-    bool 
+    bool
     default n
 
 config ENET_PHY
@@ -1683,10 +1683,10 @@ config HPM_ENET0
     select ENET_PHY
     select ENET_PHY_RTL8211
 
-    menu "ENET0 device driver options" 
+    menu "ENET0 device driver options"
     depends on HPM_ENET0
 
-        choice          
+        choice
             prompt "Interface Type"
             default HPM_ENET_RGMII
 
@@ -1694,7 +1694,7 @@ config HPM_ENET0
             bool "RGMII"
 
         endchoice
-        # End Of PHY Mode Setting 
+        # End Of PHY Mode Setting
 
         # MAC Setting
         config MAC_ADDR0
@@ -1729,17 +1729,17 @@ config HPM_ENET0
         # End Of MAC Setting
     endmenu # ENET0 device driver options
 
-config HPM_ENET1    
+config HPM_ENET1
     bool "ENT1"
     default n
     select HPM_ENET_DRV
     select ENET_PHY
     select ENET_PHY_RTL8201
 
-    menu "ENET1 device driver options" 
+    menu "ENET1 device driver options"
     depends on HPM_ENET1
 
-        choice          
+        choice
             prompt "Interface Type"
             default HPM_ENET_RMII
 
@@ -1747,20 +1747,20 @@ config HPM_ENET1
             bool "RMII"
 
         endchoice
-        # End Of PHY Mode Setting 
+        # End Of PHY Mode Setting
 
         # REFClk Setting
         config RMII_REFCLK
-        int 
+        int
         default 1
         depends on RMII_REFCLK_INT
 
         config RMII_REFCLK
-        int 
+        int
         default 0
         depends on RMII_REFCLK_EXT
 
-        choice 
+        choice
             prompt "Ref Clock"
             default RMII_REFCLK_INT
 
@@ -1768,9 +1768,9 @@ config HPM_ENET1
             bool "Internal Refk"
 
             config RMII_REFCLK_EXT
-            bool "External RefClk"            
+            bool "External RefClk"
         endchoice
-        # End Of REFClk Setting 
+        # End Of REFClk Setting
 
         # MAC Setting
         config MAC_ADDR0

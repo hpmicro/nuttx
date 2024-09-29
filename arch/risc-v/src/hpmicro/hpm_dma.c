@@ -34,8 +34,7 @@
 #include "riscv_internal.h"
 #include "hpm_dma.h"
 
-#if defined(CONFIG_HPM_DMA_DRV) && defined(CONFIG_HPM_COMPONENTS_DMA_MANAGER)
-
+#if (defined(CONFIG_HPM_DMA_DRV) || defined(CONFIG_HPM_DMAV2_DRV)) && defined(CONFIG_HPM_COMPONENTS_DMA_MANAGER)
 
 /****************************************************************************
  * Public Functions
@@ -54,10 +53,13 @@ static int hpm_dmainterrupt(int irq, void *context, void *arg)
   if (irq == HPM_IRQn_HDMA)
   {
     dma_mgr_isr_handler(HPM_HDMA, 0);
-  } else if (irq  == HPM_IRQn_XDMA)
+  }
+#if defined(HPM_XDMA)
+  else if (irq  == HPM_IRQn_XDMA)
   {
     dma_mgr_isr_handler(HPM_XDMA, 1);
   }
+#endif
   return 0;
 }
 
@@ -82,12 +84,15 @@ void weak_function riscv_dma_initialize(void)
   /* Attach DMA interrupt vectors */
 
   irq_attach(HPM_IRQn_HDMA, hpm_dmainterrupt, NULL);
+#if defined(HPM_XDMA)
   irq_attach(HPM_IRQn_XDMA, hpm_dmainterrupt, NULL);
-
+#endif
   /* Enable the IRQ at the NVIC (still disabled at the DMA controller) */
 
   up_enable_irq(HPM_IRQn_HDMA);
+#if defined(HPM_XDMA)
   up_enable_irq(HPM_IRQn_XDMA);
+#endif
 
 }
 

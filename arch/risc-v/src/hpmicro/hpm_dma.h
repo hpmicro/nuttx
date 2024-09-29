@@ -28,10 +28,9 @@
 #include <nuttx/config.h>
 #include <stdint.h>
 
-#if defined(CONFIG_HPM_DMA_DRV) && defined(CONFIG_HPM_COMPONENTS_DMA_MANAGER)
+#if (defined(CONFIG_HPM_DMA_DRV) || defined(CONFIG_HPM_DMAV2_DRV)) && defined(CONFIG_HPM_COMPONENTS_DMA_MANAGER)
 
 #include "hpm_dma_mgr.h"
-#include "hpm_dma_drv.h"
 
 
 #ifndef __ASSEMBLY__

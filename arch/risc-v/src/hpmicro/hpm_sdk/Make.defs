@@ -167,7 +167,6 @@ ifeq ($(CONFIG_HPM_DAC_DRV),y)
   CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)drivers$(DELIM)src$(DELIM)hpm_dac_drv.c
 endif
 
-
 # Include board files
 CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)boards$(DELIM)$(HPM_BOARD_SELECT)$(DELIM)board.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)boards$(DELIM)$(HPM_BOARD_SELECT)$(DELIM)pinmux.c

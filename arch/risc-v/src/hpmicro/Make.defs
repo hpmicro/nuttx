@@ -30,7 +30,7 @@ CHIP_CSRCS += hpmicro$(DELIM)hpm_printf.c hpmicro$(DELIM)hpm_cache.c
 
 ifeq ($(CONFIG_HPM_DMA),y)
 CHIP_CSRCS += hpmicro$(DELIM)hpm_dma.c
-endif 
+endif
 
 ifeq ($(CONFIG_HPM_SPI_DRV),y)
   ifeq ($(CONFIG_SPI_DRIVER),y)
@@ -67,10 +67,10 @@ endif
 
 ifeq ($(CONFIG_HPM_CAN_DRV),y)
 CHIP_CSRCS += hpmicro$(DELIM)hpm_can.c
-endif 
+endif
 
 ifeq ($(CONFIG_HPM_CAN_SOCKET),y)
-CHIP_CSRCS += hpmicro$(DELIM)hpm_can_sock.c 
+CHIP_CSRCS += hpmicro$(DELIM)hpm_can_sock.c
 endif
 
 ifeq ($(CONFIG_HPM_ADC12_DRV),y)
@@ -104,3 +104,4 @@ endif
 ifeq ($(CONFIG_DEV_GPIO),y)
   CHIP_CSRCS += hpmicro$(DELIM)hpm_gpio.c
 endif
+
