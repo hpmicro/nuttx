@@ -542,6 +542,7 @@ int hpm_timer_initialize(const char *devpath, int timer)
 #ifdef CONFIG_HPM_TIMER1
       lower = &g_tim1_lowerhalf;
 #endif
+      break;
     case 2:
 #ifdef CONFIG_HPM_TIMER2
       lower = &g_tim2_lowerhalf;
@@ -551,6 +552,7 @@ int hpm_timer_initialize(const char *devpath, int timer)
 #ifdef CONFIG_HPM_TIMER3
       lower = &g_tim3_lowerhalf;
 #endif
+      break;
     case 4:
 #ifdef CONFIG_HPM_TIMER4
       lower = &g_tim4_lowerhalf;
@@ -560,6 +562,7 @@ int hpm_timer_initialize(const char *devpath, int timer)
 #ifdef CONFIG_HPM_TIMER5
       lower = &g_tim5_lowerhalf;
 #endif
+      break;
     case 6:
 #ifdef CONFIG_HPM_TIMER6
       lower = &g_tim6_lowerhalf;

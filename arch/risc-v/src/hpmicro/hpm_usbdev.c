@@ -2913,11 +2913,13 @@ void hpm_usbdev_initialize(int controller)
       s_usb_instance = HPM_USB0;
       s_irq_num = HPM_IRQn_USB0;
     }
+#if defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
   else if (controller == 1)
     {
       s_usb_instance = HPM_USB1;
       s_irq_num = HPM_IRQn_USB1;
     }
+#endif
   else
     {
       ;

@@ -5187,12 +5187,14 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
       irq_num = HPM_IRQn_USB0;
       usb_phy_init(HPM_USB0);
     }
+#if defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
   else if (controller == 1)
     {
       usb_instance = HPM_USB1;
       irq_num = HPM_IRQn_USB1;
       usb_phy_init(HPM_USB1);
     }
+#endif
   else
     {
       return NULL;

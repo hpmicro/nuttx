@@ -60,7 +60,7 @@ int hpm_configgpio(GPIO_Type *ptr, gpio_pin_t pin, enum gpio_pintype_e type)
       HPM_BIOC->PAD[pin].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(3); 
     }
 #endif
-   if (pin >= IOC_PAD_PY00)
+  if (pin >= IOC_PAD_PY00)
     {
       HPM_PIOC->PAD[pin].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(3); 
     }
