@@ -14,7 +14,7 @@ void gptmr_channel_get_default_config(GPTMR_Type *ptr, gptmr_channel_config_t *c
     config->dma_request_event = gptmr_dma_request_disabled;
     config->synci_edge = gptmr_synci_edge_none;
     for (uint8_t i = 0; i < GPTMR_CH_CMP_COUNT; i++) {
-        config->cmp[i] = 0;
+        config->cmp[i] = 0xFFFFFFFFUL;
     }
     config->reload = 0xFFFFFFFFUL;
     config->cmp_initial_polarity_high = true;
