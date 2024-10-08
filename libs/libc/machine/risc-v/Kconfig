@@ -3,6 +3,10 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
+if ARCH_RV32
+source "libs/libc/machine/risc-v/rv32/Kconfig"
+endif
+
 if ARCH_RV64
 source "libs/libc/machine/risc-v/rv64/Kconfig"
 endif
