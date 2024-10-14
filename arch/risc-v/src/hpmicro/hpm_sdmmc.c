@@ -613,7 +613,6 @@ static int hpm_sdmmc_attach(FAR struct sdio_dev_s *dev)
         sdxc_enable_interrupt_signal(priv->base, SDXC_INT_STAT_CARD_INSERTION_MASK, true);
         /* Enable SDXC interrupt */
         up_enable_irq(priv->nirq);
-        intc_m_enable_irq_with_priority(priv->nirq, 1);
     }
     return ret;
 }
@@ -716,7 +715,7 @@ static int hpm_sdmmc_recvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffer, 
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
 
     DEBUGASSERT((priv != NULL) && (buffer != NULL) && (nbytes > 0));
-    DEBUGASSERT((uint32_t)buffer % 4 != 0);
+    DEBUGASSERT(((uint32_t)buffer & 3) == 0);
 
     priv->buffer = (uint32_t *)buffer;
     priv->remaining = nbytes;
@@ -731,7 +730,7 @@ static int hpm_sdmmc_sendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t *bu
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
 
     DEBUGASSERT((priv != NULL) && (buffer != NULL) && (nbytes > 0));
-    DEBUGASSERT((uint32_t)buffer % 4 != 0);
+    DEBUGASSERT(((uint32_t)buffer & 3) == 0);
 
     priv->buffer = (uint32_t *)buffer;
     priv->remaining = nbytes;
@@ -1127,7 +1126,7 @@ static int hpm_sdmmc_dmapreflight(FAR struct sdio_dev_s *dev, FAR const uint8_t 
     /**/
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
     DEBUGASSERT((priv != NULL) && (buffer != NULL) && (buflen > 0));
-    DEBUGASSERT((uint32_t)buffer % 4 != 0);
+    DEBUGASSERT(((uint32_t)buffer & 3) == 0);
 
     return OK;
 }
@@ -1137,7 +1136,7 @@ static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffe
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
     DEBUGASSERT((priv != NULL) && (buffer != NULL) && (buflen > 0));
-    DEBUGASSERT((uint32_t)buffer % 4 != 0);
+    DEBUGASSERT(((uint32_t)buffer & 3) == 0);
 
     /* Prepare DMA parameter */
     uint32_t sys_addr = core_local_mem_to_sys_address(BOARD_RUNNING_CORE, (uint32_t)buffer);
@@ -1175,7 +1174,7 @@ static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t 
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
     DEBUGASSERT((priv != NULL) && (buffer != NULL) && (buflen > 0));
-    DEBUGASSERT((uint32_t)buffer % 4 != 0);
+    DEBUGASSERT(((uint32_t)buffer & 3) == 0);
 
     /* Prepare DMA parameter */
     uint32_t sys_addr = core_local_mem_to_sys_address(BOARD_RUNNING_CORE, (uint32_t)buffer);
