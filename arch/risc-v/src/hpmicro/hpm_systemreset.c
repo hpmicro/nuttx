@@ -27,7 +27,8 @@
 #include <stdint.h>
 #include "riscv_internal.h"
 
-#include "hpm_ppor_drv"
+#include "board.h"
+#include "hpm_ppor_drv.h"
 
 /****************************************************************************
  * Pre-processor Definitions

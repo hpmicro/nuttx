@@ -44,7 +44,6 @@
 
 #include "chip.h"
 #include "riscv_internal.h"
-#include "chip.h"
 #include "hpm_common.h"
 #include "hpm_usb_drv.h"
 #include "hpm_l1c_drv.h"
