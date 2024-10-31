@@ -143,7 +143,7 @@ static inline void gptmr_channel_update_count(GPTMR_Type *ptr,
                                              uint8_t ch_index,
                                              uint32_t value)
 {
-    if (value > 0) {
+    if ((value > 0) && (value != 0xFFFFFFFFu)) {
         value--;
     }
     ptr->CHANNEL[ch_index].CNTUPTVAL = GPTMR_CHANNEL_CNTUPTVAL_CNTUPTVAL_SET(value);
@@ -358,7 +358,7 @@ static inline gptmr_work_mode_t gptmr_channel_get_capmode(GPTMR_Type *ptr, uint8
  */
 static inline void gptmr_update_cmp(GPTMR_Type *ptr, uint8_t ch_index, uint8_t cmp_index, uint32_t cmp)
 {
-    if (cmp > 0) {
+    if ((cmp > 0) && (cmp != 0xFFFFFFFFu)) {
         cmp--;
     }
     ptr->CHANNEL[ch_index].CMP[cmp_index] = GPTMR_CHANNEL_CMP_CMP_SET(cmp);
@@ -385,7 +385,7 @@ static inline uint32_t gptmr_channel_get_reload(GPTMR_Type *ptr, uint8_t ch_inde
  */
 static inline void gptmr_channel_config_update_reload(GPTMR_Type *ptr, uint8_t ch_index, uint32_t reload)
 {
-    if (reload > 0) {
+    if ((reload > 0)&& (reload != 0xFFFFFFFFu)) {
         reload--;
     }
     ptr->CHANNEL[ch_index].RLD = GPTMR_CHANNEL_RLD_RLD_SET(reload);
