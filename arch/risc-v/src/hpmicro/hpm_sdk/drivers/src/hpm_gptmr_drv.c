@@ -14,7 +14,7 @@ void gptmr_channel_get_default_config(GPTMR_Type *ptr, gptmr_channel_config_t *c
     config->dma_request_event = gptmr_dma_request_disabled;
     config->synci_edge = gptmr_synci_edge_none;
     for (uint8_t i = 0; i < GPTMR_CH_CMP_COUNT; i++) {
-        config->cmp[i] = 0xFFFFFFFFUL;
+        config->cmp[i] = 0xFFFFFFFEUL;
     }
     config->reload = 0xFFFFFFFFUL;
     config->cmp_initial_polarity_high = true;
@@ -51,13 +51,13 @@ hpm_stat_t gptmr_channel_config(GPTMR_Type *ptr,
 
     for (uint8_t i = GPTMR_CH_CMP_COUNT; i > 0; i--) {
         tmp_value = config->cmp[i - 1];
-        if (tmp_value > 0) {
+        if ((tmp_value > 0) && (tmp_value != 0xFFFFFFFFu)) {
             tmp_value--;
         }
         ptr->CHANNEL[ch_index].CMP[i - 1] = GPTMR_CHANNEL_CMP_CMP_SET(tmp_value);
     }
     tmp_value = config->reload;
-    if (tmp_value > 0) {
+    if ((tmp_value > 0) && (tmp_value != 0xFFFFFFFFu)) {
         tmp_value--;
     }
     ptr->CHANNEL[ch_index].RLD = GPTMR_CHANNEL_RLD_RLD_SET(tmp_value);
