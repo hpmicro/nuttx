@@ -10,7 +10,7 @@
 #define HPM_SOC_H
 
 
-#include "hpm_irq_num.h"
+#include "hpm_soc_irq.h"
 #include "hpm_common.h"
 
 #include "hpm_gpio_regs.h"

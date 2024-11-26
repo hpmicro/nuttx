@@ -6,8 +6,8 @@
  */
 
 
-#ifndef HPM_IRQ_NUM_H
-#define HPM_IRQ_NUM_H
+#ifndef HPM_SOC_IRQ_H
+#define HPM_SOC_IRQ_H
 
 
 /* List of external IRQs */
@@ -140,4 +140,4 @@
 #define IRQn_DEBUG_1                   127     /* DEBUG[1] IRQ */
 
 
-#endif /* HPM_IRQ_NUM_H */
+#endif /* HPM_SOC_IRQ_H */
