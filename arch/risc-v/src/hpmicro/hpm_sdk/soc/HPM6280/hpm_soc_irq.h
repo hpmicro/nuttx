@@ -6,8 +6,8 @@
  */
 
 
-#ifndef HPM_IRQ_NUM_H
-#define HPM_IRQ_NUM_H
+#ifndef HPM_SOC_IRQ_H
+#define HPM_SOC_IRQ_H
 
 
 /* List of external IRQs */
@@ -105,4 +105,4 @@
 #define IRQn_LIN2                      92      /* LIN2 IRQ */
 #define IRQn_LIN3                      93      /* LIN3 IRQ */
 
-#endif /* HPM_IRQ_NUM_H */
+#endif /* HPM_SOC_IRQ_H */
