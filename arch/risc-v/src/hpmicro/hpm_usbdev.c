@@ -1873,7 +1873,7 @@ bool hpm_epcomplete(struct hpm_usbdev_s *priv, uint8_t epphy)
   /* Make sure we have updated data after the DMA transfer.
    * This invalidation matches the flush in writedtd().
    */
-  up_invalidate_dcache((uintptr_t)ep_buf->address,
+  up_invalidate_dcache((uintptr_t)ep_buf->address, 
                        (uintptr_t)HPM_L1C_CACHELINE_ALIGN_UP(ep_buf->address + ep_buf->xfer_len));
 
   int xfrd = dtd->xfer_len - (dtd->config >> 16);
@@ -2806,11 +2806,11 @@ static int hpm_pullup(struct usbdev_s *dev, bool enable)
   irqstate_t flags = enter_critical_section();
   if (enable)
     {
-      usb_dcd_connect(s_usb_instance);
+      hpm_setbits(USB_USBCMD_RS_MASK, (uint32_t)(&s_usb_instance->USBCMD));
     }
   else
     {
-      usb_dcd_disconnect(s_usb_instance);
+      hpm_clrbits(USB_USBCMD_RS_MASK, (uint32_t)(&s_usb_instance->USBCMD));
     }
 
   leave_critical_section(flags);
