@@ -178,8 +178,8 @@ static struct hpmcan_dev_s g_can0priv         =
 #  endif
 
 #endif
-  .can_config.disable_re_transmission_for_ptb = false,
-  .can_config.disable_re_transmission_for_stb = false,
+  .can_config.disable_ptb_retransmission      = false,
+  .can_config.disable_stb_retransmission      = false,
   .can_config.enable_self_ack                 = false,
   .can_config.enable_tx_buffer_priority_mode  = false,
   .can_config.enable_tdc                      = true,
@@ -297,7 +297,7 @@ static struct hpmcan_dev_s g_can2priv         =
 {
   .can_base                                   = HPM_CAN2,
   .irq_num                                    = HPM_IRQn_CAN2,
-  .clock_name                                 = clock_can0,
+  .clock_name                                 = clock_can2,
   .port                                       = 2,
   .fifo_index                                 = 0,
   .filter_num                                 = 0,

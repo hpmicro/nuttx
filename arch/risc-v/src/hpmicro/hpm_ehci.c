@@ -5175,24 +5175,22 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
 #    endif
 #  endif /* CONFIG_USBHOST_INT_DISABLE */
 
-  /* Init usb Pins */
-
-  board_init_usb_pins();
-
   /* Usb Controller Operational Registers and Init PHY */
 
   if (controller == 0)
     {
       usb_instance = HPM_USB0;
       irq_num = HPM_IRQn_USB0;
-      usb_phy_init(HPM_USB0);
+      board_init_usb(HPM_USB0);
+      usb_phy_init(HPM_USB0, true);
     }
 #if defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
   else if (controller == 1)
     {
       usb_instance = HPM_USB1;
       irq_num = HPM_IRQn_USB1;
-      usb_phy_init(HPM_USB1);
+      board_init_usb(HPM_USB1);
+      usb_phy_init(HPM_USB1, true);
     }
 #endif
   else
@@ -5478,7 +5476,6 @@ struct usbhost_connection_s *hpm_ehci_initialize(int controller)
 #      error Unsupported frame size list size
 #    endif
 #  endif
-  regval |= EHCI_USBCMD_ITHRE_1MF;
 
   hpm_putreg(regval, &HCOR->usbcmd);
 

@@ -30,6 +30,7 @@
 #include "chip.h"
 
 #include "hpm_soc.h"
+#include "hpm_clock_drv.h"
 #include "hpm_mbx_drv.h"
 
 /****************************************************************************
@@ -39,6 +40,7 @@
 struct hpm_mbx_lowerhalf_s
 {
   MBX_Type *base;
+  clock_name_t clock_name;
   mutex_t  mbx_lock;
   uint8_t o_count;
 };

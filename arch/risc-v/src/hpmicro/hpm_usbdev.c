@@ -2806,11 +2806,11 @@ static int hpm_pullup(struct usbdev_s *dev, bool enable)
   irqstate_t flags = enter_critical_section();
   if (enable)
     {
-      hpm_setbits(USB_USBCMD_RS_MASK, (uint32_t)(&s_usb_instance->USBCMD));
+      usb_dcd_connect(s_usb_instance);
     }
   else
     {
-      hpm_clrbits(USB_USBCMD_RS_MASK, (uint32_t)(&s_usb_instance->USBCMD));
+      usb_dcd_connect(s_usb_instance);
     }
 
   leave_critical_section(flags);
@@ -2901,22 +2901,20 @@ void hpm_usbdev_initialize(int controller)
         }
     }
 
-  /* Init usb Pins */
-
-  board_init_usb_pins();
-
   /* Usb Controller Operational Registers and Init PHY */
 
   if (controller == 0)
     {
       s_usb_instance = HPM_USB0;
       s_irq_num = HPM_IRQn_USB0;
+      board_init_usb(HPM_USB0);
     }
 #if defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
   else if (controller == 1)
     {
       s_usb_instance = HPM_USB1;
       s_irq_num = HPM_IRQn_USB1;
+      board_init_usb(HPM_USB1);
     }
 #endif
   else
@@ -2927,10 +2925,6 @@ void hpm_usbdev_initialize(int controller)
   /* Disable USB interrupts */
 
   hpm_putreg(0, (uint32_t)(&s_usb_instance->USBINTR));
-
-  /* Disconnect device */
-
-  hpm_pullup(&priv->usbdev, false);
 
   /* Init the controller */
   usb_dcd_init(s_usb_instance);
@@ -2966,9 +2960,6 @@ void hpm_usbdev_uninitialize(void)
 
   flags = enter_critical_section();
 
-  /* Disconnect device */
-
-  hpm_pullup(&priv->usbdev, false);
   priv->usbdev.speed = USB_SPEED_UNKNOWN;
 
   /* Disable and detach IRQs */

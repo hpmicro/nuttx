@@ -35,6 +35,7 @@
 #include "riscv_internal.h"
 #include "chip.h"
 
+#include "hpm_clock_drv.h"
 #include "hpm_rng_drv.h"
 #include "hpm_soc.h"
 
@@ -120,6 +121,7 @@ void devrandom_register(void)
   nxsem_init(&g_rngdev.excl_sem, 0, 1);
   nxsem_set_protocol(&g_rngdev.excl_sem, SEM_PRIO_NONE);
 
+  clock_add_to_group(clock_rng, 0);
   rng_init(HPM_RNG);
   register_driver("/dev/random", &g_rngops, 0444, NULL);
 }
@@ -150,6 +152,7 @@ void devurandom_register(void)
   nxsem_init(&g_rngdev.excl_sem, 0, 1);
   nxsem_set_protocol(&g_rngdev.excl_sem, SEM_PRIO_NONE);
 
+  clock_add_to_group(clock_rng, 0);
   rng_init(HPM_RNG);
 #endif
   register_driver("dev/urandom", &g_rngops, 0444, NULL);

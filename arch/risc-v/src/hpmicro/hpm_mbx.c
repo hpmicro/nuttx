@@ -238,6 +238,8 @@ int hpm_mbx_register(FAR const char *path, FAR struct hpm_mbx_lowerhalf_s *mbx_d
   DEBUGASSERT(path != NULL);
   DEBUGASSERT(mbx_dev != NULL);
 
+  clock_add_to_group(mbx_dev->clock_name, 0);
+
   /* Register the mbx character driver */
 
   ret = register_driver(path, &hpm_mbx_fops, 0666, mbx_dev);

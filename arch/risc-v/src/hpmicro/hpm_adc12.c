@@ -635,7 +635,7 @@ static void adc_reset(struct adc_dev_s *dev)
     board_init_adc12_pins();
 
     /* ADC clock initialization */
-    board_init_adc12_clock(priv->base, true);
+    board_init_adc_clock(priv->base, true);
 
     leave_critical_section(flags);
 }

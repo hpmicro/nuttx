@@ -204,7 +204,7 @@ static int hpm_i2c_slave_init(hpm_i2c_slave_t *dev)
 {
   uint32_t freq;
   hpm_stat_t stat;
-  freq = clock_get_frequency(dev->i2c_clock);
+  freq = board_init_i2c_clock(priv->ptr);
   stat = i2c_init_slave(dev->ptr, freq, &dev->i2c_config, dev->slave_address);
   if (stat != status_success) 
     {

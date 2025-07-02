@@ -534,7 +534,7 @@ static struct hpm_spidev_s g_spi3dev =
  * Private Functions
  ****************************************************************************/
 
-uint32_t get_frequency_for_clock_source(clock_source_t source)
+static uint32_t get_frequency_for_clock_source(clock_source_t source)
 {
     uint32_t clk_freq = 0UL;
     uint32_t div = 1;

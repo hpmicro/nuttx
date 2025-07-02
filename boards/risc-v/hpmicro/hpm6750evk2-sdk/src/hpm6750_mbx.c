@@ -41,16 +41,18 @@
 
 static struct hpm_mbx_lowerhalf_s g_mbx_a_dev =
 {
-  .base     = HPM_MBX0A,
-  .mbx_lock = NXMUTEX_INITIALIZER,
-  .o_count  = 0,
+  .base       = HPM_MBX0A,
+  .clock_name = clock_mbx0,
+  .mbx_lock   = NXMUTEX_INITIALIZER,
+  .o_count    = 0,
 };
 
 static struct hpm_mbx_lowerhalf_s g_mbx_b_dev =
 {
-  .base     = HPM_MBX0B,
-  .mbx_lock = NXMUTEX_INITIALIZER,
-  .o_count  = 0,
+  .base       = HPM_MBX0B,
+  .clock_name = clock_mbx0,
+  .mbx_lock   = NXMUTEX_INITIALIZER,
+  .o_count    = 0,
 };
 
 int hpm6750evk2_mbxdev_initialize(void)

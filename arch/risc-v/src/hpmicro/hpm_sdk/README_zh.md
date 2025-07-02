@@ -3,10 +3,9 @@ gantt
     title HPM SDK Release Plan
     dateFormat  YYYY-MM-DD
     section Mainline Release
-    v1.1.0           :a1, 2023-01-01, 2023-03-31
-    v1.2.0           :a2, 2023-04-01, 2023-06-30
-    v1.3.0           :a3, 2023-07-01, 2023-09-30
-    v1.4.0           :a4, 2023-10-01, 2023-12-31
+    v1.9.0           :a1, 2025-01-01, 2025-03-31
+    v1.10.0          :a2, 2025-04-01, 2025-06-30
+    v1.11.0          :a3, 2025-07-01, 2025-12-31
 ```
 
 [English](README.md)
@@ -35,7 +34,7 @@ HPM SDK项目是基于HPMicro 公司的MCU编写的软件开发包，支持多�
   SDK文档可以进行本地编译，成功编译之后可以通过以下入口访问本地文档:
   - <HPM_SDK_BASE>>/docs/index.html
   - <HPM_SDK_BASE>>/docs/index_zh.html
-  > 文档编译方式请参考<HPM_SDK_BASE>/docs/README.md
+  > 文档编译方式请参考[hpm_sdk Getting Started](docs/zh/get_started.rst)
 - 在线文档：
   - http://hpm-sdk.readthedocs.io/
   - http://hpm-sdk-zh.readthedocs.io/

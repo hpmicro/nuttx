@@ -310,10 +310,9 @@ static int hpm_setup(struct uart_dev_s *dev)
 {
   struct hpm_uart_s *priv = (struct hpm_uart_s *)dev->priv;
 
-  clock_set_source_divider(priv->clock_name, clk_src_osc24m, 1U);
-  priv->config.src_freq_in_hz = clock_get_frequency(priv->clock_name);
-
   init_uart_pins((UART_Type *)priv->base);
+
+  priv->config.src_freq_in_hz = board_init_uart_clock((UART_Type *)priv->base);
 
   uart_init((UART_Type *)priv->base, &priv->config);
 

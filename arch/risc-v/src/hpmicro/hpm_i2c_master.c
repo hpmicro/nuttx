@@ -337,6 +337,7 @@ static int hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_
   DEBUGASSERT(priv != NULL);
 
   uint32_t tmp_freq = 0;
+  uint32_t base_freq;
   hpm_stat_t stat;
 
   if (i2c_freq <= 100000) 
@@ -355,10 +356,11 @@ static int hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_
       priv->i2c_config.i2c_mode = i2c_mode_fast_plus;
     }
   
+  base_freq = board_init_i2c_clock(priv->base);
   if (priv->frequency != tmp_freq)
     {
       priv->frequency = tmp_freq;
-      priv->base_freq = clock_get_frequency(priv->i2c_clock);
+      priv->base_freq = base_freq;
       priv->i2c_config.is_10bit_addressing = addr_mode;
       stat = i2c_init_master(priv->base, priv->base_freq, &priv->i2c_config);
       if (stat != status_success)
@@ -542,7 +544,7 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
       i2cerr("I2C Only support 0,1,2,3\n");
       return NULL;
     }
-    
+
   if (hpm_i2cbus_pins_initialize(priv->port) < 0)
     {
       leave_critical_section(flags);
