@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 HPMicro
+ * Copyright (c) 2021-2025 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -28,52 +28,53 @@ enum {
 };
 
 /*---------------------------------------------------------------------
- * Internal API
+ * Driver API
  *---------------------------------------------------------------------
  */
 
 /* De-initialize USB phy */
-static void usb_phy_deinit(USB_Type *ptr)
-{
-    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_UTMI_SUSPENDM_SW_MASK;     /* set otg_utmi_suspend_m for naneng usbphy */
-
-    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_UTMI_RESET_SW_MASK;       /* clear otg_utmi_reset_sw for naneng usbphy */
-
-    ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_CFG_RST_N_MASK;          /* clear cfg_rst_n */
-
-    ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK;       /* clear otg_suspendm */
-}
-
-static uint8_t usb_phy_get_line_state(USB_Type *ptr)
-{
-    return USB_PHY_STATUS_LINE_STATE_GET(ptr->PHY_STATUS);
-}
-
-/*---------------------------------------------------------------------
- * Driver API
- *---------------------------------------------------------------------
- */
-/* Initialize USB phy */
-void usb_phy_init(USB_Type *ptr)
+void usb_phy_deinit(USB_Type *ptr)
 {
     uint32_t status;
 
-    usb_phy_enable_dp_dm_pulldown(ptr);
-    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_UTMI_RESET_SW_MASK;           /* set otg_utmi_reset_sw for naneng usbphy */
-    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_UTMI_SUSPENDM_SW_MASK;       /* clr otg_utmi_suspend_m for naneng usbphy */
-    ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_CFG_RST_N_MASK;             /* clr cfg_rst_n */
+    ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK;       /* clear otg_suspendm */
+
+    ptr->PHY_CTRL1 &= ~USB_PHY_CTRL1_UTMI_CFG_RST_N_MASK;          /* clear cfg_rst_n */
+
+    ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_UTMI_RESET_SW_MASK;        /* set otg_utmi_reset_sw for naneng usbphy */
+
+    for (volatile uint32_t i = 0; i < USB_PHY_INIT_DELAY_COUNT; i++) {
+        (void)ptr->PHY_CTRL1;                                      /* used for delay, at least 1us */
+    }
+
+    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_UTMI_SUSPENDM_SW_MASK;     /* clear otg_utmi_suspend_m for naneng usbphy */
 
     do {
         status = USB_OTG_CTRL0_OTG_UTMI_RESET_SW_GET(ptr->OTG_CTRL0); /* wait for reset status */
     } while (status == 0);
 
+    for (volatile uint32_t i = 0; i < USB_PHY_DEINIT_DELAY_COUNT; i++) {
+        (void)ptr->PHY_CTRL1;                                       /* used for delay */
+    }
+}
+
+/* Initialize USB phy */
+void usb_phy_init(USB_Type *ptr, bool host)
+{
+    uint32_t status;
+
+    usb_phy_deinit(ptr);
+    usb_phy_enable_dp_dm_pulldown(ptr);
+
     ptr->OTG_CTRL0 |= USB_OTG_CTRL0_OTG_UTMI_SUSPENDM_SW_MASK;        /* set otg_utmi_suspend_m for naneng usbphy */
 
     for (volatile uint32_t i = 0; i < USB_PHY_INIT_DELAY_COUNT; i++) {
-        (void)ptr->PHY_CTRL1;                                         /* used for delay */
+        (void)ptr->PHY_CTRL1;                                         /* used for delay, at least 1us */
     }
 
     ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_UTMI_RESET_SW_MASK;          /* clear otg_utmi_reset_sw for naneng usbphy */
+
+    ptr->OTG_CTRL0 &= ~USB_OTG_CTRL0_OTG_WKDPDMCHG_EN_MASK;           /* Disable dp/dm wakeup */
 
     /* otg utmi clock detection */
     ptr->PHY_STATUS |= USB_PHY_STATUS_UTMI_CLK_VALID_MASK;            /* write 1 to clear valid status */
@@ -81,9 +82,13 @@ void usb_phy_init(USB_Type *ptr)
         status = USB_PHY_STATUS_UTMI_CLK_VALID_GET(ptr->PHY_STATUS);  /* get utmi clock status */
     } while (status == 0);
 
+    ptr->PHY_CTRL0 |= USB_PHY_CTRL0_OP_MODE_SUSPENDM_ENJ_MASK;        /* set suspendm_enj */
+
     ptr->PHY_CTRL1 |= USB_PHY_CTRL1_UTMI_CFG_RST_N_MASK;              /* set cfg_rst_n */
 
-    ptr->PHY_CTRL1 |= USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK;           /* set otg_suspendm */
+    if (host) {
+        ptr->PHY_CTRL1 |= USB_PHY_CTRL1_UTMI_OTG_SUSPENDM_MASK;       /* set otg_suspendm, enable high speed device disconect detect */
+    }
 }
 
 void usb_dcd_bus_reset(USB_Type *ptr, uint16_t ep0_max_packet_size)
@@ -117,7 +122,13 @@ void usb_dcd_bus_reset(USB_Type *ptr, uint16_t ep0_max_packet_size)
 void usb_dcd_init(USB_Type *ptr)
 {
     /* Initialize USB phy */
-    usb_phy_init(ptr);
+    usb_phy_init(ptr, false);
+
+    /* Reset interrupt enable register */
+    ptr->USBINTR = 0;
+
+    /* Stop */
+    ptr->USBCMD &= ~USB_USBCMD_RS_MASK;
 
     /* Reset controller */
     ptr->USBCMD |= USB_USBCMD_RST_MASK;
@@ -134,16 +145,13 @@ void usb_dcd_init(USB_Type *ptr)
     /* Set the endian */
     ptr->USBMODE &= ~USB_USBMODE_ES_MASK;
 
-    /* TODO Force fullspeed on non-highspeed port */
-    /* ptr->PORTSC1 |= USB_PORTSC1_PFSC_MASK; */
-
     /* Set parallel interface signal */
     ptr->PORTSC1 &= ~USB_PORTSC1_STS_MASK;
 
     /* Set parallel transceiver width */
     ptr->PORTSC1 &= ~USB_PORTSC1_PTW_MASK;
 
-#ifdef CONFIG_USB_DEVICE_FS
+#if defined(CONFIG_USB_DEVICE_FS) || defined(CONFIG_USB_DEVICE_FORCE_FULL_SPEED)
     /* Set usb forced to full speed mode */
     ptr->PORTSC1 |= USB_PORTSC1_PFSC_MASK;
 #endif
@@ -157,6 +165,9 @@ void usb_dcd_init(USB_Type *ptr)
 
 void usb_dcd_deinit(USB_Type *ptr)
 {
+    /* Reset interrupt enable register */
+    ptr->USBINTR = 0;
+
     /* Stop */
     ptr->USBCMD &= ~USB_USBCMD_RS_MASK;
 
@@ -165,17 +176,14 @@ void usb_dcd_deinit(USB_Type *ptr)
     while (USB_USBCMD_RST_GET(ptr->USBCMD)) {
     }
 
-    /* De-initialize USB phy */
-    usb_phy_deinit(ptr);
-
     /* Reset endpoint list address register */
     ptr->ENDPTLISTADDR = 0;
 
     /* Reset status register */
     ptr->USBSTS = ptr->USBSTS;
 
-    /* Reset interrupt enable register */
-    ptr->USBINTR = 0;
+    /* De-initialize USB phy */
+    usb_phy_deinit(ptr);
 }
 
 /* Connect by enabling internal pull-up resistor on D+/D- */
@@ -226,7 +234,7 @@ uint8_t usb_dcd_edpt_get_type(USB_Type *ptr, uint8_t ep_addr)
     uint8_t const dir = (ep_addr & 0x80) >> 7;
     uint32_t temp =  ptr->ENDPTCTRL[epnum];
 
-    return dir ?  USB_ENDPTCTRL_TXT_GET(temp) : USB_ENDPTCTRL_RXT_GET(temp);
+    return dir ? USB_ENDPTCTRL_TXT_GET(temp) : USB_ENDPTCTRL_RXT_GET(temp);
 }
 
 void usb_dcd_edpt_xfer(USB_Type *ptr, uint8_t ep_idx)
@@ -292,7 +300,7 @@ void usb_dcd_edpt_close(USB_Type *ptr, uint8_t ep_addr)
 
 void usb_dcd_remote_wakeup(USB_Type *ptr)
 {
-    (void) ptr;
+    usb_force_port_resume(ptr);
 }
 
 bool usb_hcd_init(USB_Type *ptr, uint32_t int_mask, uint16_t framelist_size)
@@ -309,7 +317,10 @@ bool usb_hcd_init(USB_Type *ptr, uint32_t int_mask, uint16_t framelist_size)
         return false;
     }
 
-    usb_phy_init(ptr);
+    usb_phy_init(ptr, true);
+
+    /* Stop */
+    ptr->USBCMD &= ~USB_USBCMD_RS_MASK;
 
     /* Reset controller */
     ptr->USBCMD |= USB_USBCMD_RST_MASK;

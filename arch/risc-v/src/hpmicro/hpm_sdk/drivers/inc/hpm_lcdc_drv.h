@@ -101,6 +101,7 @@ typedef struct lcdc_layer_config {
     uint16_t position_y;                                /**< Layer output position Y coord */
     display_color_32b_t background;                     /**< Background color */
     uint32_t buffer;                                    /**< Pointer of layer display buffer */
+    uint32_t stride;                                    /**< stride of lines in bytes. stride is calculated by driver if stride == 0. */
 } lcdc_layer_config_t;
 
 #ifdef __cplusplus
@@ -152,7 +153,7 @@ static inline void lcdc_disable_interrupt(LCDC_Type *ptr, uint32_t interrupt_mas
  */
 static inline void lcdc_clear_status(LCDC_Type *ptr, uint32_t mask)
 {
-    ptr->ST |= mask;
+    ptr->ST = mask;
 }
 
 /**
@@ -202,7 +203,7 @@ static inline bool lcdc_check_dma_status(LCDC_Type *ptr, uint32_t mask)
  */
 static inline void lcdc_clear_dma_status(LCDC_Type *ptr, uint32_t mask)
 {
-    ptr->DMA_ST |= mask;
+    ptr->DMA_ST = mask;
 }
 
 /**

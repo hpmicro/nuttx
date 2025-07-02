@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 HPMicro
+ * Copyright (c) 2021-2025 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -80,6 +80,9 @@
         }                              \
     } while (false)
 
+#define _HPM_STRINGIFY(x) #x
+#define HPM_STRINGIFY(x)  _HPM_STRINGIFY(x)
+
 #define SIZE_1KB (1024UL)
 #define SIZE_1MB (1048576UL)
 
@@ -115,6 +118,19 @@
 #define BIT29_MASK (0x20000000UL)
 #define BIT30_MASK (0x40000000UL)
 #define BIT31_MASK (0x80000000UL)
+
+#define HPM_PI      (3.14159265358979323846)
+#define HPM_PI_FLOAT (3.14159265358979323846f)
+#define HPM_2_PI    (6.28318530717958647692)
+#define HPM_2_PI_FLOAT (6.28318530717958647692f)
+#define HPM_HALF_PI (1.57079632679489661923)
+#define HPM_HALF_PI_FLOAT (1.57079632679489661923f)
+
+#if defined(__IAR_SYSTEMS_ICC__)
+#define HPM_NAN 0.NaN
+#else
+#define HPM_NAN (0.0 / 0.0)
+#endif
 
 typedef uint32_t hpm_stat_t;
 
@@ -156,6 +172,7 @@ enum {
     status_group_ffa,
     status_group_mcan,
     status_group_ewdg,
+    status_group_esc,
 
     status_group_middleware_start = 500,
     status_group_sdmmc = status_group_middleware_start,
@@ -163,6 +180,8 @@ enum {
     status_group_dma_manager,
     status_group_spi_nor_flash,
     status_group_touch,
+    status_group_plb_qei_encoder,
+    status_group_pmbus,
 };
 
 /* @brief Common status code definitions */
@@ -174,15 +193,39 @@ enum {
 };
 
 #if defined(__GNUC__)
+/* weak */
+#define ATTR_WEAK __attribute__((weak))
+
+#define HPM_ATTR_MACHINE_INTERRUPT __attribute__ ((section(".isr_vector"), interrupt("machine"), aligned(4)))
+#define HPM_ATTR_SUPERVISOR_INTERRUPT __attribute__ ((section(".isr_s_vector"), interrupt("supervisor"), aligned(4)))
+
+#elif defined(__ICCRISCV__)
+/* weak */
+#define ATTR_WEAK __weak
+
+#define HPM_ATTR_MACHINE_INTERRUPT __machine __interrupt
+#define HPM_ATTR_SUPERVISOR_INTERRUPT __supervisor __interrupt
+
+#ifndef __TIMEVAL_DEFINED
+#define __TIMEVAL_DEFINED 1
+struct timeval {
+  long tv_sec;    /* Seconds since the Epoch */
+  long tv_usec;   /* Microseconds */
+};
+#endif
+
+#else
+#error Unknown toolchain
+#endif
+
+#if defined(__GNUC__) || defined(__ICCRISCV__)
 
 /* alway_inline */
 #define ATTR_ALWAYS_INLINE __attribute__((always_inline))
 
-/* weak */
-#define ATTR_WEAK __attribute__((weak))
-
 /* alignment */
 #define ATTR_ALIGN(alignment) __attribute__((aligned(alignment)))
+#define ATTR_PACKED __attribute__((packed, aligned(1)))
 
 /* place var_declare at section_name, e.x. PLACE_AT(".target_section", var); */
 #define ATTR_PLACE_AT(section_name) __attribute__((section(section_name)))
@@ -190,7 +233,8 @@ enum {
 #define ATTR_PLACE_AT_WITH_ALIGNMENT(section_name, alignment) \
 ATTR_PLACE_AT(section_name) ATTR_ALIGN(alignment)
 
-#define ATTR_PLACE_AT_NONCACHEABLE ATTR_PLACE_AT(".noncacheable.bss")
+/* ATTR_PLACE_AT_NONCACHEABLE is legacy attribute, ATTR_PLACE_AT_NONCACHEABLE_NON_INIT instead of this */
+#define ATTR_PLACE_AT_NONCACHEABLE ATTR_PLACE_AT(".noncacheable")
 #define ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(alignment) \
     ATTR_PLACE_AT_NONCACHEABLE ATTR_ALIGN(alignment)
 
@@ -203,6 +247,28 @@ ATTR_PLACE_AT(section_name) ATTR_ALIGN(alignment)
 #define ATTR_PLACE_AT_NONCACHEABLE_INIT_WITH_ALIGNMENT(alignment) \
     ATTR_PLACE_AT_NONCACHEABLE_INIT ATTR_ALIGN(alignment)
 
+#define ATTR_PLACE_AT_NONCACHEABLE_NON_INIT ATTR_PLACE_AT(".noncacheable.non_init")
+#define ATTR_PLACE_AT_NONCACHEABLE_NON_INIT_WITH_ALIGNMENT(alignment) \
+    ATTR_PLACE_AT_NONCACHEABLE_NON_INIT ATTR_ALIGN(alignment)
+
+/* .fast_ram section */
+/* ATTR_PLACE_AT_FAST_RAM is legacy attribute, ATTR_PLACE_AT_FAST_RAM_NON_INIT instead of this */
+#define ATTR_PLACE_AT_FAST_RAM ATTR_PLACE_AT(".fast_ram")
+#define ATTR_PLACE_AT_FAST_RAM_WITH_ALIGNMENT(alignment) \
+    ATTR_PLACE_AT_FAST_RAM ATTR_ALIGN(alignment)
+
+#define ATTR_PLACE_AT_FAST_RAM_BSS ATTR_PLACE_AT(".fast_ram.bss")
+#define ATTR_PLACE_AT_FAST_RAM_BSS_WITH_ALIGNMENT(alignment) \
+    ATTR_PLACE_AT_FAST_RAM_BSS ATTR_ALIGN(alignment)
+
+#define ATTR_PLACE_AT_FAST_RAM_INIT ATTR_PLACE_AT(".fast_ram.init")
+#define ATTR_PLACE_AT_FAST_RAM_INIT_WITH_ALIGNMENT(alignment) \
+    ATTR_PLACE_AT_FAST_RAM_INIT ATTR_ALIGN(alignment)
+
+#define ATTR_PLACE_AT_FAST_RAM_NON_INIT ATTR_PLACE_AT(".fast_ram.non_init")
+#define ATTR_PLACE_AT_FAST_RAM_NON_INIT_WITH_ALIGNMENT(alignment) \
+    ATTR_PLACE_AT_FAST_RAM_NON_INIT ATTR_ALIGN(alignment)
+
 #define ATTR_RAMFUNC ATTR_PLACE_AT(".fast")
 #define ATTR_RAMFUNC_WITH_ALIGNMENT(alignment) \
     ATTR_RAMFUNC ATTR_ALIGN(alignment)
@@ -212,8 +278,6 @@ ATTR_PLACE_AT(section_name) ATTR_ALIGN(alignment)
 #define NOP() __asm volatile("nop")
 #define WFI() __asm volatile("wfi")
 
-#else
-#error Unknown toolchain
 #endif
 
 #ifdef __cplusplus
@@ -277,6 +341,32 @@ static inline uint32_t get_first_set_bit_from_msb(uint32_t value)
         i--;
     }
     return i;
+}
+
+/**
+ * @brief Convert the elapsed ticks to microseconds according to the source clock frequency
+ * @param [in] ticks elapsed ticks
+ * @param [in] src_clk_freq The Frequency of the source
+ *
+ * @return elapsed microseconds
+ */
+static inline uint32_t hpm_convert_ticks_to_us(uint32_t ticks, uint32_t src_clk_freq)
+{
+    uint32_t ticks_per_us = (src_clk_freq + 1000000UL - 1UL) / 1000000UL;
+    return (ticks + ticks_per_us - 1UL) / ticks_per_us;
+}
+
+/**
+ * @brief Convert the elapsed ticks to milliseconds according to the source clock frequency
+ * @param [in] ticks elapsed ticks
+ * @param [in] src_clk_freq The Frequency of the source
+ *
+ * @return elapsed milliseconds
+ */
+static inline uint32_t hpm_convert_ticks_to_ms(uint32_t ticks, uint32_t src_clk_freq)
+{
+    uint32_t ticks_per_ms = (src_clk_freq + 1000UL - 1UL) / 1000UL;
+    return (ticks + ticks_per_ms - 1UL) / ticks_per_ms;
 }
 
 #ifdef __cplusplus

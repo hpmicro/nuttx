@@ -12,8 +12,9 @@ hpm_stat_t dma_setup_channel(DMA_Type *ptr, uint8_t ch_num, dma_channel_config_t
     uint32_t tmp;
 
     if ((ch->dst_width > DMA_SOC_TRANSFER_WIDTH_MAX(ptr))
-            || (ch->src_width > DMA_SOC_TRANSFER_WIDTH_MAX(ptr))
-            || (ch_num >= DMA_SOC_CHANNEL_NUM)) {
+       || (ch->src_width > DMA_SOC_TRANSFER_WIDTH_MAX(ptr))
+       || (ch_num >= DMA_SOC_CHANNEL_NUM)
+       || ((ch->dst_mode == DMA_HANDSHAKE_MODE_HANDSHAKE) && (ch->src_mode == DMA_HANDSHAKE_MODE_HANDSHAKE))) {
         return status_invalid_argument;
     }
     if ((ch->size_in_byte & ((1 << ch->dst_width) - 1))
@@ -35,9 +36,7 @@ hpm_stat_t dma_setup_channel(DMA_Type *ptr, uint8_t ch_num, dma_channel_config_t
 #endif
 
     ptr->INTSTATUS = (DMA_INTSTATUS_TC_SET(1) | DMA_INTSTATUS_ABORT_SET(1) | DMA_INTSTATUS_ERROR_SET(1)) << ch_num;
-    tmp = DMA_CHCTRL_CTRL_SRCBUSINFIDX_SET(0)
-        | DMA_CHCTRL_CTRL_DSTBUSINFIDX_SET(0)
-        | DMA_CHCTRL_CTRL_PRIORITY_SET(ch->priority)
+    tmp =  DMA_CHCTRL_CTRL_PRIORITY_SET(ch->priority)
         | DMA_CHCTRL_CTRL_SRCBURSTSIZE_SET(ch->src_burst_size)
         | DMA_CHCTRL_CTRL_SRCWIDTH_SET(ch->src_width)
         | DMA_CHCTRL_CTRL_DSTWIDTH_SET(ch->dst_width)
@@ -79,10 +78,12 @@ hpm_stat_t dma_config_linked_descriptor(DMA_Type *ptr, dma_linked_descriptor_t *
     uint32_t tmp;
 
     if ((config->dst_width > DMA_SOC_TRANSFER_WIDTH_MAX(ptr))
-            || (config->src_width > DMA_SOC_TRANSFER_WIDTH_MAX(ptr))
-            || (ch_num >= DMA_SOC_CHANNEL_NUM)) {
+     || (config->src_width > DMA_SOC_TRANSFER_WIDTH_MAX(ptr))
+     || (ch_num >= DMA_SOC_CHANNEL_NUM)
+     || ((config->dst_mode == DMA_HANDSHAKE_MODE_HANDSHAKE) && (config->src_mode == DMA_HANDSHAKE_MODE_HANDSHAKE))) {
         return status_invalid_argument;
     }
+
     if ((config->size_in_byte & ((1 << config->dst_width) - 1))
      || (config->src_addr & ((1 << config->src_width) - 1))
      || (config->dst_addr & ((1 << config->dst_width) - 1))
@@ -90,6 +91,7 @@ hpm_stat_t dma_config_linked_descriptor(DMA_Type *ptr, dma_linked_descriptor_t *
      || ((config->linked_ptr & 0x7))) {
         return status_dma_alignment_error;
     }
+
     descriptor->src_addr = DMA_CHCTRL_SRCADDR_SRCADDRL_SET(config->src_addr);
     descriptor->dst_addr = DMA_CHCTRL_DSTADDR_DSTADDRL_SET(config->dst_addr);
     descriptor->trans_size = DMA_CHCTRL_TRANSIZE_TRANSIZE_SET(config->size_in_byte >> config->src_width);
@@ -101,9 +103,7 @@ hpm_stat_t dma_config_linked_descriptor(DMA_Type *ptr, dma_linked_descriptor_t *
     descriptor->linked_ptr_high = DMA_CHCTRL_LLPOINTERH_LLPOINTERH_SET(config->linked_ptr_high);
 #endif
 
-    tmp = DMA_CHCTRL_CTRL_SRCBUSINFIDX_SET(0)
-        | DMA_CHCTRL_CTRL_DSTBUSINFIDX_SET(0)
-        | DMA_CHCTRL_CTRL_PRIORITY_SET(config->priority)
+    tmp = DMA_CHCTRL_CTRL_PRIORITY_SET(config->priority)
         | DMA_CHCTRL_CTRL_SRCBURSTSIZE_SET(config->src_burst_size)
         | DMA_CHCTRL_CTRL_SRCWIDTH_SET(config->src_width)
         | DMA_CHCTRL_CTRL_DSTWIDTH_SET(config->dst_width)
@@ -163,7 +163,7 @@ hpm_stat_t dma_start_memcpy(DMA_Type *ptr, uint8_t ch_num,
 
     burst_size -= config.src_width;
     do {
-        if (!(src & (((1 << config.src_width) << burst_size) - 1))) {
+        if (!(src & (((1 << config.src_width) << burst_size) - 1))) {  /* NOLINT */
             break;
         }
         burst_size--;

@@ -300,7 +300,7 @@ static inline void tsns_disable_compare_min(TSNS_Type *ptr)
 static inline void tsns_set_speed(TSNS_Type *ptr, uint8_t speed)
 {
     assert(speed >= 24);
-    ptr->CONFIG = (ptr->CONFIG & TSNS_CONFIG_SPEED_MASK) | TSNS_CONFIG_SPEED_SET(speed);
+    ptr->CONFIG = (ptr->CONFIG & ~TSNS_CONFIG_SPEED_MASK) | TSNS_CONFIG_SPEED_SET(speed);
 }
 
 /**
@@ -311,7 +311,7 @@ static inline void tsns_set_speed(TSNS_Type *ptr, uint8_t speed)
  */
 static inline void tsns_set_average(TSNS_Type *ptr, uint8_t average)
 {
-    ptr->CONFIG = (ptr->CONFIG & TSNS_CONFIG_AVERAGE_MASK) | TSNS_CONFIG_AVERAGE_SET(average);
+    ptr->CONFIG = (ptr->CONFIG & ~TSNS_CONFIG_AVERAGE_MASK) | TSNS_CONFIG_AVERAGE_SET(average);
 }
 
 /**
@@ -376,6 +376,17 @@ static inline void tsns_trigger_measurement(TSNS_Type *ptr)
 static inline void tsns_clear_with_mask(TSNS_Type *ptr, tsns_clear_type_mask_t mask)
 {
     ptr->FLAG |= mask;
+}
+
+/**
+ * @brief Get the flag value from a TSNS
+ *
+ * @param ptr Pointer to a TSNS_Type structure
+ * @return The value of the FLAG member
+ */
+static inline uint32_t tsns_get_flag_value(TSNS_Type *ptr)
+{
+    return ptr->FLAG;
 }
 
 

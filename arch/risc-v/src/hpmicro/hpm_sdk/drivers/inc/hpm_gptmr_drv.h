@@ -9,6 +9,7 @@
 #define HPM_GPTMR_DRV_H
 #include "hpm_common.h"
 #include "hpm_gptmr_regs.h"
+#include "hpm_soc_feature.h"
 
 /**
  * @brief GPTMR driver APIs
@@ -85,6 +86,58 @@ typedef enum gptmr_counter_type {
 } gptmr_counter_type_t;
 
 /**
+ * @brief GPTMR counter mode
+ */
+
+#if defined(HPM_IP_FEATURE_GPTMR_CNT_MODE) && (HPM_IP_FEATURE_GPTMR_CNT_MODE  == 1)
+typedef enum gptmr_counter_mode {
+    gptmr_counter_mode_internal = 0,
+    gptmr_counter_mode_external,
+} gptmr_counter_mode_t;
+#endif
+
+#if defined(HPM_IP_FEATURE_GPTMR_MONITOR) && (HPM_IP_FEATURE_GPTMR_MONITOR  == 1)
+typedef enum gptmr_channel_monitor_type {
+    monitor_signal_period = 0,
+    monitor_signal_high_level_time,
+} gptmr_channel_monitor_type_t;
+
+typedef struct gptmr_channel_monitor_config {
+    gptmr_channel_monitor_type_t monitor_type;
+    uint32_t max_value;   /**< The unit is the gptmr clock source period */
+    uint32_t min_value;   /**< The unit is the gptmr clock source period */
+} gptmr_channel_monitor_config_t;
+#endif
+
+#if defined(HPM_IP_FEATURE_GPTMR_QEI_MODE) && (HPM_IP_FEATURE_GPTMR_QEI_MODE == 1)
+typedef enum gptmr_qei_ch_group {
+    gptmr_qei_ch_group_01 = 0,
+    gptmr_qei_ch_group_23 = 2,
+} gptmr_qei_ch_group_t;
+
+typedef enum gptmr_qei_type {
+    gptmr_qei_ud_mode = 0,
+    gptmr_qei_ab_mode,
+    gptmr_qei_pd_mode,
+} gptmr_qei_type_t;
+
+typedef struct gptmr_qei_config {
+    gptmr_qei_type_t type;
+    gptmr_qei_ch_group_t ch_group;
+    uint32_t phmax;
+} gptmr_qei_config_t;
+
+#endif
+
+#if defined(HPM_IP_FEATURE_GPTMR_BURST_MODE) && (HPM_IP_FEATURE_GPTMR_BURST_MODE == 1)
+typedef enum gptmr_burst_counter_mode {
+    gptmr_burst_counter_restart = 0,
+    gptmr_burst_counter_continue,
+} gptmr_burst_counter_mode_t;
+
+#endif
+
+/**
  * @brief GPTMR channel config
  */
 typedef struct gptmr_channel_config {
@@ -98,7 +151,18 @@ typedef struct gptmr_channel_config {
     bool enable_sync_follow_previous_channel;
     bool enable_software_sync;
     bool debug_mode;
+#if defined(HPM_IP_FEATURE_GPTMR_MONITOR) && (HPM_IP_FEATURE_GPTMR_MONITOR == 1)
+    bool enable_monitor;
+    gptmr_channel_monitor_config_t monitor_config;
+#endif
+#if defined(HPM_IP_FEATURE_GPTMR_CNT_MODE) && (HPM_IP_FEATURE_GPTMR_CNT_MODE == 1)
+    gptmr_counter_mode_t counter_mode;
+#endif
+#if defined(HPM_IP_FEATURE_GPTMR_OP_MODE) && (HPM_IP_FEATURE_GPTMR_OP_MODE == 1)
+    bool enable_opmode;
+#endif
 } gptmr_channel_config_t;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -223,7 +287,11 @@ static inline uint32_t gptmr_channel_get_counter(GPTMR_Type *ptr,
  */
 static inline void gptmr_trigger_channel_software_sync(GPTMR_Type *ptr, uint32_t ch_index_mask)
 {
+#if defined(HPM_IP_FEATURE_GPTMR_QEI_MODE) && (HPM_IP_FEATURE_GPTMR_QEI_MODE == 1)
+    ptr->GCR = (ptr->GCR & ~GPTMR_GCR_SWSYNCT_MASK) | GPTMR_GCR_SWSYNCT_SET(ch_index_mask);
+#else
     ptr->GCR = ch_index_mask;
+#endif
 }
 
 /**
@@ -281,16 +349,6 @@ static inline uint32_t gptmr_get_status(GPTMR_Type *ptr)
     return ptr->SR;
 }
 
-/**
- * @brief gptmr channel start counter
- *
- * @param [in] ptr GPTMR base address
- * @param [in] ch_index channel index
- */
-static inline void gptmr_start_counter(GPTMR_Type *ptr, uint8_t ch_index)
-{
-    ptr->CHANNEL[ch_index].CR |= GPTMR_CHANNEL_CR_CEN_MASK;
-}
 
 /**
  * @brief gptmr channel stop counter
@@ -330,6 +388,7 @@ static inline void gptmr_disable_cmp_output(GPTMR_Type *ptr, uint8_t ch_index)
  *
  * @param [in] ptr GPTMR base address
  * @param [in] ch_index channel index
+ * @param [in] mode enum gptmr_work_mode_capture_at_rising_edge or gptmr_work_mode_capture_at_falling_edge and so on
  */
 static inline void gptmr_channel_set_capmode(GPTMR_Type *ptr, uint8_t ch_index, gptmr_work_mode_t mode)
 {
@@ -345,7 +404,7 @@ static inline void gptmr_channel_set_capmode(GPTMR_Type *ptr, uint8_t ch_index, 
  */
 static inline gptmr_work_mode_t gptmr_channel_get_capmode(GPTMR_Type *ptr, uint8_t ch_index)
 {
-    return GPTMR_CHANNEL_CR_CAPMODE_GET(ptr->CHANNEL[ch_index].CR);
+    return (gptmr_work_mode_t)GPTMR_CHANNEL_CR_CAPMODE_GET(ptr->CHANNEL[ch_index].CR);
 }
 
 /**
@@ -385,7 +444,7 @@ static inline uint32_t gptmr_channel_get_reload(GPTMR_Type *ptr, uint8_t ch_inde
  */
 static inline void gptmr_channel_config_update_reload(GPTMR_Type *ptr, uint8_t ch_index, uint32_t reload)
 {
-    if ((reload > 0)&& (reload != 0xFFFFFFFFu)) {
+    if ((reload > 0) && (reload != 0xFFFFFFFFu)) {
         reload--;
     }
     ptr->CHANNEL[ch_index].RLD = GPTMR_CHANNEL_RLD_RLD_SET(reload);
@@ -400,7 +459,7 @@ static inline void gptmr_channel_config_update_reload(GPTMR_Type *ptr, uint8_t c
  */
 static inline gptmr_dma_request_event_t gptmr_channel_get_dma_request_event(GPTMR_Type *ptr, uint8_t ch_index)
 {
-    return GPTMR_CHANNEL_CR_DMASEL_GET(ptr->CHANNEL[ch_index].CR);
+    return (gptmr_dma_request_event_t)GPTMR_CHANNEL_CR_DMASEL_GET(ptr->CHANNEL[ch_index].CR);
 }
 
 /**
@@ -427,6 +486,307 @@ hpm_stat_t gptmr_channel_config(GPTMR_Type *ptr,
  * @param [out] config gptmr_channel_config_t
  */
 void gptmr_channel_get_default_config(GPTMR_Type *ptr, gptmr_channel_config_t *config);
+
+
+#if defined(HPM_IP_FEATURE_GPTMR_CNT_MODE) && (HPM_IP_FEATURE_GPTMR_CNT_MODE  == 1)
+/**
+ * @brief gptmr set counter mode.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @param [in] mode gptmr_counter_mode_t, gptmr_counter_mode_external for gptmr enable external counting mode
+ */
+static inline void gptmr_channel_set_counter_mode(GPTMR_Type *ptr, uint8_t ch_index, gptmr_counter_mode_t mode)
+{
+    ptr->CHANNEL[ch_index].CR = (ptr->CHANNEL[ch_index].CR & ~GPTMR_CHANNEL_CR_CNT_MODE_MASK) | GPTMR_CHANNEL_CR_CNT_MODE_SET(mode);
+}
+
+/**
+ * @brief gptmr channel get external trigger input counting mode.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @retval gptmr_counter_mode_external for external counting mode, gptmr_counter_mode_internal for internal counting mode
+ */
+static inline gptmr_counter_mode_t gptmr_channel_get_counter_mode(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    return ((ptr->CHANNEL[ch_index].CR & GPTMR_CHANNEL_CR_CNT_MODE_MASK) ==
+            GPTMR_CHANNEL_CR_CNT_MODE_MASK) ?
+            gptmr_counter_mode_external : gptmr_counter_mode_internal;
+}
+
+#endif
+
+#if defined(HPM_IP_FEATURE_GPTMR_OP_MODE) && (HPM_IP_FEATURE_GPTMR_OP_MODE  == 1)
+/**
+ * @brief gptmr channel enable opmode, it's one-shot mode, timer will stopped at reload point.
+ *
+ * @note  reload irq will be always set at one-shot mode at end
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ */
+static inline void gptmr_channel_enable_opmode(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    ptr->CHANNEL[ch_index].CR |= GPTMR_CHANNEL_CR_OPMODE_MASK;
+}
+
+/**
+ * @brief gptmr channel disable opmode, it's round mode.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ */
+static inline void gptmr_channel_disable_opmode(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    ptr->CHANNEL[ch_index].CR &= ~GPTMR_CHANNEL_CR_OPMODE_MASK;
+}
+
+/**
+ * @brief gptmr channel get opmode.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @retval bool true for opmode, false for normal mode
+ */
+static inline bool gptmr_channel_is_opmode(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    return ((ptr->CHANNEL[ch_index].CR & GPTMR_CHANNEL_CR_OPMODE_MASK) == GPTMR_CHANNEL_CR_OPMODE_MASK) ? true : false;
+}
+#endif
+
+#if defined(HPM_IP_FEATURE_GPTMR_MONITOR) && (HPM_IP_FEATURE_GPTMR_MONITOR  == 1)
+/**
+ * @brief gptmr channel enable monitor, set to monitor input signal period or high level time.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ */
+static inline void gptmr_channel_enable_monitor(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    ptr->CHANNEL[ch_index].CR |= GPTMR_CHANNEL_CR_MONITOR_EN_MASK;
+}
+
+/**
+ * @brief gptmr channel disable monitor
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ */
+static inline void gptmr_channel_disable_monitor(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    ptr->CHANNEL[ch_index].CR &= ~GPTMR_CHANNEL_CR_MONITOR_EN_MASK;
+}
+
+/**
+ * @brief gptmr channel set to monitor input signal period or high level time.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @param [in] type gptmr_channel_monitor_type_t
+ */
+static inline void gptmr_channel_set_monitor_type(GPTMR_Type *ptr, uint8_t ch_index, gptmr_channel_monitor_type_t type)
+{
+    ptr->CHANNEL[ch_index].CR = (ptr->CHANNEL[ch_index].CR & ~GPTMR_CHANNEL_CR_MONITOR_SEL_MASK) | GPTMR_CHANNEL_CR_MONITOR_SEL_SET(type);
+}
+
+/**
+ * @brief gptmr channel get to monitor input signal period or high level time.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @retval gptmr_channel_monitor_type_t monitor_signal_high_level_time or monitor_signal_period
+ */
+static inline gptmr_channel_monitor_type_t gptmr_channel_get_monitor_type(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    return (gptmr_channel_monitor_type_t)GPTMR_CHANNEL_CR_MONITOR_SEL_GET(ptr->CHANNEL[ch_index].CR);
+}
+/**
+ * @brief gptmr channel get default monitor config
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [out] config gptmr_channel_monitor_config_t
+ */
+void gptmr_channel_get_default_monitor_config(GPTMR_Type *ptr, gptmr_channel_monitor_config_t *config);
+
+/**
+ * @brief gptmr channel monitor config
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @param [in] config gptmr_channel_monitor_config_t
+ * @param [in] enable
+ *  @arg true: enable monitor and reset reload count
+ *  @arg false: disable monitor
+ *
+ * @retval hpm_stat_t status_invalid_argument or status_success
+ */
+
+hpm_stat_t gptmr_channel_monitor_config(GPTMR_Type *ptr, uint8_t ch_index,
+                                        gptmr_channel_monitor_config_t *config,
+                                        bool enable);
+
+#endif
+
+#if defined(HPM_IP_FEATURE_GPTMR_BURST_MODE) && (HPM_IP_FEATURE_GPTMR_BURST_MODE == 1)
+/**
+ * @brief gptmr channel enable burst mode, it's burst mode, Timer stops after reaching reload value burst_cfg times.
+
+ *
+ * @note  reload irq will be always set at one-shot mode at end
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ */
+static inline hpm_stat_t gptmr_channel_enable_burst_mode(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    /* enable burst mode, should disable opmode first */
+    if (gptmr_channel_is_opmode(ptr, ch_index) == true) {
+        return status_invalid_argument;
+    }
+    ptr->CHANNEL[ch_index].CR |= GPTMR_CHANNEL_CR_BURST_MODE_MASK;
+    return status_success;
+}
+
+/**
+ * @brief gptmr channel disable opmode, it's circular mode.the timer restarts from 0 after reaching the reload value.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ */
+static inline void gptmr_channel_disable_burst_mode(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    ptr->CHANNEL[ch_index].CR &= ~GPTMR_CHANNEL_CR_BURST_MODE_MASK;
+}
+
+/**
+ * @brief gptmr channel get burstmode.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @retval bool true for burstmode, false for circular mode
+ */
+static inline bool gptmr_channel_is_burst_mode(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    return ((ptr->CHANNEL[ch_index].CR & GPTMR_CHANNEL_CR_BURST_MODE_MASK) == GPTMR_CHANNEL_CR_BURST_MODE_MASK) ? true : false;
+}
+
+/**
+ * @brief gptmr channel set target burst count.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @param [in] burst_count configure burst count: number of times timer reaches reload value.
+ */
+static inline void gptmr_channel_set_target_burst_count(GPTMR_Type *ptr, uint8_t ch_index, uint16_t burst_count)
+{
+    ptr->CHANNEL[ch_index].BURST_CFG = (ptr->CHANNEL[ch_index].BURST_CFG & ~GPTMR_CHANNEL_BURST_CFG_BURST_CFG_MASK) | GPTMR_CHANNEL_BURST_CFG_BURST_CFG_SET(burst_count);
+}
+
+/**
+ * @brief gptmr channel get target burst count.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @retval uint16_t configure burst count: number of times timer reaches reload value.
+ */
+static inline uint16_t gptmr_channel_get_target_burst_count(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    return (uint16_t)GPTMR_CHANNEL_BURST_CFG_BURST_CFG_GET(ptr->CHANNEL[ch_index].BURST_CFG);
+}
+
+/**
+ * @brief gptmr channel get current burst count.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @retval uint32_t current burst count
+ */
+
+static inline uint32_t gptmr_channel_get_current_burst_count(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    return GPTMR_CHANNEL_BURST_COUNT_BURST_COUNT_GET(ptr->CHANNEL[ch_index].BURST_COUNT);
+
+}
+
+/**
+ * @brief gptmr channel burst mode start counter
+ * @note in gptmr_burst_counter_continue mode, restart uses current counter without reset if current burst count < set burst count.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ * @param [in] mode gptmr_burst_counter_mode_t
+ * @retval hpm_stat_t status_invalid_argument or status_success
+ */
+hpm_stat_t gptmr_channel_burst_mode_start_counter(GPTMR_Type *ptr, uint8_t ch_index, gptmr_burst_counter_mode_t mode);
+
+/**
+ * @brief gptmr channel burst mode stop counter
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ */
+static inline void gptmr_channel_burst_mode_stop_counter(GPTMR_Type *ptr, uint8_t ch_index)
+{
+    ptr->CHANNEL[ch_index].CR &= ~GPTMR_CHANNEL_CR_CEN_MASK;
+}
+#endif
+
+/**
+ * @brief gptmr channel start counter
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_index channel index
+ */
+static inline void gptmr_start_counter(GPTMR_Type *ptr, uint8_t ch_index)
+{
+#if defined(HPM_IP_FEATURE_GPTMR_OP_MODE) && (HPM_IP_FEATURE_GPTMR_OP_MODE  == 1)
+    /* if support opmode, should clear CEN and set CEN */
+     if (gptmr_channel_is_opmode(ptr, ch_index) == true) {
+        ptr->CHANNEL[ch_index].CR &= ~GPTMR_CHANNEL_CR_CEN_MASK;
+     }
+#endif
+    ptr->CHANNEL[ch_index].CR |= GPTMR_CHANNEL_CR_CEN_MASK;
+}
+
+#if defined(HPM_IP_FEATURE_GPTMR_QEI_MODE) && (HPM_IP_FEATURE_GPTMR_QEI_MODE == 1)
+
+/**
+ * @brief gptmr config qei.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] qei_config gptmr_qei_config_t
+ */
+void gptmr_config_qei(GPTMR_Type *ptr, gptmr_qei_config_t *qei_config);
+
+/**
+ * @brief gptmr set qei type.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_group gptmr_qei_ch_group_t
+ * @param [in] type gptmr_qei_type_t
+ */
+void gptmr_set_qei_type(GPTMR_Type *ptr, gptmr_qei_ch_group_t ch_group, gptmr_qei_type_t type);
+
+/**
+ * @brief gptmr get qei type.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_group gptmr_qei_ch_group_t
+ * @retval gptmr_qei_type_t ud_mode or ab_mode or pd_mode
+ */
+gptmr_qei_type_t gptmr_get_qei_type(GPTMR_Type *ptr, gptmr_qei_ch_group_t ch_group);
+
+/**
+ * @brief gptmr get qei phase count.
+ *
+ * @param [in] ptr GPTMR base address
+ * @param [in] ch_group gptmr_qei_ch_group_t
+ * @retval uint32_t qei phase count
+ */
+uint32_t gptmr_get_qei_phcnt(GPTMR_Type *ptr, gptmr_qei_ch_group_t ch_group);
+
+#endif
 
 /**
  * @}

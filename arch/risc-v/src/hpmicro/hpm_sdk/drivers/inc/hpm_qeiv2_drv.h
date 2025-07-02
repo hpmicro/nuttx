@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 HPMicro
+ * Copyright (c) 2023-2025 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,6 +9,7 @@
 #define HPM_QEIV2_DRV_H
 
 #include "hpm_common.h"
+#include "hpm_soc_ip_feature.h"
 #include "hpm_qeiv2_regs.h"
 /**
  * @brief QEIV2 driver APIs
@@ -151,6 +152,50 @@ typedef enum qeiv2_uvw_pos_idx {
     qeiv2_uvw_pos5,
 } qeiv2_uvw_pos_idx_t;       /**< qeiv2_uvw_pos_idx_t */
 
+#if defined(HPM_IP_FEATURE_QEIV2_ADC_SW_INJECT) && HPM_IP_FEATURE_QEIV2_ADC_SW_INJECT
+typedef enum qeiv2_adc_sw_inject_en {
+    qeiv2_sw_inject_adcx = QEIV2_ADC_INJECT_CTRL_ADCX_INJ_VALID_MASK,
+    qeiv2_sw_inject_adcx_adcy = QEIV2_ADC_INJECT_CTRL_ADCX_INJ_VALID_MASK | QEIV2_ADC_INJECT_CTRL_ADCY_INJ_VALID_MASK,
+} qeiv2_adc_sw_inject_en_t;       /**< qeiv2_adc_sw_inject_en_t */
+#endif
+
+/**
+ * @brief qeiv2 mode config structure
+ */
+typedef struct {
+    qeiv2_work_mode_t work_mode;
+    qeiv2_spd_tmr_content_t spd_tmr_content_sel;
+    qeiv2_z_count_work_mode_t z_count_inc_mode;
+    uint32_t phcnt_max;
+    bool z_cali_enable;
+    bool z_cali_ignore_ab;
+    uint32_t phcnt_idx;
+} qeiv2_mode_config_t;      /**< qeiv2 mode config struct */
+
+/**
+ * @brief qeiv2 H phase config structure
+ */
+typedef struct {
+    bool h_fall_dir_forward;
+    bool h_fall_dir_reverse;
+    bool h_rise_dir_forward;
+    bool h_rise_dir_reverse;
+    bool h2_fall_dir_forward;
+    bool h2_fall_dir_reverse;
+    bool h2_rise_dir_forward;
+    bool h2_rise_dir_reverse;
+} qeiv2_h_phase_config_t;      /**< qeiv2 H phase config struct */
+
+/**
+ * @brief qeiv2 pause config structure
+ */
+typedef struct {
+    bool pause_valid_pause_position;
+    bool pause_valid_pause_spdcnt;
+    bool pause_valid_pause_phcnt;
+    bool pause_valid_pause_zcnt;
+} qeiv2_pause_config_t;      /**< qeiv2 pause config struct */
+
 /**
  * @brief phase counter compare match config structure
  *
@@ -214,7 +259,7 @@ static inline void qeiv2_load_counter_to_read_registers(QEIV2_Type *qeiv2_x)
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] mode
- *  @arg 1 zcnt will increment when phcnt upcount to phmax, decrement when phcnt downcount to 0
+ *  @arg 1 zcnt will increment when phcnt upcount to PHCFG.phmax, decrement when phcnt downcount to 0
  *  @arg 0 zcnt will increment or decrement when Z input assert
  */
 static inline void qeiv2_config_z_phase_counter_mode(QEIV2_Type *qeiv2_x, qeiv2_z_count_work_mode_t mode)
@@ -223,10 +268,11 @@ static inline void qeiv2_config_z_phase_counter_mode(QEIV2_Type *qeiv2_x, qeiv2_
 }
 
 /**
- * @brief config phase max value and phase param
+ * @brief config phase max value and phase param(for position calculation).
+ * It is recommended used without z-phase. If it has z-phase, you can only config phase param by used qeiv2_config_phparam() API.
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
- * @param[in] phmax maximum phcnt number, phcnt will rollover to 0 when it upcount to phmax
+ * @param[in] phmax maximum phcnt number, phcnt will rollover to 0 when it upcount to (phmax-1)
  */
 static inline void qeiv2_config_phmax_phparam(QEIV2_Type *qeiv2_x, uint32_t phmax)
 {
@@ -246,14 +292,50 @@ static inline void qeiv2_config_phmax_phparam(QEIV2_Type *qeiv2_x, uint32_t phma
 }
 
 /**
- * @brief config phase calibration value trigged by z phase
+ * @brief config phase max value
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
- * @param[in] enable  phcnt will set to phidx when Z input assert
- * @param[in] phidx  phcnt reset value
- * @param[in] mode  qeiv2_work_mode_t
+ * @param[in] phmax maximum phcnt number, phcnt will rollover to 0 when it upcount to (phmax-1)
  */
-static inline void qeiv2_config_z_phase_calibration(QEIV2_Type *qeiv2_x, uint32_t phidx, bool enable, qeiv2_work_mode_t mode)
+static inline void qeiv2_config_phmax(QEIV2_Type *qeiv2_x, uint32_t phmax)
+{
+    if (phmax > 0u) {
+        phmax--;
+    }
+    qeiv2_x->PHCFG = QEIV2_PHCFG_PHMAX_SET(phmax);
+}
+
+/**
+ * @brief config phase param for position calculation.
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] phmax maximum phcnt number, phase param will be calculated by phmax.
+ */
+static inline void qeiv2_config_phparam(QEIV2_Type *qeiv2_x, uint32_t phmax)
+{
+    uint32_t tmp;
+
+    if (phmax > 0u) {
+        phmax--;
+    }
+    if (phmax == 0u) {
+        qeiv2_x->PHASE_PARAM = 0xFFFFFFFFu;
+    } else {
+        tmp = (0x80000000u / (phmax + 1u));
+        tmp <<= 1u;
+        qeiv2_x->PHASE_PARAM = QEIV2_PHASE_PARAM_PHASE_PARAM_SET(tmp);
+    }
+}
+
+/**
+ * @brief config phcnt calibration trigged by z phase
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] phidx phcnt reset value
+ * @param[in] enable enable or disable phcnt calibration by z phase
+ * @param[in] ignore_ab ignore a/b phase signals, only using z phase to calibrate phcnt
+ */
+static inline void qeiv2_config_z_phase_calibration(QEIV2_Type *qeiv2_x, uint32_t phidx, bool enable, bool ignore_ab)
 {
     uint32_t tmp = qeiv2_x->CR;
     qeiv2_x->PHIDX = QEIV2_PHIDX_PHIDX_SET(phidx);
@@ -262,7 +344,7 @@ static inline void qeiv2_config_z_phase_calibration(QEIV2_Type *qeiv2_x, uint32_
     } else {
         tmp &= ~QEIV2_CR_PHCALIZ_MASK;
     }
-    if (enable && ((mode == qeiv2_work_mode_sin) || (mode == qeiv2_work_mode_sincos))) {
+    if (ignore_ab) {
         tmp |= QEIV2_CR_Z_ONLY_EN_MASK;
     } else {
         tmp &= ~QEIV2_CR_Z_ONLY_EN_MASK;
@@ -349,7 +431,7 @@ static inline void qeiv2_release_counter(QEIV2_Type *qeiv2_x)
  * @brief select spd and tmr register content
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
- * @param[in] mode @ref qeiv2_spd_tmr_content_select_t
+ * @param[in] content @ref qeiv2_spd_tmr_content_t
  */
 static inline void qeiv2_select_spd_tmr_register_content(QEIV2_Type *qeiv2_x, qeiv2_spd_tmr_content_t content)
 {
@@ -890,24 +972,7 @@ static inline void qeiv2_set_cmp2_match_option(QEIV2_Type *qeiv2_x, bool ignore_
 }
 
 /**
- * @brief config signal filter
- *
- * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
- * @param[in] idx filter index
- *  @arg @ref qeiv2_filter_phase_t
- * @param[in] outinv Filter will invert the output
- * @param[in] mode qeiv2_filter_mode_t
- * @param[in] sync set to enable sychronization input signal with TRGM clock
- * @param[in] filtlen defines the filter counter length.
- */
-static inline void qeiv2_config_filter(QEIV2_Type *qeiv2_x, qeiv2_filter_phase_t phase, bool outinv, qeiv2_filter_mode_t mode, bool sync, uint16_t filtlen)
-{
-    qeiv2_x->FILT_CFG[phase] =
-        QEIV2_FILT_CFG_OUTINV_SET(outinv) | QEIV2_FILT_CFG_MODE_SET(mode) | QEIV2_FILT_CFG_SYNCEN_SET(sync) | QEIV2_FILT_CFG_FILTLEN_SET(filtlen);
-}
-
-/**
- * @brief config signal enablement and edge
+ * @brief config signal enablement and edge for speed and position measurement
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] siga_en enable signal A/U
@@ -1056,6 +1121,190 @@ static inline void qeiv2_set_cycle1_num(QEIV2_Type *qeiv2_x, uint32_t cycle_num)
     qeiv2_x->CYCLE1_NUM = QEIV2_CYCLE1_NUM_CYCLE1_NUM_SET(cycle_num);
 }
 
+#if defined(HPM_IP_FEATURE_QEIV2_ONESHOT_MODE) && HPM_IP_FEATURE_QEIV2_ONESHOT_MODE
+/**
+ * @brief disable cycle0 oneshot mode
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_cycle0_oneshot_mode(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG &= ~QEIV2_QEI_CFG_CYCLE0_ONESHOT_MASK;
+}
+
+/**
+ * @brief enable cycle0 oneshot mode
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_cycle0_oneshot_mode(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_CYCLE0_ONESHOT_MASK;
+}
+
+/**
+ * @brief disable cycle1 oneshot mode
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_cycle1_oneshot_mode(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG &= ~QEIV2_QEI_CFG_CYCLE1_ONESHOT_MASK;
+}
+
+/**
+ * @brief enable cycle1 oneshot mode
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_cycle1_oneshot_mode(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_CYCLE1_ONESHOT_MASK;
+}
+
+/**
+ * @brief disable pulse0 oneshot mode
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_pulse0_oneshot_mode(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG &= ~QEIV2_QEI_CFG_PULSE0_ONESHOT_MASK;
+}
+
+/**
+ * @brief enable pulse0 oneshot mode
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_pulse0_oneshot_mode(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_PULSE0_ONESHOT_MASK;
+}
+
+/**
+ * @brief disable pulse1 oneshot mode
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_pulse1_oneshot_mode(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG &= ~QEIV2_QEI_CFG_PULSE1_ONESHOT_MASK;
+}
+
+/**
+ * @brief enable pulse1 oneshot mode
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_pulse1_oneshot_mode(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_PULSE1_ONESHOT_MASK;
+}
+#endif
+
+#if defined(HPM_IP_FEATURE_QEIV2_SW_RESTART_TRG) && HPM_IP_FEATURE_QEIV2_SW_RESTART_TRG
+/**
+ * @brief disable trigger cycle0
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_trig_cycle0(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG &= ~QEIV2_QEI_CFG_TRIG_CYCLE0_EN_MASK;
+}
+
+/**
+ * @brief enable trigger cycle0
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_trig_cycle0(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_TRIG_CYCLE0_EN_MASK;
+}
+
+/**
+ * @brief disable trigger cycle1
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_trig_cycle1(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG &= ~QEIV2_QEI_CFG_TRIG_CYCLE1_EN_MASK;
+}
+
+/**
+ * @brief enable trigger cycle1
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_trig_cycle1(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_TRIG_CYCLE1_EN_MASK;
+}
+
+/**
+ * @brief disable trigger pulse0
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_trig_pulse0(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG &= ~QEIV2_QEI_CFG_TRIG_PULSE0_EN_MASK;
+}
+
+/**
+ * @brief enable trigger pulse0
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_trig_pulse0(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_TRIG_PULSE0_EN_MASK;
+}
+
+/**
+ * @brief disable trigger pulse1
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_trig_pulse1(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG &= ~QEIV2_QEI_CFG_TRIG_PULSE1_EN_MASK;
+}
+
+/**
+ * @brief enable trigger pulse1
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_trig_pulse1(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_TRIG_PULSE1_EN_MASK;
+}
+
+/**
+ * @brief software restart cycle0
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_sw_restart_cycle0(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_SW_CYCLE0_RESTART_MASK;
+}
+
+/**
+ * @brief software restart cycle1
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_sw_restart_cycle1(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_SW_CYCLE1_RESTART_MASK;
+}
+
+/**
+ * @brief software restart pulse0
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_sw_restart_pulse0(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_SW_PULSE0_RESTART_MASK;
+}
+
+/**
+ * @brief software restart pulse1
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_sw_restart_pulse1(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->QEI_CFG |= QEIV2_QEI_CFG_SW_PULSE1_RESTART_MASK;
+}
+#endif
+
 /**
  * @brief get pulse1 snap0 value
  *
@@ -1120,6 +1369,7 @@ static inline void qeiv2_clear_counter_when_dir_chg(QEIV2_Type *qeiv2_x, bool en
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] config qeiv2_adc_config_t
+ * @param[in] enable enable or disable adcx
  */
 static inline void qeiv2_config_adcx(QEIV2_Type *qeiv2_x, qeiv2_adc_config_t *config, bool enable)
 {
@@ -1140,6 +1390,7 @@ static inline void qeiv2_config_adcx(QEIV2_Type *qeiv2_x, qeiv2_adc_config_t *co
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] config qeiv2_adc_config_t
+ * @param[in] enable enable or disable adcy
  */
 static inline void qeiv2_config_adcy(QEIV2_Type *qeiv2_x, qeiv2_adc_config_t *config, bool enable)
 {
@@ -1154,6 +1405,19 @@ static inline void qeiv2_config_adcy(QEIV2_Type *qeiv2_x, qeiv2_adc_config_t *co
     }
     qeiv2_x->ADCY_CFG0 = tmp;
 }
+
+/**
+ * @brief Configures the orthogonal delta and magnification for ADCX and ADCY
+ *
+ * Configures the orthogonal delta and magnification parameters for ADCX and ADCY of the QEIV2 device.
+ *
+ * @param[in] qeiv2_x Pointer to the QEIV2 device
+ * @param[in] tan_delta TAN value of orthogonal delta angle in radians
+ * @param[in] cos_delta COS value of orthogonal delta angle in radians
+ * @param[in] x_magnification ADCX magnification factor. If no magnify, please set it to 1.0.
+ * @param[in] y_magnification ADCY magnification factor. If no magnify, please set it to 1.0.
+ */
+void qeiv2_config_adcx_adcy_param(QEIV2_Type *qeiv2_x, float tan_delta, float cos_delta, float x_magnification, float y_magnification);
 
 /**
  * @brief set adcx and adcy delay
@@ -1255,6 +1519,17 @@ static inline void qeiv2_set_z_phase(QEIV2_Type *qeiv2_x, uint32_t cnt)
 }
 
 /**
+ * @brief get z phase counter value
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @retval z phase counter value
+ */
+static inline uint32_t qeiv2_get_z_phase(QEIV2_Type *qeiv2_x)
+{
+    return qeiv2_x->COUNT[QEIV2_COUNT_CURRENT].Z;
+}
+
+/**
  * @brief set phase counter value
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
@@ -1281,7 +1556,7 @@ static inline uint32_t qeiv2_get_phase_cnt(QEIV2_Type *qeiv2_x)
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] inc set to add value to phase_cnt
- * @param[in] inc set to minus value to phase_cnt (set inc and dec same time willl act inc)
+ * @param[in] dec set to minus value to phase_cnt (set inc and dec same time willl act inc)
  * @param[in] value value to be added or minus from phase_cnt. only valid when inc or dec is set in one 32bit write operation.
  */
 static inline void qeiv2_update_phase_cnt(QEIV2_Type *qeiv2_x, bool inc, bool dec, uint32_t value)
@@ -1316,7 +1591,7 @@ static inline uint32_t qeiv2_get_postion(QEIV2_Type *qeiv2_x)
  *
  * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
  * @param[in] inc set to add value to position
- * @param[in] inc set to minus cnt value to position (set inc and dec same time willl act inc)
+ * @param[in] dec set to minus cnt value to position (set inc and dec same time willl act inc)
  * @param[in] value value to be added or minus from position. only valid when inc or dec is set in one 32bit write operation.
  */
 static inline void qeiv2_update_position(QEIV2_Type *qeiv2_x, bool inc, bool dec, uint32_t value)
@@ -1333,17 +1608,6 @@ static inline void qeiv2_update_position(QEIV2_Type *qeiv2_x, bool inc, bool dec
 static inline uint32_t qeiv2_get_angle(QEIV2_Type *qeiv2_x)
 {
     return qeiv2_x->ANGLE;
-}
-
-/**
- * @brief set angle adjust value
- *
- * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
- * @param[in] angle_adj angle adjust value
- */
-static inline void qeiv2_set_angle_adjust_value(QEIV2_Type *qeiv2_x, int32_t angle_adj)
-{
-    qeiv2_x->ANGLE_ADJ = QEIV2_ANGLE_ADJ_ANGLE_ADJ_SET(angle_adj);
 }
 
 /**
@@ -1364,6 +1628,119 @@ static inline void qeiv2_config_position_timeout(QEIV2_Type *qeiv2_x, uint32_t t
     }
     qeiv2_x->POS_TIMEOUT = tmp;
 }
+
+#if defined (HPM_IP_FEATURE_QEIV2_SIN_TOGI) && HPM_IP_FEATURE_QEIV2_SIN_TOGI
+/**
+ * @brief set togi enable or disable, only used for qeiv2_work_mode_sin
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] enable Enable state. if true, the TOGI feature is enabled; if false, the TOGI feature is disabled.
+ */
+static inline void qeiv2_set_togi_enable(QEIV2_Type *qeiv2_x, bool enable)
+{
+    qeiv2_x->TOGI_CFG0 = (qeiv2_x->TOGI_CFG0 & ~QEIV2_TOGI_CFG0_SIN_TOGI_MASK) | QEIV2_TOGI_CFG0_SIN_TOGI_SET(enable);
+}
+
+/**
+ * @brief configures the TOGI w parameter
+ *
+ * This function calculates and sets the TOGI w parameter for the QEIV2 module based on the input signal frequency and ADC sample rate.
+ * The parameter here primarily refers to the frequency control parameter used for waveform generation.
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] signal_hz Frequency of the input signal
+ * @param[in] adc_sample_rate Sample rate of the ADC
+ */
+void qeiv2_config_togi_w_param(QEIV2_Type *qeiv2_x, uint32_t signal_hz, uint32_t adc_sample_rate);
+#endif
+
+#if defined(HPM_IP_FEATURE_QEIV2_POS_ADJ) && HPM_IP_FEATURE_QEIV2_POS_ADJ
+/**
+ * @brief set position adjust value
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] pos_adj position adjust value
+ */
+static inline void qeiv2_set_position_adjust_value(QEIV2_Type *qeiv2_x, int32_t pos_adj)
+{
+    qeiv2_x->POS_ADJ = QEIV2_POS_ADJ_POS_ADJ_SET(pos_adj);
+}
+#endif
+
+#if defined(HPM_IP_FEATURE_QEIV2_ADC_SW_INJECT) && HPM_IP_FEATURE_QEIV2_ADC_SW_INJECT
+/**
+ * @brief enable adc software inject
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_enable_adc_sw_inject(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->ADC_INJECT_CTRL |= QEIV2_ADC_INJECT_CTRL_ADC_INJECT_EN_MASK;
+}
+
+/**
+ * @brief disable adc software inject
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ */
+static inline void qeiv2_disable_adc_sw_inject(QEIV2_Type *qeiv2_x)
+{
+    qeiv2_x->ADC_INJECT_CTRL &= ~QEIV2_ADC_INJECT_CTRL_ADC_INJECT_EN_MASK;
+}
+
+/**
+ * @brief Inject software ADC values
+ *
+ * Injects the given ADCX and ADCY values into the QEIV2 device.
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] adcx ADCX value
+ * @param[in] adcy ADCY value
+ * @param[in] en Enable option for software ADC injection
+ */
+static inline void qeiv2_inject_sw_adc(QEIV2_Type *qeiv2_x, uint32_t adcx, uint32_t adcy, qeiv2_adc_sw_inject_en_t en)
+{
+    qeiv2_x->ADCX_VAL_SW = adcx;
+    qeiv2_x->ADCY_VAL_SW = adcy;
+    qeiv2_x->ADC_INJECT_CTRL |= en;
+}
+
+/**
+ * @brief Checks if the position calculation is finished
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ *
+ * @return Returns true if the position calculation is finished, false otherwise
+ */
+static inline bool qeiv2_is_pos_calc_finished(QEIV2_Type *qeiv2_x)
+{
+    return (QEIV2_CALC_STATE_STATE_GET(qeiv2_x->CALC_STATE) == 0) ? true : false;
+}
+#endif
+
+/**
+ * @brief config qei mode
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] config @ref qei_mode_config_t
+ */
+void qeiv2_config_mode(QEIV2_Type *qeiv2_x, qeiv2_mode_config_t *config);
+
+/**
+ * @brief config h phase signal
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] config @ref qei_h_phase_config_t
+ */
+void qeiv2_config_h_phase(QEIV2_Type *qeiv2_x, qeiv2_h_phase_config_t *config);
+
+/**
+ * @brief config pause signal
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] config @ref qei_pause_config_t
+ */
+void qeiv2_config_pause(QEIV2_Type *qeiv2_x, qeiv2_pause_config_t *config);
 
 /**
  * @brief config phcnt compare match condition
@@ -1416,6 +1793,19 @@ void qeiv2_get_uvw_position_defconfig(qeiv2_uvw_config_t *config);
  * @return status_invalid_argument or status_success
  */
 hpm_stat_t qeiv2_config_uvw_position(QEIV2_Type *qeiv2_x, qeiv2_uvw_config_t *config);
+
+/**
+ * @brief config signal filter
+ *
+ * @param[in] qeiv2_x QEIV2 base address, HPM_QEIV2x(x=0...n)
+ * @param[in] phase filter phase
+ *  @arg @ref qeiv2_filter_phase_t
+ * @param[in] outinv Filter will invert the output
+ * @param[in] mode qeiv2_filter_mode_t
+ * @param[in] sync set to enable sychronization input signal with TRGM clock
+ * @param[in] filtlen defines the filter counter length.
+ */
+void qeiv2_config_filter(QEIV2_Type *qeiv2_x, qeiv2_filter_phase_t phase, bool outinv, qeiv2_filter_mode_t mode, bool sync, uint32_t filtlen);
 
 #ifdef __cplusplus
 }

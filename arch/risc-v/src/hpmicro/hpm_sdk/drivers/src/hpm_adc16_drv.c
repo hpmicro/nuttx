@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 HPMicro
+ * Copyright (c) 2021-2024 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -13,7 +13,6 @@ void adc16_get_default_config(adc16_config_t *config)
     config->res                = adc16_res_16_bits;
     config->conv_mode          = adc16_conv_mode_oneshot;
     config->adc_clk_div        = adc16_clock_divider_1;
-    config->conv_duration      = 0;
     config->wait_dis           = true;
     config->sel_sync_ahb       = true;
     config->port3_realtime     = false;
@@ -65,7 +64,7 @@ static hpm_stat_t adc16_do_calibration(ADC16_Type *ptr)
                        | ADC16_ADC16_CONFIG0_CAL_AVG_CFG_SET(5);
 
     /* Enable ahb_en */
-    ptr->ADC_CFG0 |= ADC16_ADC_CFG0_ADC_AHB_EN_MASK;
+    ptr->ADC_CFG0 |= ADC16_ADC_CFG0_ADC_AHB_EN_MASK | (1 << 2);
 
     /* Disable ADC config clock */
     ptr->ANA_CTRL0 &= ~ADC16_ANA_CTRL0_ADC_CLK_ON_MASK;
@@ -169,7 +168,6 @@ hpm_stat_t adc16_init(ADC16_Type *ptr, adc16_config_t *config)
     /* Set the duration of the conversion */
     ptr->ADC_CFG0 = ADC16_ADC_CFG0_SEL_SYNC_AHB_SET(config->sel_sync_ahb)
                   | ADC16_ADC_CFG0_ADC_AHB_EN_SET(config->adc_ahb_en)
-                  | ADC16_ADC_CFG0_CONVERT_DURATION_SET(config->conv_duration)
                   | ADC16_ADC_CFG0_PORT3_REALTIME_SET(config->port3_realtime);
 
     /* Set wait_dis */
@@ -206,6 +204,11 @@ hpm_stat_t adc16_init_channel(ADC16_Type *ptr, adc16_channel_config_t *config)
 {
     /* Check the specified channel number */
     if (ADC16_IS_CHANNEL_INVALID(config->ch)) {
+        return status_invalid_argument;
+    }
+
+    /* Check sample cycle */
+    if (ADC16_IS_CHANNEL_SAMPLE_CYCLE_INVALID(config->sample_cycle)) {
         return status_invalid_argument;
     }
 
@@ -402,14 +405,47 @@ hpm_stat_t adc16_set_pmt_queue_enable(ADC16_Type *ptr, uint8_t trig_ch, bool ena
         return status_invalid_argument;
     }
 
-#if ADC_SOC_PREEMPT_ENABLE_CTRL_SUPPORT == 1
+#if defined(ADC_SOC_PREEMPT_ENABLE_CTRL_SUPPORT) && ADC_SOC_PREEMPT_ENABLE_CTRL_SUPPORT
     /* Set queue enable control */
+    ptr->CONFIG[trig_ch] &= ~ADC16_CONFIG_QUEUE_EN_MASK;
     ptr->CONFIG[trig_ch] |= ADC16_CONFIG_QUEUE_EN_SET(enable);
     return status_success;
 #else
     (void) enable;
     return status_success;
 #endif
+}
+
+hpm_stat_t adc16_enable_pmt_queue(ADC16_Type *ptr, uint8_t trig_ch)
+{
+    (void) ptr;
+    /* Check the specified trigger channel */
+    if (ADC16_IS_TRIG_CH_INVLAID(trig_ch)) {
+        return status_invalid_argument;
+    }
+
+#if defined(ADC_SOC_PREEMPT_ENABLE_CTRL_SUPPORT) && ADC_SOC_PREEMPT_ENABLE_CTRL_SUPPORT
+    /* Set queue enable control */
+    ptr->CONFIG[trig_ch] |= ADC16_CONFIG_QUEUE_EN_MASK;
+#endif
+
+    return status_success;
+}
+
+hpm_stat_t adc16_disable_pmt_queue(ADC16_Type *ptr, uint8_t trig_ch)
+{
+    (void) ptr;
+    /* Check the specified trigger channel */
+    if (ADC16_IS_TRIG_CH_INVLAID(trig_ch)) {
+        return status_invalid_argument;
+    }
+
+#if defined(ADC_SOC_PREEMPT_ENABLE_CTRL_SUPPORT) && ADC_SOC_PREEMPT_ENABLE_CTRL_SUPPORT
+    /* Set queue enable control */
+    ptr->CONFIG[trig_ch] &= ~ADC16_CONFIG_QUEUE_EN_MASK;
+#endif
+
+    return status_success;
 }
 
 /* one shot mode */
@@ -495,5 +531,29 @@ void adc16_disable_temp_sensor(ADC16_Type *ptr)
     /* Recover input clock divider */
     ptr->CONV_CFG1 = (ptr->CONV_CFG1 & ~ADC16_CONV_CFG1_CLOCK_DIVIDER_MASK)
                    | ADC16_CONV_CFG1_CLOCK_DIVIDER_SET(clk_div_temp);
+}
+#endif
+
+#if defined(HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE) && HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE
+void adc16_get_default_diff_mode_config(ADC16_Type *ptr, adc16_diff_config_t *config)
+{
+    (void) ptr;
+
+    config->full_resolution = 1;
+    config->position_mode   = adc16_diff_pos_mode_single_ended;
+    config->master          = true;
+}
+
+void adc16_enable_diff_mode(ADC16_Type *ptr, adc16_diff_config_t *config)
+{
+    ptr->CONV_CFG0 = ADC16_CONV_CFG0_FULL_RESOLUTION_SET(config->full_resolution)
+                   | ADC16_CONV_CFG0_POS_MODE_SET(config->position_mode)
+                   | ADC16_CONV_CFG0_DIFF_MASTER_SET(config->master)
+                   | ADC16_CONV_CFG0_ADC_DIFF_MODE_MASK;
+}
+
+void adc16_disable_diff_mode(ADC16_Type *ptr)
+{
+    ptr->CONV_CFG0 &= ~(ADC16_CONV_CFG0_DIFF_MASTER_MASK | ADC16_CONV_CFG0_ADC_DIFF_MODE_MASK);
 }
 #endif

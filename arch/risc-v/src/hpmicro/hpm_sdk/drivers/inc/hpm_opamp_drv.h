@@ -36,8 +36,8 @@
 typedef enum {
     inm_pad_vim0 = 0,    /**< Connect pad vim0 */
     inm_pad_vim1 = 1,    /**< Connect pad vim1 */
-    inm_pad_vim2 = 2,    /**< Connect pad vim2 */
-    inm_pad_dac = 3,    /**< Connect pad vim dac */
+    inm_pad_vim2 = 2,    /**< Connect pad vim2 or dac pin */
+    inm_pad_vim3 = 3,    /**< Connect pad vim3 */
     inm_pad_floating = 4    /**< Connect inm floating */
 } opamp_inm_pad_t;
 
@@ -77,8 +77,8 @@ typedef enum {
 typedef enum {
     inp_pad_vip0 = 0,    /**< Connect pad vip0 */
     inp_pad_vip1 = 1,    /**< Connect pad vip1 */
-    inp_pad_vip2 = 2,    /**< Connect pad vip2 */
-    inp_pad_dac = 3,    /**< Connect pad vip dac */
+    inp_pad_vip2 = 2,    /**< Connect pad vip2 or dac pin */
+    inp_pad_vip3 = 3,    /**< Connect pad vip3 */
     inp_pad_vsupply_x_0_25 = 4,    /**< Connect reference = 0.25 * vsupply */
     inp_pad_vsupply_x_0_5 = 5,    /**< Connect reference = 0.5 * vsupply */
     inp_pad_vsupply_x_0_75 = 6,    /**< Connect reference = 0.75 * vsupply */
@@ -216,7 +216,7 @@ static inline void opamp_preset_opamp_disable(OPAMP_Type *opamp, uint8_t preset_
  * @brief opamp miller cap selection
  *
  * @param opamp @ref OPAMP_Type
- * @param select @ref opamp_iref_select_t
+ * @param select @ref opamp_miller_cap_t
  */
 static inline void opamp_miller_cap_select(OPAMP_Type *opamp, opamp_miller_cap_t select)
 {
@@ -228,7 +228,7 @@ static inline void opamp_miller_cap_select(OPAMP_Type *opamp, opamp_miller_cap_t
  *
  * @param opamp @ref OPAMP_Type
  * @param preset_chn preset channel
- * @param select @ref opamp_iref_select_t
+ * @param select @ref opamp_miller_cap_t
  */
 static inline void opamp_preset_miller_cap_select(OPAMP_Type *opamp, uint8_t preset_chn, opamp_miller_cap_t select)
 {
@@ -515,7 +515,7 @@ static inline void opamp_preset_disable_hw_trig(OPAMP_Type *opamp, uint8_t prese
  * @brief opamp set mode
  *
  * @param opamp @ref OPAMP_Type
- * @param mode @ref OPAMP_MODE_XX
+ * @param mode OPAMP_MODE_XX
  */
 static inline void opamp_mode_set(OPAMP_Type *opamp, uint8_t mode)
 {
@@ -527,7 +527,7 @@ static inline void opamp_mode_set(OPAMP_Type *opamp, uint8_t mode)
  *
  * @param opamp @ref OPAMP_Type
  * @param preset_chn preset channel
- * @param mode @ref OPAMP_MODE_XX
+ * @param mode OPAMP_MODE_XX
  */
 static inline void opamp_preset_mode_set(OPAMP_Type *opamp, uint8_t preset_chn, uint8_t mode)
 {

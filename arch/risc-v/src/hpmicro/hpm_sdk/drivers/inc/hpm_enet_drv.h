@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 HPMicro
+ * Copyright (c) 2021-2024 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -29,12 +29,11 @@
  *---------------------------------------------------------------------
  */
 #define ENET_HEADER               (14U)    /**< 6-byte Dest addr, 6-byte Src addr, 2-byte type */
-#define ENET_EXTRA                (2U)     /**< Extra bytes in some cases */
 #define ENET_VLAN_TAG             (4U)     /**< optional 802.1q VLAN Tag */
 #define ENET_CRC                  (4U)     /**< Ethernet CRC */
 #define ENET_MIN_PAYLOAD          (46U)    /**< Minimum Ethernet payload size */
 #define ENET_MAX_PAYLOAD          (1500U)  /**< Maximum Ethernet payload size */
-#define ENET_MAX_FRAME_SIZE       (1524U)  /**< ENET_HEADER + ENET_EXTRA + VLAN_TAG + MAX_ENET_PAYLOAD + ENET_CRC */
+#define ENET_MAX_FRAME_SIZE       (1526U)  /**< ENET_HEADER + 2*ENET_VLAN_TAG + ENET_MAX_PAYLOAD + ENET_CRC */
 #define ENET_JUMBO_FRAME_PAYLOAD  (9000U)  /**< Jumbo frame payload size */
 #define ENET_MAC                  (6)      /**< Ethernet MAC size */
 #define ENET_ERROR                (0)      /**< ENET error */
@@ -50,6 +49,11 @@
 #define ENET_RETRY_CNT            (10000UL)   /**< Enet retry count for PTP */
 #endif
 
+#ifndef ENET_RETRY_DMA_INIT_CNT
+#define ENET_RETRY_DMA_INIT_CNT   (10000000UL) /**< Enet retry count for DMA initialization */
+#endif
+
+#define ENET_MAX_BUFF_SIZE        ((ENET_MAX_FRAME_SIZE + (ENET_SOC_DMA_BUS_WIDTH_IN_BYTES - 1)) & ~(ENET_SOC_DMA_BUS_WIDTH_IN_BYTES - 1))
 /*---------------------------------------------------------------------
  *  Typedef Enum Declarations
  *---------------------------------------------------------------------
@@ -154,6 +158,7 @@ typedef enum {
 
 /** @brief enet interface selections */
 typedef enum {
+    enet_inf_mii  = 0,
     enet_inf_rmii = 4,
     enet_inf_rgmii = 1
 } enet_inf_type_t;
@@ -216,6 +221,14 @@ typedef enum {
     enet_pps_3 = 2
 } enet_pps_idx_t;
 
+/** @brief ptp auxiliary snapshot trigger indexes */
+typedef enum {
+    enet_ptp_auxi_snapshot_trigger_0 = ENET_TS_CTRL_ATSEN0_MASK,
+    enet_ptp_auxi_snapshot_trigger_1 = ENET_TS_CTRL_ATSEN1_MASK,
+    enet_ptp_auxi_snapshot_trigger_2 = ENET_TS_CTRL_ATSEN2_MASK,
+    enet_ptp_auxi_snapshot_trigger_3 = ENET_TS_CTRL_ATSEN3_MASK
+} enet_ptp_auxi_snapshot_trigger_idx_t;
+
 /** @brief PPS0 control for output frequency selections */
 typedef enum {
     enet_pps_ctrl_pps = 0,
@@ -233,7 +246,7 @@ typedef enum {
     enet_pps_ctrl_bin_4096hz_digital_2048hz,
     enet_pps_ctrl_bin_8192hz_digital_4096hz,
     enet_pps_ctrl_bin_16384hz_digital_8192hz,
-    enet_pps_ctrl_bin_32867hz_digital_16384hz
+    enet_pps_ctrl_bin_32768hz_digital_16384hz
 } enet_pps_ctrl_t;
 
 /** @brief PPS0 commands */
@@ -515,6 +528,19 @@ typedef struct {
     uint32_t target_nsec;
 } enet_pps_cmd_config_t;
 
+/** @brief PTP auxiliary timestamp struct */
+typedef struct {
+    uint32_t sec;
+    uint32_t nsec;
+} enet_ptp_ts_auxi_snapshot_t;
+
+/** @brief PTP auxiliary snapshot status struct */
+typedef struct {
+    bool    auxi_snapshot_miss;
+    uint8_t auxi_snapshot_count;
+    uint8_t auxi_snapshot_id;
+} enet_ptp_auxi_snapshot_status_t;
+
 /** @brief Enet interrupt config struct */
 typedef struct {
     uint32_t int_enable;       /* DMA_INTR_EN */
@@ -547,6 +573,14 @@ extern "C" {
 void enet_get_default_tx_control_config(ENET_Type *ptr, enet_tx_control_config_t *config);
 
 /**
+ * @brief Get a default interrupt config
+ *
+ * @param[in] ptr An Ethernet peripheral base address
+ * @param[in] config A pointer to a interrupt config structure
+ */
+void enet_get_default_interrupt_config(ENET_Type *ptr, enet_int_config_t *config);
+
+/**
  * @brief Get interrupt status
  *
  * @param[in] ptr An Ethernet peripheral base address
@@ -558,7 +592,7 @@ uint32_t enet_get_interrupt_status(ENET_Type *ptr);
  * @brief Mask the specified mmc interrupt evenets of received frames
  *
  * @param[in] ptr An Ethernet peripheral base address
- * @param[in] config A mask of the specified evenets
+ * @param[in] mask A mask of the specified evenets
  */
 void enet_mask_mmc_rx_interrupt_event(ENET_Type *ptr, uint32_t mask);
 
@@ -566,7 +600,7 @@ void enet_mask_mmc_rx_interrupt_event(ENET_Type *ptr, uint32_t mask);
  * @brief Mask the specified mmc interrupt evenets of transmitted frames
  *
  * @param[in] ptr An Ethernet peripheral base address
- * @param[in] config A mask of the specified evenets
+ * @param[in] mask A mask of the specified evenets
  */
 void enet_mask_mmc_tx_interrupt_event(ENET_Type *ptr, uint32_t mask);
 
@@ -592,7 +626,7 @@ uint32_t enet_get_mmc_tx_interrupt_status(ENET_Type *ptr);
  * @param[in] inf_type the specified interface
  * @param[in] desc A pointer to descriptor config
  * @param[in] cfg A pointer to mac config
- * @param[in] int_cfg A pointer to the masks of the specified enabled interrupts and the specified masked interrupts
+ * @param[in] int_config A pointer to the masks of the specified enabled interrupts and the specified masked interrupts
  * @return A result of the specified controller initialization
  */
 hpm_stat_t enet_controller_init(ENET_Type *ptr, enet_inf_type_t inf_type, enet_desc_t *desc, enet_mac_config_t *cfg, enet_int_config_t *int_config);
@@ -601,7 +635,7 @@ hpm_stat_t enet_controller_init(ENET_Type *ptr, enet_inf_type_t inf_type, enet_d
  * @brief Set port line speed
  *
  * @param[in] ptr An Ethernet peripheral base address
- * @param[in] line_speed An enum variable of @ref enet_line_speed_t
+ * @param[in] speed An enum variable of @ref enet_line_speed_t
  */
 void enet_set_line_speed(ENET_Type *ptr, enet_line_speed_t speed);
 
@@ -810,7 +844,7 @@ void enet_set_snapshot_ptp_message_type(ENET_Type *ptr, enet_ts_ss_ptp_msg_t ts_
  * @brief Set the pps0 control output
  *
  * @param[in] ptr An Ethernet peripheral base address
- * @param[in] enet_pps_ctrl_t An enum value indicating the specified pps frequency
+ * @param[in] freq An enum value indicating the specified pps frequency
  */
 void enet_set_pps0_control_output(ENET_Type *ptr, enet_pps_ctrl_t freq);
 
@@ -828,11 +862,79 @@ hpm_stat_t enet_set_ppsx_command(ENET_Type *ptr, enet_pps_cmd_t cmd, enet_pps_id
  * @brief Set a pps config for ppsx
  *
  * @param[in] ptr An Ethernet peripheral base address
- * @param[in] cmd An enum value indicating the specified pps config
+ * @param[in] cmd_cfg An enum value indicating the specified pps config
  * @param[in] idx An enum value indicating the index of pps instance
  * @retval hpm_stat_t @ref status_invalid_argument or @ref status_success
  */
 hpm_stat_t enet_set_ppsx_config(ENET_Type *ptr, enet_pps_cmd_config_t *cmd_cfg, enet_pps_idx_t idx);
+
+
+/**
+ * @brief Mask Ethernet interrupt events
+ *
+ * Masks Ethernet interrupt events by setting the given mask.
+ *
+ * @param ptr Pointer to the ENET structure, representing the Ethernet module instance
+ * @param mask Mask of interrupt events to be masked
+ */
+void enet_mask_interrupt_event(ENET_Type *ptr, uint32_t mask);
+
+/**
+ * @brief Unmask ENET interrupt events
+ *
+ * Unmasks the specified interrupt events for the ENET module, allowing them to be responded to.
+ *
+ * @param ptr Pointer to the Ethernet controller instance
+ * @param mask Mask of interrupt events to be unmasked
+ */
+void enet_unmask_interrupt_event(ENET_Type *ptr, uint32_t mask);
+
+/**
+ * @brief Disable PTP auxiliary snapshot
+ *
+ * Disables the PTP auxiliary snapshot feature for the specified Ethernet controller.
+ *
+ * @param ptr Pointer to the Ethernet controller instance
+ * @param idx PTP auxiliary snapshot trigger index
+ *
+ * @return None
+ */
+void enet_enable_ptp_auxiliary_snapshot(ENET_Type *ptr, enet_ptp_auxi_snapshot_trigger_idx_t idx);
+
+/**
+ * @brief Enable PTP auxiliary snapshot
+ *
+ * Enables the PTP auxiliary snapshot feature for the specified Ethernet controller.
+ *
+ * @param ptr Pointer to the Ethernet controller instance
+ * @param idx PTP auxiliary snapshot trigger index
+ *
+ * @return None
+ */
+void enet_disable_ptp_auxiliary_snapshot(ENET_Type *ptr, enet_ptp_auxi_snapshot_trigger_idx_t idx);
+
+/**
+ * @brief Get PTP auxiliary timestamp
+ *
+ * Retrieves the PTP (Precision Time Protocol) auxiliary timestamp from the given ENET type pointer
+ * and saves it to the provided timestamp structure.
+ *
+ * @param ptr Pointer to the ENET_Type structure
+ * @param timestamp Pointer to the enet_ptp_ts_auxi_snapshot_t structure to store the timestamp
+ */
+void enet_get_ptp_auxi_timestamp(ENET_Type *ptr, enet_ptp_ts_auxi_snapshot_t *timestamp);
+
+/**
+ * @brief Get PTP Auxiliary Snapshot Status
+ *
+ * Retrieves the PTP Auxiliary snapshot status from the ENET structure and stores it in the provided status structure.
+ *
+ * @param ptr Pointer to ENET structure
+ * @param status Pointer to status structure
+ *
+ * A pointer to the status structure where the PTP Auxiliary snapshot status information will be stored.
+ */
+void enet_get_ptp_auxi_snapshot_status(ENET_Type *ptr, enet_ptp_auxi_snapshot_status_t *status);
 
 #if defined __cplusplus
 }

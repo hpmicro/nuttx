@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2025 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -15,6 +15,8 @@
  *
  *****************************************************************************************************************/
 
+#define DMA_INSTANCE_MAX_COUNT (2)
+
 typedef struct _dma_instance_info {
     DMA_Type *base;
     int32_t irq_num;
@@ -24,15 +26,15 @@ typedef struct _dma_instance_info {
  * @brief DMA Channel Context Structure
  */
 typedef struct _dma_channel_context {
-    bool is_allocated;                               /**< Whether DMA channel was allocated */
-    void *tc_cb_data_ptr;                            /**< User data required by transfer complete callback */
-    void *half_tc_cb_data_ptr;                       /**< User data required by half transfer complete callback */
-    void *error_cb_data_ptr;                         /**< User data required by error callback */
-    void *abort_cb_data_ptr;                         /**< User data required by abort callback */
-    dma_mgr_chn_cb_t tc_cb;                          /**< DMA channel transfer complete callback */
-    dma_mgr_chn_cb_t half_tc_cb;                     /**< DMA channel half transfer complete callback */
-    dma_mgr_chn_cb_t error_cb;                       /**< DMA channel error callback */
-    dma_mgr_chn_cb_t abort_cb;                       /**< DMA channel abort callback */
+    bool is_allocated;           /**< Whether DMA channel was allocated */
+    void *tc_cb_data_ptr;        /**< User data required by transfer complete callback */
+    void *half_tc_cb_data_ptr;   /**< User data required by half transfer complete callback */
+    void *error_cb_data_ptr;     /**< User data required by error callback */
+    void *abort_cb_data_ptr;     /**< User data required by abort callback */
+    dma_mgr_chn_cb_t tc_cb;      /**< DMA channel transfer complete callback */
+    dma_mgr_chn_cb_t half_tc_cb; /**< DMA channel half transfer complete callback */
+    dma_mgr_chn_cb_t error_cb;   /**< DMA channel error callback */
+    dma_mgr_chn_cb_t abort_cb;   /**< DMA channel abort callback */
 } dma_chn_context_t;
 
 /**
@@ -40,10 +42,9 @@ typedef struct _dma_channel_context {
  *
  */
 typedef struct _dma_mgr_context {
-    dma_chn_info_t dma_instance[DMA_SOC_MAX_COUNT];                                  /**< DMA instances */
-    dma_chn_context_t channels[DMA_SOC_MAX_COUNT][DMA_SOC_CHANNEL_NUM];              /**< Array of DMA channels */
+    dma_chn_info_t dma_instance[DMA_INSTANCE_MAX_COUNT];                     /**< DMA instances */
+    dma_chn_context_t channels[DMA_INSTANCE_MAX_COUNT][DMA_SOC_CHANNEL_NUM]; /**< Array of DMA channels */
 } dma_mgr_context_t;
-
 
 /*****************************************************************************************************************
  *
@@ -61,14 +62,6 @@ static dma_chn_context_t *dma_mgr_search_chn_context(const dma_resource_t *resou
 
 static uint32_t dma_mgr_enter_critical(void);
 static void dma_mgr_exit_critical(uint32_t level);
-
-static void dma0_isr(void);
-SDK_DECLARE_EXT_ISR_M(IRQn_HDMA, dma0_isr);
-
-#if defined(DMA_SOC_MAX_COUNT) && (DMA_SOC_MAX_COUNT > 1)
-static void dma1_isr(void);
-SDK_DECLARE_EXT_ISR_M(IRQn_XDMA, dma1_isr);
-#endif
 
 /*****************************************************************************************************************
  *
@@ -117,12 +110,14 @@ void dma_mgr_isr_handler(DMA_Type *ptr, uint32_t instance)
     }
 }
 
+SDK_DECLARE_EXT_ISR_M(IRQn_HDMA, dma0_isr)
 void dma0_isr(void)
 {
     dma_mgr_isr_handler(HPM_HDMA, 0);
 }
 
-#if defined(DMA_SOC_MAX_COUNT) && (DMA_SOC_MAX_COUNT > 1)
+#ifdef HPM_XDMA
+SDK_DECLARE_EXT_ISR_M(IRQn_XDMA, dma1_isr)
 void dma1_isr(void)
 {
     dma_mgr_isr_handler(HPM_XDMA, 1);
@@ -141,13 +136,12 @@ static void dma_mgr_exit_critical(uint32_t level)
 
 void dma_mgr_init(void)
 {
-    (void) memset(HPM_DMA_MGR, 0, sizeof(*HPM_DMA_MGR));
-    HPM_DMA_MGR->dma_instance[0].base = HPM_HDMA,
+    HPM_DMA_MGR->dma_instance[0].base = HPM_HDMA;
     HPM_DMA_MGR->dma_instance[0].irq_num = IRQn_HDMA;
- #if defined(DMA_SOC_MAX_COUNT) && (DMA_SOC_MAX_COUNT > 1)
+#ifdef HPM_XDMA
     HPM_DMA_MGR->dma_instance[1].base = HPM_XDMA;
     HPM_DMA_MGR->dma_instance[1].irq_num = IRQn_XDMA;
- #endif
+#endif
 }
 
 hpm_stat_t dma_mgr_request_resource(dma_resource_t *resource)
@@ -161,15 +155,17 @@ hpm_stat_t dma_mgr_request_resource(dma_resource_t *resource)
         uint32_t channel;
         bool has_found = false;
         uint32_t level = dma_mgr_enter_critical();
-        for (instance = 0; instance < DMA_SOC_MAX_COUNT; instance++) {
-            for (channel = 0; channel < DMA_SOC_CHANNEL_NUM; channel++) {
-                if (!HPM_DMA_MGR->channels[instance][channel].is_allocated) {
-                    has_found = true;
+        for (instance = 0; instance < DMA_INSTANCE_MAX_COUNT; instance++) {
+            if (HPM_DMA_MGR->dma_instance[instance].base != NULL) {
+                for (channel = 0; channel < DMA_SOC_CHANNEL_NUM; channel++) {
+                    if (!HPM_DMA_MGR->channels[instance][channel].is_allocated) {
+                        has_found = true;
+                        break;
+                    }
+                }
+                if (has_found) {
                     break;
                 }
-            }
-            if (has_found) {
-                break;
             }
         }
 
@@ -182,7 +178,46 @@ hpm_stat_t dma_mgr_request_resource(dma_resource_t *resource)
         } else {
             status = status_dma_mgr_no_resource;
         }
+        dma_mgr_exit_critical(level);
+    }
 
+    return status;
+}
+
+hpm_stat_t dma_mgr_request_specified_resource(dma_resource_t *resource, DMA_Type *base)
+{
+    hpm_stat_t status;
+
+    if (resource == NULL) {
+        status = status_invalid_argument;
+    } else {
+        uint32_t instance;
+        uint32_t channel;
+        bool has_found = false;
+        uint32_t level = dma_mgr_enter_critical();
+        for (instance = 0; instance < DMA_INSTANCE_MAX_COUNT; instance++) {
+            if (HPM_DMA_MGR->dma_instance[instance].base == base) {
+                for (channel = 0; channel < DMA_SOC_CHANNEL_NUM; channel++) {
+                    if (!HPM_DMA_MGR->channels[instance][channel].is_allocated) {
+                        has_found = true;
+                        break;
+                    }
+                }
+                if (has_found) {
+                    break;
+                }
+            }
+        }
+
+        if (has_found) {
+            HPM_DMA_MGR->channels[instance][channel].is_allocated = true;
+            resource->base = HPM_DMA_MGR->dma_instance[instance].base;
+            resource->channel = channel;
+            resource->irq_num = HPM_DMA_MGR->dma_instance[instance].irq_num;
+            status = status_success;
+        } else {
+            status = status_dma_mgr_no_resource;
+        }
         dma_mgr_exit_critical(level);
     }
 
@@ -197,15 +232,15 @@ static dma_chn_context_t *dma_mgr_search_chn_context(const dma_resource_t *resou
         uint32_t instance;
         uint32_t channel;
         bool has_found = false;
-        for (instance = 0; instance < DMA_SOC_MAX_COUNT; instance++) {
+        for (instance = 0; instance < DMA_INSTANCE_MAX_COUNT; instance++) {
             if (resource->base == HPM_DMA_MGR->dma_instance[instance].base) {
                 has_found = true;
                 break;
             }
         }
 
-        channel = resource->channel;
         if (has_found) {
+            channel = resource->channel;
             if (HPM_DMA_MGR->channels[instance][channel].is_allocated) {
                 chn_ctx = &HPM_DMA_MGR->channels[instance][channel];
             }
@@ -354,6 +389,10 @@ void dma_mgr_get_default_chn_config(dma_mgr_chn_conf_t *config)
     config->en_infiniteloop = false;
     config->handshake_opt = DMA_MGR_HANDSHAKE_OPT_ONE_BURST;
     config->burst_opt = DMA_MGR_SRC_BURST_OPT_STANDAND_SIZE;
+    config->en_src_burst_in_fixed_trans = false;
+    config->en_dst_burst_in_fixed_trans = false;
+    config->swap_mode = DMA_MGR_SWAP_MODE_TABLE;
+    config->swap_table = 0;
 }
 
 hpm_stat_t dma_mgr_setup_channel(const dma_resource_t *resource, dma_mgr_chn_conf_t *config)
@@ -382,14 +421,22 @@ hpm_stat_t dma_mgr_setup_channel(const dma_resource_t *resource, dma_mgr_chn_con
         dma_config.size_in_byte = config->size_in_byte;
         dma_config.linked_ptr = config->linked_ptr;
         dma_config.interrupt_mask = config->interrupt_mask;
-#ifdef DMA_MGR_HAS_INFINITE_LOOP
+#if defined(DMA_MGR_HAS_INFINITE_LOOP) && DMA_MGR_HAS_INFINITE_LOOP
         dma_config.en_infiniteloop = config->en_infiniteloop;
 #endif
-#ifdef DMA_MGR_HAS_HANDSHAKE_OPT
+#if defined(DMA_MGR_HAS_HANDSHAKE_OPT) && DMA_MGR_HAS_HANDSHAKE_OPT
         dma_config.handshake_opt = config->handshake_opt;
 #endif
-#ifdef DMA_MGR_HAS_BURST_OPT
+#if defined(DMA_MGR_HAS_BURST_OPT) && DMA_MGR_HAS_BURST_OPT
         dma_config.burst_opt = config->burst_opt;
+#endif
+#if defined(DMA_MGR_HAS_BURST_IN_FIXED_TRANS) && DMA_MGR_HAS_BURST_IN_FIXED_TRANS
+        dma_config.en_src_burst_in_fixed_trans = config->en_src_burst_in_fixed_trans;
+        dma_config.en_dst_burst_in_fixed_trans = config->en_dst_burst_in_fixed_trans;
+#endif
+#if defined(DMA_MGR_HAS_BYTE_ORDER_SWAP) && DMA_MGR_HAS_BYTE_ORDER_SWAP
+        dma_config.swap_mode = config->swap_mode;
+        dma_config.swap_table = config->swap_table;
 #endif
         status = dma_setup_channel(resource->base, resource->channel, &dma_config, false);
     }
@@ -419,14 +466,22 @@ hpm_stat_t dma_mgr_config_linked_descriptor(const dma_resource_t *resource, dma_
         dma_config.size_in_byte = config->size_in_byte;
         dma_config.linked_ptr = config->linked_ptr;
         dma_config.interrupt_mask = config->interrupt_mask;
-#ifdef DMA_MGR_HAS_INFINITE_LOOP
+#if defined(DMA_MGR_HAS_INFINITE_LOOP) && DMA_MGR_HAS_INFINITE_LOOP
         dma_config.en_infiniteloop = config->en_infiniteloop;
 #endif
-#ifdef DMA_MGR_HAS_HANDSHAKE_OPT
+#if defined(DMA_MGR_HAS_HANDSHAKE_OPT) && DMA_MGR_HAS_HANDSHAKE_OPT
         dma_config.handshake_opt = config->handshake_opt;
 #endif
-#ifdef DMA_MGR_HAS_BURST_OPT
+#if defined(DMA_MGR_HAS_BURST_OPT) && DMA_MGR_HAS_BURST_OPT
         dma_config.burst_opt = config->burst_opt;
+#endif
+#if defined(DMA_MGR_HAS_BURST_IN_FIXED_TRANS) && DMA_MGR_HAS_BURST_IN_FIXED_TRANS
+        dma_config.en_src_burst_in_fixed_trans = config->en_src_burst_in_fixed_trans;
+        dma_config.en_dst_burst_in_fixed_trans = config->en_dst_burst_in_fixed_trans;
+#endif
+#if defined(DMA_MGR_HAS_BYTE_ORDER_SWAP) && DMA_MGR_HAS_BYTE_ORDER_SWAP
+        dma_config.swap_mode = config->swap_mode;
+        dma_config.swap_table = config->swap_table;
 #endif
         status = dma_config_linked_descriptor(resource->base, (dma_linked_descriptor_t *)descriptor, resource->channel, &dma_config);
     }
@@ -696,7 +751,7 @@ hpm_stat_t dma_mgr_set_chn_infinite_loop_mode(const dma_resource_t *resource, bo
     if (chn_ctx == NULL) {
         status = status_invalid_argument;
     } else {
-#ifdef DMA_MGR_HAS_INFINITE_LOOP
+#if defined(DMA_MGR_HAS_INFINITE_LOOP) && DMA_MGR_HAS_INFINITE_LOOP
         dma_set_infinite_loop_mode(resource->base, resource->channel, infinite_loop);
         status = status_success;
 #else
@@ -716,7 +771,7 @@ hpm_stat_t dma_mgr_set_chn_src_busrt_option(const dma_resource_t *resource, uint
     if (chn_ctx == NULL) {
         status = status_invalid_argument;
     } else {
-#ifdef DMA_MGR_HAS_BURST_OPT
+#if defined(DMA_MGR_HAS_HANDSHAKE_OPT) && DMA_MGR_HAS_HANDSHAKE_OPT
         dma_set_src_busrt_option(resource->base, resource->channel, burst_opt);
         status = status_success;
 #else
@@ -736,7 +791,7 @@ hpm_stat_t dma_mgr_set_chn_handshake_option(const dma_resource_t *resource, uint
     if (chn_ctx == NULL) {
         status = status_invalid_argument;
     } else {
-#ifdef DMA_MGR_HAS_HANDSHAKE_OPT
+#if defined(DMA_MGR_HAS_HANDSHAKE_OPT) && DMA_MGR_HAS_HANDSHAKE_OPT
         dma_set_handshake_option(resource->base, resource->channel, handshake_opt);
         status = status_success;
 #else
@@ -775,4 +830,84 @@ hpm_stat_t dma_mgr_check_chn_transfer_status(const dma_resource_t *resource, uin
         stat = status_success;
     }
     return stat;
+}
+
+hpm_stat_t dma_mgr_set_source_burst_in_fixed_transize_enable(const dma_resource_t *resource, bool enable)
+{
+    hpm_stat_t status;
+
+    dma_chn_context_t *chn_ctx = dma_mgr_search_chn_context(resource);
+
+    if (chn_ctx == NULL) {
+        status = status_invalid_argument;
+    } else {
+#if defined(DMA_MGR_HAS_BURST_IN_FIXED_TRANS) && DMA_MGR_HAS_BURST_IN_FIXED_TRANS
+        dma_set_source_burst_in_fixed_transize_enable(resource->base, resource->channel, enable);
+        status = status_success;
+#else
+        (void)enable;
+        status = status_fail;
+#endif
+    }
+    return status;
+}
+
+hpm_stat_t dma_mgr_set_destination_burst_in_fix_transize_enable(const dma_resource_t *resource, bool enable)
+{
+    hpm_stat_t status;
+
+    dma_chn_context_t *chn_ctx = dma_mgr_search_chn_context(resource);
+
+    if (chn_ctx == NULL) {
+        status = status_invalid_argument;
+    } else {
+#if defined(DMA_MGR_HAS_BURST_IN_FIXED_TRANS) && DMA_MGR_HAS_BURST_IN_FIXED_TRANS
+        dma_set_destination_burst_in_fixed_transize_enable(resource->base, resource->channel, enable);
+        status = status_success;
+#else
+        (void)enable;
+        status = status_fail;
+#endif
+    }
+    return status;
+}
+
+hpm_stat_t dma_mgr_set_swap_mode(const dma_resource_t *resource, uint8_t swap_mode)
+{
+    hpm_stat_t status;
+
+    dma_chn_context_t *chn_ctx = dma_mgr_search_chn_context(resource);
+
+    if (chn_ctx == NULL) {
+        status = status_invalid_argument;
+    } else {
+#if defined(DMA_MGR_HAS_BYTE_ORDER_SWAP) && DMA_MGR_HAS_BYTE_ORDER_SWAP
+        dma_set_swap_mode(resource->base, resource->channel, swap_mode);
+        status = status_success;
+#else
+        (void)swap_mode;
+        status = status_fail;
+#endif
+    }
+    return status;
+}
+
+hpm_stat_t dma_mgr_set_swap_table(const dma_resource_t *resource, uint32_t swap_table)
+{
+    hpm_stat_t status;
+
+    dma_chn_context_t *chn_ctx = dma_mgr_search_chn_context(resource);
+
+    if (chn_ctx == NULL) {
+        status = status_invalid_argument;
+    } else {
+#if defined(DMA_MGR_HAS_BYTE_ORDER_SWAP) && DMA_MGR_HAS_BYTE_ORDER_SWAP
+        dma_set_swap_table(resource->base, resource->channel, swap_table);
+        status = status_success;
+#else
+        (void)swap_table;
+        status = status_fail;
+#endif
+    }
+    return status;
 }

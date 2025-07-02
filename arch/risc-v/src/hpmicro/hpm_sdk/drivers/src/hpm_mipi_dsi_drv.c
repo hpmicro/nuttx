@@ -21,23 +21,15 @@
     (cond) ? true : false; \
 })
 
-/**
- * struct mipi_dsi_packet - represents a MIPI DSI packet in protocol format
- * @size: size (in bytes) of the packet
- * @header: the four bytes that make up the header (Data ID, Word Count or
- *     Packet Data, and ECC)
- * @payload_length: number of bytes in the payload
- * @payload: a pointer to a buffer containing the payload, if any
- */
 typedef struct mipi_dsi_packet {
-    uint8_t header[4];
-    uint16_t payload_length;
-    const uint8_t *payload;
+    uint8_t header[4]; /*!< the four bytes that make up the header (Data ID, Word Count or Packet Data, and ECC) */
+    uint16_t payload_length; /*!< number of bytes in the payload */
+    const uint8_t *payload; /*!< a pointer to a buffer containing the payload, if any */
 } mipi_dsi_packet_t;
 
 /**
  * mipi_dsi_packet_format_is_short - check if a packet is of the short format
- * @type: MIPI DSI data type of the packet
+ * @param type: MIPI DSI data type of the packet
  *
  * @return: true if the packet for the given data type is a short packet, false
  * otherwise.
@@ -65,7 +57,7 @@ static bool mipi_dsi_packet_format_is_short(uint8_t type)
 
 /**
  * mipi_dsi_packet_format_is_long - check if a packet is of the long format
- * @type: MIPI DSI data type of the packet
+ * @param type: MIPI DSI data type of the packet
  *
  * @return: true if the packet for the given data type is a long packet, false
  * otherwise.
@@ -84,8 +76,8 @@ static bool mipi_dsi_packet_format_is_long(uint8_t type)
 /**
  * mipi_dsi_create_packet - create a packet from a message according to the
  *	DSI protocol
- * @packet: pointer to a DSI packet structure
- * @msg: message to translate into a packet
+ * @param packet: pointer to a DSI packet structure
+ * @param msg: message to translate into a packet
  *
  * @return: true on success or false on failure.
  */
@@ -136,7 +128,7 @@ static void mipi_dsi_config_format(MIPI_DSI_Type *ptr, mipi_dsi_pixel_format_t f
         val = MIPI_DSI_DPI_COLOR_CODING_DPI_COLOR_CODING_SET(0x04);
         break;
     case MIPI_DSI_FMT_RGB565:
-        val = MIPI_DSI_DPI_COLOR_CODING_DPI_COLOR_CODING_SET(0x04);
+        val = MIPI_DSI_DPI_COLOR_CODING_DPI_COLOR_CODING_SET(0x00);
         break;
     }
 
@@ -287,7 +279,7 @@ void mipi_dsi_init(MIPI_DSI_Type *ptr, mipi_dsi_config_t *cfg)
     mipi_dsi_config_format(ptr, cfg->pixel_format);
     ptr->DPI_VCID = MIPI_DSI_DPI_VCID_DPI_VCID_SET(cfg->channel);
     ptr->DPI_LP_CMD_TIM = MIPI_DSI_DPI_LP_CMD_TIM_OUTVACT_LPCMD_TIME_SET(4) |
-                            MIPI_DSI_DPI_LP_CMD_TIM_OUTVACT_LPCMD_TIME_SET(4);
+                            MIPI_DSI_DPI_LP_CMD_TIM_INVACT_LPCMD_TIME_SET(4);
 
     val = MIPI_DSI_PCKHDL_CFG_BTA_EN_MASK |
             MIPI_DSI_PCKHDL_CFG_EOTP_TX_EN_MASK |
@@ -315,8 +307,8 @@ void mipi_dsi_init(MIPI_DSI_Type *ptr, mipi_dsi_config_t *cfg)
 
     mipi_dsi_video_para_config(ptr, cfg);
 
-    ptr->PHY_TMR_CFG = MIPI_DSI_PHY_TMR_CFG_PHY_HS2LP_TIME_SET(0x40) |
-                        MIPI_DSI_PHY_TMR_CFG_PHY_LP2HS_TIME_SET(0x40);
+    ptr->PHY_TMR_CFG = MIPI_DSI_PHY_TMR_CFG_PHY_HS2LP_TIME_SET(0x14) |
+                        MIPI_DSI_PHY_TMR_CFG_PHY_LP2HS_TIME_SET(0x10);
     ptr->PHY_TMR_RD = 10000;
     ptr->PHY_TMR_LPCLK_CFG = MIPI_DSI_PHY_TMR_LPCLK_CFG_PHY_CLKHS2LP_TIME_SET(0x40) |
                                 MIPI_DSI_PHY_TMR_LPCLK_CFG_PHY_CLKLP2HS_TIME_SET(0x40);

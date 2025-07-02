@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 HPMicro
+ * Copyright (c) 2021-2024 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -12,7 +12,6 @@
 #include "hpm_enet_drv.h"
 #include "hpm_rtl8211_regs.h"
 #include "hpm_rtl8211.h"
-#include "board.h"
 
 /*---------------------------------------------------------------------
  * Internal API
@@ -53,13 +52,13 @@ void rtl8211_basic_mode_default_config(ENET_Type *ptr, rtl8211_config_t *config)
 {
     (void)ptr;
 
-    config->loopback         = 0;                            /* Disable PCS loopback mode */
-     #if defined(__DISABLE_AUTO_NEGO) && (__DISABLE_AUTO_NEGO)
+    config->loopback         = false;                        /* Disable PCS loopback mode */
+    #if defined(__DISABLE_AUTO_NEGO) && (__DISABLE_AUTO_NEGO)
     config->auto_negotiation = false;                        /* Disable Auto-Negotiation */
     config->speed            = enet_phy_port_speed_100mbps;
     config->duplex           = enet_phy_duplex_full;
     #else
-    config->auto_negotiation = 1;                            /* Enable Auto-Negotiation */
+    config->auto_negotiation = true;                         /* Enable Auto-Negotiation */
     #endif
 }
 
@@ -80,12 +79,12 @@ bool rtl8211_basic_mode_init(ENET_Type *ptr, rtl8211_config_t *config)
         data |= RTL8211_BMCR_DUPLEX_SET(config->duplex);                                                /* Set duplex mode */
     }
 
-    enet_write_phy(ptr, RTL8211_ADDR, RTL8211_BMCR, data);
-
     /* check the id of rtl8211 */
     if (rtl8211_check_id(ptr) == false) {
         return false;
     }
+
+    enet_write_phy(ptr, RTL8211_ADDR, RTL8211_BMCR, data);
 
     return true;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2025 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -19,9 +19,9 @@ extern "C" {
 void ipc_init_internal(void);
 
 /**
- * @brief Enbale MBX event interrupt
+ * @brief Enable MBX event interrupt
  *
- * @param [in] interrupt priority
+ * @param [in] priority interrupt priority
  */
 void ipc_enable_event_interrupt_internal(uint32_t priority);
 
@@ -33,7 +33,7 @@ void ipc_disable_event_interrupt_internal(void);
 /**
  * @brief Trigger MBX event
  *
- * @param [in] remote data
+ * @param [in] remote_data remote data
  *
  * @retval status_success if no error occurred
  * @retval status_invalid_argument if any parameters are invalid

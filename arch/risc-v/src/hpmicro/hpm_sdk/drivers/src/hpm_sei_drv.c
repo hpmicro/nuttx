@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 HPMicro
+ * Copyright (c) 2023-2025 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -7,13 +7,14 @@
 
 #include "hpm_sei_drv.h"
 
-hpm_stat_t sei_tranceiver_config_init(SEI_Type *ptr, uint8_t idx, sei_tranceiver_config_t *config)
+hpm_stat_t sei_transceiver_config_init(SEI_Type *ptr, uint8_t idx, sei_transceiver_config_t *config)
 {
     uint32_t tmp;
     uint32_t baudrate;
     uint32_t baud_div;
     uint32_t sync_point;
     uint8_t data_len;
+    uint8_t wait_len;
     uint32_t ck0_point;
     uint32_t ck1_point;
     uint32_t txd_point;
@@ -77,7 +78,13 @@ hpm_stat_t sei_tranceiver_config_init(SEI_Type *ptr, uint8_t idx, sei_tranceiver
         if (data_len > 0u) {
             data_len--;
         }
-        tmp = SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_SET(config->asynchronous_config.wait_len)
+        wait_len = config->asynchronous_config.wait_len;
+#if !defined(HPM_IP_FEATURE_SEI_ASYNCHRONOUS_MODE_V2) || !HPM_IP_FEATURE_SEI_ASYNCHRONOUS_MODE_V2
+        if (wait_len == 0) {
+            wait_len = 1;
+        }
+#endif
+        tmp = SEI_CTRL_XCVR_TYPE_CFG_WAIT_LEN_SET(wait_len)
             | SEI_CTRL_XCVR_TYPE_CFG_DATA_LEN_SET(data_len)
             | SEI_CTRL_XCVR_TYPE_CFG_PAR_POL_SET(config->asynchronous_config.parity)
             | SEI_CTRL_XCVR_TYPE_CFG_PAR_EN_SET(config->asynchronous_config.parity_enable)
@@ -85,15 +92,23 @@ hpm_stat_t sei_tranceiver_config_init(SEI_Type *ptr, uint8_t idx, sei_tranceiver
             | SEI_CTRL_XCVR_TYPE_CFG_DA_IDLEV_SET(config->asynchronous_config.data_idle_state);
         ptr->CTRL[idx].XCVR.TYPE_CFG = tmp;
 
-        baudrate = (config->asynchronous_config.baudrate / 100) * 102;
+#if defined(HPM_IP_FEATURE_SEI_ASYNCHRONOUS_MODE_V2) && HPM_IP_FEATURE_SEI_ASYNCHRONOUS_MODE_V2
+        baudrate = config->asynchronous_config.baudrate;
+        baud_div = (config->src_clk_freq + (baudrate >> 1u)) / baudrate;
+        sync_point = baud_div >> 1u;
+        txd_point = 0;
+        rxd_point = baud_div >> 1u;
+#else
+        baudrate = (config->asynchronous_config.baudrate / 100) * 103;
         baud_div = (config->src_clk_freq + (baudrate >> 1u)) / baudrate;
         sync_point = (baud_div + 2u);
+        txd_point = 0;
+        rxd_point = (baud_div * 3) >> 2u;
+#endif
         tmp = SEI_CTRL_XCVR_BAUD_CFG_SYNC_POINT_SET(sync_point)
             | SEI_CTRL_XCVR_BAUD_CFG_BAUD_DIV_SET(baud_div - 1u);
         ptr->CTRL[idx].XCVR.BAUD_CFG = tmp;
 
-        txd_point = 0;
-        rxd_point = baud_div >> 1u;
         tmp = SEI_CTRL_XCVR_DATA_CFG_TXD_POINT_SET(txd_point)
             | SEI_CTRL_XCVR_DATA_CFG_RXD_POINT_SET(rxd_point);
         ptr->CTRL[idx].XCVR.DATA_CFG = tmp;
@@ -142,23 +157,17 @@ hpm_stat_t sei_cmd_data_format_config_init(SEI_Type *ptr, bool cmd_data_select, 
     }
 
     tmp = SEI_DAT_GOLD_GOLD_VALUE_SET(config->gold_value);
-    if (cmd_data_select) {
-        ptr->CTRL[idx].CMD.GOLD = tmp;
-    } else {
+    if (!cmd_data_select) {
         ptr->DAT[idx].GOLD = tmp;
     }
 
     tmp = SEI_DAT_CRCINIT_CRC_INIT_SET(config->crc_init_value);
-    if (cmd_data_select) {
-        ptr->CTRL[idx].CMD.CRCINIT = tmp;
-    } else {
+    if (!cmd_data_select) {
         ptr->DAT[idx].CRCINIT = tmp;
     }
 
     tmp = SEI_DAT_CRCPOLY_CRC_POLY_SET(config->crc_poly);
-    if (cmd_data_select) {
-        ptr->CTRL[idx].CMD.CRCPOLY = tmp;
-    } else {
+    if (!cmd_data_select) {
         ptr->DAT[idx].CRCPOLY = tmp;
     }
 
@@ -196,25 +205,26 @@ hpm_stat_t sei_cmd_table_config_init(SEI_Type *ptr, uint8_t idx, uint8_t table_i
         | SEI_CTRL_CMD_TABLE_PTB_PTR4_SET(config->instr_idx[4]);
     ptr->CTRL[idx].CMD_TABLE[table_idx].PTB = tmp;
 
-    tmp = SEI_CTRL_CMD_TABLE_PTC_PTR11_SET(config->instr_idx[11])
-        | SEI_CTRL_CMD_TABLE_PTC_PTR10_SET(config->instr_idx[10])
-        | SEI_CTRL_CMD_TABLE_PTC_PTR9_SET(config->instr_idx[9])
-        | SEI_CTRL_CMD_TABLE_PTC_PTR8_SET(config->instr_idx[8]);
-    ptr->CTRL[idx].CMD_TABLE[table_idx].PTC = tmp;
-
-    tmp = SEI_CTRL_CMD_TABLE_PTD_PTR15_SET(config->instr_idx[15])
-        | SEI_CTRL_CMD_TABLE_PTD_PTR14_SET(config->instr_idx[14])
-        | SEI_CTRL_CMD_TABLE_PTD_PTR13_SET(config->instr_idx[13])
-        | SEI_CTRL_CMD_TABLE_PTD_PTR12_SET(config->instr_idx[12]);
-    ptr->CTRL[idx].CMD_TABLE[table_idx].PTD = tmp;
-
     return status_success;
 }
 
 hpm_stat_t sei_state_transition_config_init(SEI_Type *ptr, uint8_t idx, uint8_t latch_idx, uint8_t state, sei_state_transition_config_t *config)
 {
+#if defined(HPM_IP_FEATURE_SEI_RX_LATCH_FEATURE) && HPM_IP_FEATURE_SEI_RX_LATCH_FEATURE
+    uint32_t tmp;
+    tmp = SEI_CTRL_LATCH_TRAN_POINTER_SET(config->instr_ptr_value)
+        | SEI_CTRL_LATCH_TRAN_CFG_TM_SET(config->timeout_cfg)
+        | SEI_CTRL_LATCH_TRAN_CFG_TXD_SET(config->txd_cfg)
+        | SEI_CTRL_LATCH_TRAN_CFG_RXD_SET(config->rxd_cfg)
+        | SEI_CTRL_LATCH_TRAN_CFG_CLK_SET(config->clk_cfg)
+        | SEI_CTRL_LATCH_TRAN_CFG_PTR_SET(config->instr_ptr_cfg)
+        | SEI_CTRL_LATCH_TRAN_OV_TM_SET(config->disable_timeout_check)
+        | SEI_CTRL_LATCH_TRAN_OV_TXD_SET(config->disable_txd_check)
+        | SEI_CTRL_LATCH_TRAN_OV_RXD_SET(config->disable_rxd_check)
+        | SEI_CTRL_LATCH_TRAN_OV_CLK_SET(config->disable_clk_check)
+        | SEI_CTRL_LATCH_TRAN_OV_PTR_SET(config->disable_instr_ptr_check);
+#else
     uint32_t tmp = 0x08u;
-
     tmp |= SEI_CTRL_LATCH_TRAN_POINTER_SET(config->instr_ptr_value)
         | SEI_CTRL_LATCH_TRAN_CFG_TM_SET(config->timeout_cfg)
         | SEI_CTRL_LATCH_TRAN_CFG_TXD_SET(config->txd_cfg)
@@ -224,8 +234,8 @@ hpm_stat_t sei_state_transition_config_init(SEI_Type *ptr, uint8_t idx, uint8_t 
         | SEI_CTRL_LATCH_TRAN_OV_TXD_SET(config->disable_txd_check)
         | SEI_CTRL_LATCH_TRAN_OV_CLK_SET(config->disable_clk_check)
         | SEI_CTRL_LATCH_TRAN_OV_PTR_SET(config->disable_instr_ptr_check);
+#endif
     ptr->CTRL[idx].LATCH[latch_idx].TRAN[state] = tmp;
-
     return status_success;
 }
 
@@ -311,6 +321,11 @@ hpm_stat_t sei_trigger_input_config_init(SEI_Type *ptr, uint8_t idx, sei_trigger
         | SEI_CTRL_TRG_IN_CFG_IN0_EN_SET(config->trig_in0_enable)
         | SEI_CTRL_TRG_IN_CFG_IN0_SEL_SET(config->trig_in0_select);
     ptr->CTRL[idx].TRG.IN_CFG = tmp;
+
+#if defined(HPM_IP_FEATURE_SEI_TRIG_IN_DIV) && HPM_IP_FEATURE_SEI_TRIG_IN_DIV
+    ptr->CTRL[idx].TRG.IN_DIV = SEI_CTRL_TRG_IN_DIV_IN0_DIV_SET(config->trig_in0_div)
+                              | SEI_CTRL_TRG_IN_DIV_IN1_DIV_SET(config->trig_in1_div);
+#endif
 
     return status_success;
 }

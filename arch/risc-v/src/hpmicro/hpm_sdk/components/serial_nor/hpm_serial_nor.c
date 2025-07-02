@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 HPMicro
+ * Copyright (c) 2023-2025 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -100,6 +100,7 @@ static hpm_stat_t hpm_spi_get_read_para(hpm_serial_nor_t *flash, jedec_info_tabl
         if (address_bits == 24U) {
             if (param_tbl->misc.supports_1_4_4_fast_read != 0U) {
                 flash->nor_read_para.read_cmd = param_tbl->read_1_4_info.inst_1_4_4_read;
+                flash->nor_read_para.addr_phase_format = quad_io_mode;
             } else if (param_tbl->misc.support_1_1_4_fast_read != 0U) {
                 flash->nor_read_para.read_cmd = param_tbl->read_1_4_info.inst_1_1_4_read;
             } else {
@@ -134,10 +135,13 @@ static hpm_stat_t hpm_spi_get_read_para(hpm_serial_nor_t *flash, jedec_info_tabl
             if (param_tbl->misc.support_1_2_2_fast_read != 0U) {
                 flash->nor_read_para.read_cmd = param_tbl->read_1_2_info.inst_1_2_2_read;
                 flash->nor_read_para.data_phase_format = dual_io_mode;
+                flash->nor_read_para.addr_phase_format = dual_io_mode;
             } else if (param_tbl->misc.support_1_1_2_fast_read != 0U) {
                 flash->nor_read_para.read_cmd = param_tbl->read_1_2_info.inst_1_1_2_read;
+                flash->nor_read_para.data_phase_format = dual_io_mode;
             } else {
                 flash->nor_read_para.read_cmd = SERIALNOR_CMD_BASICREAD_3B;
+                flash->nor_read_para.data_phase_format = single_io_mode;
                 dummy_cycles = 0;
                 mode_cycles = 0;
             }
@@ -815,7 +819,7 @@ hpm_stat_t hpm_serial_nor_erase_sector_blocking(hpm_serial_nor_t *flash, uint32_
     return stat;
 }
 
-hpm_stat_t hpm_serial_nor_erase_block_noblocking(hpm_serial_nor_t *flash, uint32_t block_addr)
+hpm_stat_t hpm_serial_nor_erase_block_nonblocking(hpm_serial_nor_t *flash, uint32_t block_addr)
 {
     hpm_stat_t stat;
     uint32_t addr;
@@ -848,7 +852,7 @@ hpm_stat_t hpm_serial_nor_erase_block_noblocking(hpm_serial_nor_t *flash, uint32
     return stat;
 }
 
-hpm_stat_t hpm_serial_nor_erase_sector_noblocking(hpm_serial_nor_t *flash, uint32_t sector_addr)
+hpm_stat_t hpm_serial_nor_erase_sector_nonblocking(hpm_serial_nor_t *flash, uint32_t sector_addr)
 {
     hpm_stat_t stat;
     uint32_t addr;
@@ -1028,7 +1032,7 @@ hpm_stat_t hpm_serial_nor_program_blocking(hpm_serial_nor_t *flash, uint8_t *buf
     return stat;
 }
 
-hpm_stat_t hpm_serial_nor_page_program_noblocking(hpm_serial_nor_t *flash, uint8_t *buf, uint32_t data_len, uint32_t address)
+hpm_stat_t hpm_serial_nor_page_program_nonblocking(hpm_serial_nor_t *flash, uint8_t *buf, uint32_t data_len, uint32_t address)
 {
     hpm_stat_t stat = status_success;
     uint32_t program_size = 0;
@@ -1168,3 +1172,21 @@ hpm_stat_t hpm_serial_nor_get_info(hpm_serial_nor_t *flash, hpm_serial_nor_info_
     memcpy(info, &flash->flash_info, sizeof(hpm_serial_nor_info_t));
     return status_success;
 }
+
+#if (SERIAL_NOR_USE_DMA_MGR == 1)
+dma_resource_t *hpm_serial_nor_get_tx_dma_mgr_resource(hpm_serial_nor_t *flash)
+{
+    if (flash == NULL) {
+        return NULL;
+    }
+    return &flash->host.host_param.param.dma_control.txdma_resource;
+}
+
+dma_resource_t *hpm_serial_nor_get_rx_dma_mgr_resource(hpm_serial_nor_t *flash)
+{
+    if (flash == NULL) {
+        return NULL;
+    }
+    return &flash->host.host_param.param.dma_control.rxdma_resource;
+}
+#endif

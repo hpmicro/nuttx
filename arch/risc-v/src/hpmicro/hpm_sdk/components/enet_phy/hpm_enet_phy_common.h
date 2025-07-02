@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 HPMicro
+ * Copyright (c) 2021-2024 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -26,5 +26,16 @@
     #include "hpm_rtl8201.h"
     #include "hpm_rtl8201_regs.h"
 #endif
+
+#if defined(__USE_LAN8720) && __USE_LAN8720
+    #include "hpm_lan8720.h"
+    #include "hpm_lan8720_regs.h"
+#endif
+
+#if defined(__USE_JL1111) && __USE_JL1111
+    #include "hpm_jl1111.h"
+    #include "hpm_jl1111_regs.h"
+#endif
+
 
 #endif /* HPM_ENET_PHY_H */

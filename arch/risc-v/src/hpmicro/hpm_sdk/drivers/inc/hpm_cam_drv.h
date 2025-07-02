@@ -11,6 +11,7 @@
 #include "hpm_common.h"
 #include "hpm_display_common.h"
 #include "hpm_cam_regs.h"
+#include "hpm_soc_feature.h"
 
 /**
  * @brief CAM driver APIs
@@ -68,7 +69,7 @@ typedef enum {
 #define CAM_COLOR_FORMAT_RGB888 (CAM_CR1_COLOR_FORMATS_SET(2))
 #define CAM_COLOR_FORMAT_RGB565 (CAM_CR1_COLOR_FORMATS_SET(4))
 #define CAM_COLOR_FORMAT_RGB555 (CAM_CR1_COLOR_FORMATS_SET(6))
-#define CAM_COLOR_FORMAT_YCBCR422 (CAM_CR1_COLOR_FORMATS_SET(7))
+#define CAM_COLOR_FORMAT_YCBCR422_YUV422 (CAM_CR1_COLOR_FORMATS_SET(7))
 #define CAM_COLOR_FORMAT_YUV444 (CAM_CR1_COLOR_FORMATS_SET(8))
 #define CAM_COLOR_FORMAT_RAW8 (CAM_CR1_COLOR_FORMATS_SET(0xf))
 #define CAM_COLOR_FORMAT_UNSUPPORTED (1)
@@ -80,12 +81,13 @@ typedef struct {
     uint32_t width;
     uint32_t height;
     bool pixclk_sampling_falling;
+#if defined(HPM_IP_FEATURE_CAM_INV_DEN) && (HPM_IP_FEATURE_CAM_INV_DEN == 1)
     bool de_active_low; /* de_active_low must is same with hsync_active_low when dvp be used */
+#endif
     bool hsync_active_low;
     bool vsync_active_low;
     bool color_ext;
     bool data_pack_msb;
-    bool enable_buffer2;
     uint16_t data_store_mode;
     uint8_t color_format;
     uint8_t sensor_bitwidth;
@@ -133,8 +135,9 @@ static inline uint32_t cam_get_pixel_format(display_pixel_format_t format)
     switch (format) {
     case display_pixel_format_rgb565:
         return CAM_COLOR_FORMAT_RGB565;
+    case display_pixel_format_yuv422:
     case display_pixel_format_ycbcr422:
-        return CAM_COLOR_FORMAT_YCBCR422;
+        return CAM_COLOR_FORMAT_YCBCR422_YUV422;
     case display_pixel_format_raw8:
         return CAM_COLOR_FORMAT_RAW8;
     default:
@@ -190,7 +193,27 @@ void cam_start(CAM_Type *ptr);
  */
 void cam_stop(CAM_Type *ptr);
 
-void cam_update_buffer(CAM_Type *ptr, uint32_t buffer);
+/**
+ * @brief CAM update DMASA_FB1 buffer
+ *
+ * @param [in] ptr CAM base address
+ * @param [in] buffer buffer point address
+ */
+static inline void cam_update_buffer(CAM_Type *ptr, uint32_t buffer)
+{
+    ptr->DMASA_FB1 = buffer;
+}
+
+/**
+ * @brief CAM update DMASA_FB2 buffer
+ *
+ * @param [in] ptr CAM base address
+ * @param [in] buffer buffer point address
+ */
+static inline void cam_update_buffer2(CAM_Type *ptr, uint32_t buffer)
+{
+    ptr->DMASA_FB2 = buffer;
+}
 
 /**
  * @brief CAM enable binary output

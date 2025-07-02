@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 HPMicro
+ * Copyright (c) 2022-2025 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 void init_uart_pins(UART_Type *ptr);
+void init_uart_pin_as_gpio(UART_Type *ptr);
 void init_i2c_pins(I2C_Type *ptr);
 void init_gpio_pins(void);
 void init_spi_pins(SPI_Type *ptr);
@@ -26,7 +27,7 @@ void init_pwm_pins(PWM_Type *ptr);
 void init_hrpwm_pins(PWM_Type *ptr);
 void init_adc_pins(void);
 void init_dac_pins(DAC_Type *ptr);
-void init_usb_pins(void);
+void init_usb_pins(USB_Type *ptr);
 void init_can_pins(MCAN_Type *ptr);
 void init_adc_bldc_pins(void);
 void init_rgb_pwm_pins(void);
@@ -39,6 +40,10 @@ void init_lin_pins(LIN_Type *ptr);
 void init_sdm_pins(void);
 void init_pla_tamagawa_pins(void);
 void init_motor_over_zero_sensorless_adc_pins(void);
+void init_tamper_pins(void);
+void init_uart_break_signal_pin(void);
+void init_gptmr_channel_pin(GPTMR_Type *ptr, uint32_t channel, bool as_comp);
+void init_clk_ref_pins(void);
 #ifdef __cplusplus
 }
 #endif

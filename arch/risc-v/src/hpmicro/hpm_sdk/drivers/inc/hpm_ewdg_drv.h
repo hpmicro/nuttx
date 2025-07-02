@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 HPMicro
+ * Copyright (c) 2023-2024 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -19,6 +19,9 @@
  * @{
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief EWDG error codes
@@ -32,8 +35,7 @@ enum {
 /**
  * @brief EWDG Password Definitions
  *
- * @defgroup ewdg_password_def
- * @ingroup ewdg_password_def
+ * @defgroup ewdg_password_def EWDG Password definitions
  * @{
  */
 #define EWDG_REFRESH_UNLOCK_PASSWORD_DEFAULT (0xED09U)          /*!< Default EWDG Refresh Password */
@@ -47,8 +49,7 @@ enum {
 /**
  * @brief EWDG Events
  *
- * @defgroup ewdg_event
- * @ingroup ewdg_event
+ * @defgroup ewdg_event EWDG Event definitions
  * @{
  */
 #define EWDG_EVENT_PARITY_ERROR                 (1UL << 6)    /*!< Parity Error Event */
@@ -64,8 +65,7 @@ enum {
 
 /**
  * @brief EWDG Interrupts
- * @defgroup ewdg_interrupt
- * @ingroup ewdg_interrupt
+ * @defgroup ewdg_interrupt EWDG interrupt definitions
  * @{
  */
 #define EWDG_INT_PARITY_FAIL            (1UL << 2)      /*!< Parity Error Interrupt */
@@ -84,8 +84,7 @@ enum {
 /**
  * @brief EWDG Resets
  *
- * @defgroup ewdg_reset_source
- * @ingroup ewdg_reset_source
+ * @defgroup ewdg_reset_source EWDG reset source definitions
  * @{
  */
 #define EWDG_RST_PARITY_FAIL            (1UL << 3)      /*!< Parity Error Reset */
@@ -149,23 +148,21 @@ typedef enum {
  * The Actual Upper Window = Lower Window + Upper Window Limit
  */
 typedef enum {
-    ewdg_window_upper_timeout_period_8_div_16 = 0,     /*!< 8/16 of @ref timeout_reset_val */
-    ewdg_window_upper_timeout_period_1_div_16 = 1,     /*!< 1/16 of @ref timeout_reset_val */
-    ewdg_window_upper_timeout_period_2_div_16 = 2,     /*!< 2/16 of @ref timeout_reset_val */
-    ewdg_window_upper_timeout_period_3_div_16 = 3,     /*!< 3/16 of @ref timeout_reset_val */
-    ewdg_window_upper_timeout_period_4_div_16 = 4,     /*!< 4/16 of @ref timeout_reset_val */
-    ewdg_window_upper_timeout_period_5_div_16 = 5,     /*!< 5/16 of @ref timeout_reset_val */
-    ewdg_window_upper_timeout_period_6_div_16 = 6,     /*!< 6/16 of @ref timeout_reset_val */
-    ewdg_window_upper_timeout_period_7_div_16 = 8,     /*!< 7/16 of @ref timeout_reset_val */
+    ewdg_window_upper_timeout_period_8_div_16 = 0,     /*!< 8/16 of timeout_reset_val */
+    ewdg_window_upper_timeout_period_1_div_16 = 1,     /*!< 1/16 of timeout_reset_val */
+    ewdg_window_upper_timeout_period_2_div_16 = 2,     /*!< 2/16 of timeout_reset_val */
+    ewdg_window_upper_timeout_period_3_div_16 = 3,     /*!< 3/16 of timeout_reset_val */
+    ewdg_window_upper_timeout_period_4_div_16 = 4,     /*!< 4/16 of timeout_reset_val */
+    ewdg_window_upper_timeout_period_5_div_16 = 5,     /*!< 5/16 of timeout_reset_val */
+    ewdg_window_upper_timeout_period_6_div_16 = 6,     /*!< 6/16 of timeout_reset_val */
+    ewdg_window_upper_timeout_period_7_div_16 = 8,     /*!< 7/16 of timeout_reset_val */
     /*! Maximum allowed upper limit */
     ewdg_window_upper_timeout_period_max = ewdg_window_upper_timeout_period_7_div_16
 } ewdg_window_upper_limit_t;
 
 typedef enum {
     ewdg_low_power_mode_halt = 0,               /*!< Watchdog is halted in low power mode */
-    ewdg_low_power_mode_work_clock_div_4 = 1,   /*!< Watchdog is will work with 1/4 normal clock in low power mode */
-    ewdg_low_power_mode_work_clock_div_2 = 2,   /*!< Watchdog is will work with 1/2 normal clock in low power mode */
-    ewdg_low_power_mode_work_clock_normal = 3,  /*!< Watchdog is will work with normal clock in low power mode */
+    ewdg_low_power_mode_work_clock_normal = 1,  /*!< Watchdog is will work with normal clock in low power mode */
 } ewdg_low_power_mode_t;
 
 /***
@@ -185,8 +182,6 @@ typedef struct {
     bool enable_refresh_period;                         /*!< Enable Refresh period */
     bool enable_refresh_lock;                           /*!< Enable Refresh lock */
     ewdg_refresh_unlock_method_t refresh_unlock_method; /*!< Method to unlock REFRESH_REG */
-
-    bool enable_overtime_self_clear;                    /*!< Enable Over time self clear */
 
     bool keep_running_in_debug_mode;                    /*!< Keep running even in debug mode */
     ewdg_low_power_mode_t low_power_mode;               /*!< Watchdog behavior in low power mode */
@@ -314,7 +309,7 @@ static inline uint32_t ewdg_get_timeout_reset_ticks(EWDG_Type *ptr)
     return ptr->OT_RST_VAL;
 }
 
-#if !defined(EWDG_SOC_SUPPORT_TIMEOUT_INTERRUPT) || (EWDG_SOC_SUPPORT_TIMEOUT_INTERRUPT == 1)
+#if defined(HPM_IP_FEATURE_EWDG_SOC_SUPPORT_TIMEOUT_INTERRUPT) && (HPM_IP_FEATURE_EWDG_SOC_SUPPORT_TIMEOUT_INTERRUPT == 1)
 /**
  * @brief Get the Timeout Interrupt ticks
  * @param [in] ptr EWDG base
@@ -387,6 +382,7 @@ void ewdg_disable(EWDG_Type *ptr);
  *
  * @param [in] ptr EWDG base
  * @param [in] config Control Function Configuration
+ * @param [in] cnt_src_freq Source frequency for EWDG counter
  *
  * @retval status_invalid_argument Invalid argument was detected
  * @retval status_success No error happened
@@ -471,7 +467,7 @@ uint64_t ewdg_convert_timeout_us_to_timeout_ticks(uint32_t src_clk_freq, uint32_
  *
  * @return timeout in terms of counter clock ticks
  */
-uint32_t ewdg_convert_timeout_ticks_to_timeout_us(EWDG_Type *ptr, uint32_t srk_clk_freq, uint32_t timeout_ticks);
+uint32_t ewdg_convert_timeout_ticks_to_timeout_us(EWDG_Type *ptr, uint32_t src_clk_freq, uint32_t timeout_ticks);
 
 /**
  * @brief Enable EWDG interrupt
@@ -508,9 +504,6 @@ void ewdg_disable_reset(EWDG_Type *ptr, uint32_t mask);
  */
 void ewdg_switch_clock_source(EWDG_Type *ptr, ewdg_cnt_clk_sel_t clk_sel);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #ifdef __cplusplus
 }

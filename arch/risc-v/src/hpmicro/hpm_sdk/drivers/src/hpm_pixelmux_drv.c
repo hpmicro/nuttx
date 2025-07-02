@@ -17,7 +17,7 @@ void pixelmux_rgb_data_source_enable(pixelmux_rgb_select_t src)
 
 void pixelmux_rgb_data_source_disable(void)
 {
-    HPM_PIXEL_MUX->PIXMUX &= ~PIXELMUX_PIXMUX_RGB_SEL_MASK;
+    HPM_PIXEL_MUX->PIXMUX &= ~PIXELMUX_PIXMUX_RGB_EN_MASK;
 }
 
 void pixelmux_gwc1_data_source_enable(pixelmux_gwc1_select_t src)
@@ -90,6 +90,20 @@ void pixelmux_mipi_dsi0_data_source_enable(pixelmux_mipi_dsi0_select_t src)
 void pixelmux_mipi_dsi0_data_source_disable(void)
 {
     HPM_PIXEL_MUX->PIXMUX &= ~PIXELMUX_PIXMUX_DSI0_EN_MASK;
+}
+
+void pixelmux_mipi_dsi1_set_data_type(pixelmux_mipi_dsi_data_type_t type)
+{
+
+    HPM_PIXEL_MUX->DSI_SETTING[1] = PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_SET(0x01u<<type) |
+                                    PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_SET(type);
+}
+
+void pixelmux_mipi_dsi0_set_data_type(pixelmux_mipi_dsi_data_type_t type)
+{
+
+    HPM_PIXEL_MUX->DSI_SETTING[0] = PIXELMUX_DSI_SETTING_DSI_DATA_ENABLE_SET(0x01u<<type) |
+                                    PIXELMUX_DSI_SETTING_DSI_DATA_TYPE_SET(type);
 }
 
 void pixelmux_cam1_data_source_enable(pixelmux_cam1_select_t src)

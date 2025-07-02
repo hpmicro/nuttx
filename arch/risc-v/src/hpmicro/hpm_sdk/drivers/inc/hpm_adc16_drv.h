@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 HPMicro
+ * Copyright (c) 2021-2024 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -25,6 +25,9 @@
 #else
 #define ADC16_IS_CHANNEL_INVALID(CH) (CH > ADC16_SOC_MAX_CH_NUM)
 #endif
+
+/** @brief Define ADC16 validity check for the channel sample cycle */
+#define ADC16_IS_CHANNEL_SAMPLE_CYCLE_INVALID(CYC) (CYC == 0)
 
 /** @brief Define ADC16 validity check for the trigger number */
 #define ADC16_IS_TRIG_CH_INVLAID(CH) (CH > ADC_SOC_MAX_TRIG_CH_NUM)
@@ -110,12 +113,19 @@ typedef enum {
     adc16_event_dma_fifo_full       = ADC16_INT_STS_DMA_FIFO_FULL_MASK
 } adc16_irq_event_t;
 
+#if defined(HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE) && HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE
+/** @brief Define ADC16 position modes. */
+typedef enum {
+    adc16_diff_pos_mode_differential = 0,
+    adc16_diff_pos_mode_single_ended
+} adc16_diff_pos_mode_t;
+#endif
+
 /** @brief ADC16 common configuration struct. */
 typedef struct {
     uint8_t res;
     uint8_t conv_mode;
     uint32_t adc_clk_div;
-    uint16_t conv_duration;
     bool port3_realtime;
     bool wait_dis;
     bool sel_sync_ahb;
@@ -220,6 +230,15 @@ typedef struct {
     uint8_t trig_len;
 } adc16_pmt_config_t;
 
+#if defined(HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE) && HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE
+/** @brief ADC16 differential configuration struct. */
+typedef struct {
+    uint8_t full_resolution;
+    uint8_t position_mode;
+    bool    master;
+} adc16_diff_config_t;
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -242,6 +261,16 @@ void adc16_get_default_config(adc16_config_t *config);
  * @param[out] config A pointer to the configuration struct of @ref adc16_channel_config_t.
  */
 void adc16_get_channel_default_config(adc16_channel_config_t *config);
+
+#if defined(HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE) && HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE
+/**
+ * @brief Get a default configuration for the differential mode.
+ *
+ * @param[in] ptr An ADC16 peripheral base address.
+ * @param[out] config A pointer to a specified ADC16 differential configuration struct of @ref adc16_diff_config_t.
+ */
+void adc16_get_default_diff_mode_config(ADC16_Type *ptr, adc16_diff_config_t *config);
+#endif
 
 /**
  * @brief De-initialize an ADC16 instance.
@@ -341,13 +370,79 @@ hpm_stat_t adc16_set_pmt_config(ADC16_Type *ptr, adc16_pmt_config_t *config);
  *
  * @param[in] ptr An ADC16 peripheral base address.
  * @param[in] trig_ch An ADC16 peripheral trigger channel.
- * @param[in] enable A enable control
- * @return A result of setting queue enable in preemption
+ * @param[in] enable Set true to enable and false to disable.
+ * @return A result of setting queue enable in preemption.
  * @retval status_success Get the result of an ADC16 conversion in oneshot mode successfully.
  * @retval status_invalid_argument Get the result of an ADC16 conversion in oneshot mode unsuccessfully due to passing invalid arguments.
+ * @deprecated This API will be deleted from V2.0.x
  */
 hpm_stat_t adc16_set_pmt_queue_enable(ADC16_Type *ptr, uint8_t trig_ch, bool enable);
 
+/**
+ * @brief Enable the specified preemption queue.
+ *
+ * @param[in] ptr An ADC16 peripheral base address.
+ * @param[in] trig_ch An ADC16 peripheral trigger channel.
+ * @return A result of setting queue enable in preemption.
+ * @retval status_success Get the result of an ADC16 conversion in oneshot mode successfully.
+ * @retval status_invalid_argument Get the result of an ADC16 conversion in oneshot mode unsuccessfully due to passing invalid arguments.
+ */
+hpm_stat_t adc16_enable_pmt_queue(ADC16_Type *ptr, uint8_t trig_ch);
+
+/**
+ * @brief Disable the specified preemption queue.
+ *
+ * @param[in] ptr An ADC16 peripheral base address.
+ * @param[in] trig_ch An ADC16 peripheral trigger channel.
+ * @return A result of setting queue enable in preemption.
+ * @retval status_success Get the result of an ADC16 conversion in oneshot mode successfully.
+ * @retval status_invalid_argument Get the result of an ADC16 conversion in oneshot mode unsuccessfully due to passing invalid arguments.
+ */
+hpm_stat_t adc16_disable_pmt_queue(ADC16_Type *ptr, uint8_t trig_ch);
+
+#if defined(HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE) && HPM_IP_FEATURE_ADC16_HAS_DIFF_MODE
+/**
+ * @brief Enable an ADC in differential mode.
+ *
+ * @param[in] ptr An ADC16 peripheral base address.
+ * @param[in] config A pointer to a specified ADC16 differential configuration struct of @ref adc16_diff_config_t.
+ */
+void adc16_enable_diff_mode(ADC16_Type *ptr, adc16_diff_config_t *config);
+
+/**
+ * @brief Disable an ADC in differential mode.
+ *
+ * @param[in] ptr An ADC16 peripheral base address.
+ */
+void adc16_disable_diff_mode(ADC16_Type *ptr);
+#endif
+
+/** @} */
+
+/**
+ * @name Enablement Control
+ * @{
+ */
+/**
+ * @brief Enable the hw trigger control for the sequence mode.
+ *
+ * @param[in] ptr An ADC16 peripheral base address.
+ *
+ */
+static inline void adc16_seq_enable_hw_trigger(ADC16_Type *ptr)
+{
+    ptr->SEQ_CFG0 |= ADC16_SEQ_CFG0_HW_TRIG_EN_MASK;
+}
+/**
+ * @brief Disable the hw trigger control for the sequence mode.
+ *
+ * @param[in] ptr An ADC16 peripheral base address.
+ *
+ */
+static inline void adc16_seq_disable_hw_trigger(ADC16_Type *ptr)
+{
+    ptr->SEQ_CFG0 &= ~ADC16_SEQ_CFG0_HW_TRIG_EN_MASK;
+}
 /** @} */
 
 /**
@@ -413,7 +508,7 @@ static inline uint32_t adc16_get_status_flags(ADC16_Type *ptr)
  * until the ADC has completed its conversion.
  *
  * @param[in] ptr An ADC16 peripheral base address.
- * @deprecated This API will be removed from V2.0.x
+ * @deprecated This API will be deleted from V2.0.x
  */
 static inline void adc16_disable_busywait(ADC16_Type *ptr)
 {
@@ -425,7 +520,7 @@ static inline void adc16_disable_busywait(ADC16_Type *ptr)
  * until the ADC completes the conversion.
  *
  * @param[in] ptr An ADC16 peripheral base address.
- * @deprecated This API will be removed from V2.0.x
+ * @deprecated This API will be deleted from V2.0.x
  */
 static inline void adc16_enable_busywait(ADC16_Type *ptr)
 {
@@ -553,7 +648,6 @@ hpm_stat_t adc16_trigger_seq_by_sw(ADC16_Type *ptr);
  */
 hpm_stat_t adc16_trigger_pmt_by_sw(ADC16_Type *ptr, uint8_t trig_ch);
 
-
 /**
  * @brief Get the result in oneshot mode.
  *
@@ -599,10 +693,12 @@ void adc16_disable_temp_sensor(ADC16_Type *ptr);
  *
  * @param[in] ptr An ADC16 peripheral base address.
  */
+#if defined(HPM_IP_FEATURE_ADC16_HAS_MOT_EN) && HPM_IP_FEATURE_ADC16_HAS_MOT_EN
 static inline void adc16_enable_motor(ADC16_Type *ptr)
 {
     ptr->ANA_CTRL0 |= ADC16_ANA_CTRL0_MOTO_EN_MASK;
 }
+#endif
 
 /** @} */
 

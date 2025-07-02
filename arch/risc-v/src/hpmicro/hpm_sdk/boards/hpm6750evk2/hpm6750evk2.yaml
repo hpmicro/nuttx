@@ -1,8 +1,7 @@
-# Copyright (c) 2022-2023 HPMicro
+# Copyright (c) 2022-2024 HPMicro
 # SPDX-License-Identifier: BSD-3-Clause
 
 board:
-    name: hpm6750evk2
     soc: HPM6750
     device: HPM6750xVMx
     openocd-soc: hpm6750-dual-core
@@ -15,58 +14,25 @@ board:
       type: qspi-nor-flash
       size: 16M
     feature:
-      - butn
-      - sdp
-      - rng
-      - rtc
-      - wdg
-      - adc
-      - sdcard
-      - usb-otg
-      - dao
-      - pdm
-      - vad
-      - cam
-      - lcd
-      - spi
-      - uart
-      - can
-      - i2c
-      - femc
-      - gpio
-      - gpio-led
-      - gpio-key
-      - pwm
-      - pwm-beep
-      - pwm-rgb-led
-      - hall
-      - qei
-      - motor-control
-      - audio-codec
-      - tflm
-      - multicore
-      - drv_pllctl
-      - drv_sysctl
-      - sdxc
-      - i2s
-      - uart_software_rx_idle
-      - uart_rx_timeout
-      - uart_software_lin
-      - ptp
-      - gpiom
-      - adc12
-      - adc16
-      - adc_tempsns
-      - sw_gm_api
-      - enet
-      - enet_pps_pinout
-      - enet_phy_on_board
-      - enet_multi_port
-      - hall-qei
-      - bldc_smc
-      - puart
-      - bldc_hfi
-      - gpt_pin
-      - sdram
-      - acmp
-      - ptpc
+      - board_audio_in # PDM
+      - board_audio_out # DAO
+      - board_audio_in_vad # VAD
+      - board_audio_codec # I2S codec
+      - board_uart_software_rx_idle_pin
+      - board_gpt_pin
+      - board_motor_control
+      - board_pwm_rgb_led
+      - board_puart_pin
+      - board_enet_pps_output_pin
+      - board_enet_pps_input_pin
+      - board_sdcard
+      - board_sdram
+      - board_enet_phy
+      - board_enet_dual_phy
+      - board_dual_usb
+      - board_power_button
+      - board_ap6255_evb
+      - board_clk_ref_pin
+    excluded_samples:
+      - samples/multicore/erpc/erpc_motor
+      - samples/opener/motor

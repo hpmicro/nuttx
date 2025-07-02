@@ -1,12 +1,16 @@
 /*
- * Copyright (c) 2021 HPMicro
+ * Copyright (c) 2021-2024 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
  */
 
+#ifndef __ICCRISCV__
 #include <sys/stat.h>
+#endif
 #include "hpm_debug_console.h"
+
+#if !defined(CONFIG_NDEBUG_CONSOLE) || !CONFIG_NDEBUG_CONSOLE
 #include "hpm_uart_drv.h"
 
 static UART_Type* g_console_uart = NULL;
@@ -37,6 +41,15 @@ uint8_t console_receive_byte(void)
     return c;
 }
 
+uint8_t console_try_receive_byte(void)
+{
+    uint8_t c = 0;
+
+    uart_try_receive_byte(g_console_uart, &c);
+
+    return c;
+}
+
 void console_send_byte(uint8_t c)
 {
     while (status_success != uart_send_byte(g_console_uart, c)) {
@@ -55,11 +68,11 @@ static FILE __SEGGER_RTL_stdin_file  = { 0 };  /* stdin reads from UART */
 static FILE __SEGGER_RTL_stdout_file = { 0 };  /* stdout writes to UART */
 static FILE __SEGGER_RTL_stderr_file = { 0 };  /* stderr writes to UART */
 
-FILE *stdin  = &__SEGGER_RTL_stdin_file;  /* NOTE: Provide implementation of stdin for RTL. */
-FILE *stdout = &__SEGGER_RTL_stdout_file; /* NOTE: Provide implementation of stdout for RTL. */
-FILE *stderr = &__SEGGER_RTL_stderr_file; /* NOTE: Provide implementation of stderr for RTL. */
+__attribute__((used)) FILE *stdin  = &__SEGGER_RTL_stdin_file;  /* NOTE: Provide implementation of stdin for RTL. */
+__attribute__((used)) FILE *stdout = &__SEGGER_RTL_stdout_file; /* NOTE: Provide implementation of stdout for RTL. */
+__attribute__((used)) FILE *stderr = &__SEGGER_RTL_stderr_file; /* NOTE: Provide implementation of stderr for RTL. */
 
-int __SEGGER_RTL_X_file_write(__SEGGER_RTL_FILE *file, const char *data, unsigned int size)
+__attribute__((used)) int __SEGGER_RTL_X_file_write(__SEGGER_RTL_FILE *file, const char *data, unsigned int size)
 {
     unsigned int count;
     (void)file;
@@ -77,7 +90,7 @@ int __SEGGER_RTL_X_file_write(__SEGGER_RTL_FILE *file, const char *data, unsigne
 
 }
 
-int __SEGGER_RTL_X_file_read(__SEGGER_RTL_FILE *file, char *s, unsigned int size)
+__attribute__((used)) int __SEGGER_RTL_X_file_read(__SEGGER_RTL_FILE *file, char *s, unsigned int size)
 {
     (void)file;
     (void) size;
@@ -86,19 +99,19 @@ int __SEGGER_RTL_X_file_read(__SEGGER_RTL_FILE *file, char *s, unsigned int size
     return 1;
 }
 
-int __SEGGER_RTL_X_file_stat(__SEGGER_RTL_FILE *stream)
+__attribute__((used)) int __SEGGER_RTL_X_file_stat(__SEGGER_RTL_FILE *stream)
 {
     (void) stream;
     return 0;
 }
 
-int __SEGGER_RTL_X_file_bufsize(__SEGGER_RTL_FILE *stream)
+__attribute__((used)) int __SEGGER_RTL_X_file_bufsize(__SEGGER_RTL_FILE *stream)
 {
     (void) stream;
     return 1;
 }
 
-int __SEGGER_RTL_X_file_unget(__SEGGER_RTL_FILE *stream, int c)
+__attribute__((used)) int __SEGGER_RTL_X_file_unget(__SEGGER_RTL_FILE *stream, int c)
 {
     if (stream == stdin) {
         if (c != EOF && _stdin_ungot == EOF) {
@@ -112,7 +125,7 @@ int __SEGGER_RTL_X_file_unget(__SEGGER_RTL_FILE *stream, int c)
     return c;
 }
 
-int  __SEGGER_RTL_X_file_flush(__SEGGER_RTL_FILE *__stream)
+__attribute__((used)) int  __SEGGER_RTL_X_file_flush(__SEGGER_RTL_FILE *__stream)
 {
     (void) __stream;
     return 1;
@@ -146,9 +159,127 @@ int _read(int file, char *s, int size)
     return 1;
 }
 
+#else
+/* stub functions */
+hpm_stat_t console_init(console_config_t *cfg)
+{
+    (void) cfg;
+    return status_success;
+}
+
+uint8_t console_receive_byte(void)
+{
+    return 0xFF;
+}
+
+uint8_t console_try_receive_byte(void)
+{
+    uint8_t c = 0;
+    return c;
+}
+
+void console_send_byte(uint8_t c)
+{
+    (void) c;
+}
+
+#ifdef __SEGGER_RTL_VERSION
+#include <stdio.h>
+#include "__SEGGER_RTL_Int.h"
+
+struct __SEGGER_RTL_FILE_impl { /* NOTE: Provides implementation for FILE */
+    int stub; /* only needed so impl has size != 0. */
+};
+
+static FILE __SEGGER_RTL_stdin_file  = { 0 };  /* stdin reads from UART */
+static FILE __SEGGER_RTL_stdout_file = { 0 };  /* stdout writes to UART */
+static FILE __SEGGER_RTL_stderr_file = { 0 };  /* stderr writes to UART */
+
+__attribute__((used)) FILE *stdin  = &__SEGGER_RTL_stdin_file;  /* NOTE: Provide implementation of stdin for RTL. */
+__attribute__((used)) FILE *stdout = &__SEGGER_RTL_stdout_file; /* NOTE: Provide implementation of stdout for RTL. */
+__attribute__((used)) FILE *stderr = &__SEGGER_RTL_stderr_file; /* NOTE: Provide implementation of stderr for RTL. */
+
+__attribute__((used)) int __SEGGER_RTL_X_file_write(__SEGGER_RTL_FILE *file, const char *data, unsigned int size)
+{
+    (void) file;
+    (void) data;
+    return size;
+}
+
+__attribute__((used)) int __SEGGER_RTL_X_file_read(__SEGGER_RTL_FILE *file, char *s, unsigned int size)
+{
+    (void) file;
+    (void) size;
+    (void) s;
+    return 1;
+}
+
+__attribute__((used)) int __SEGGER_RTL_X_file_stat(__SEGGER_RTL_FILE *stream)
+{
+    (void) stream;
+    return 0;
+}
+
+__attribute__((used)) int __SEGGER_RTL_X_file_bufsize(__SEGGER_RTL_FILE *stream)
+{
+    (void) stream;
+    return 1;
+}
+
+__attribute__((used)) int __SEGGER_RTL_X_file_unget(__SEGGER_RTL_FILE *stream, int c)
+{
+    (void) stream;
+    (void) c;
+    return EOF;
+}
+
+__attribute__((used)) int  __SEGGER_RTL_X_file_flush(__SEGGER_RTL_FILE *__stream)
+{
+    (void) __stream;
+    return 1;
+}
+
+#endif
+
+
+ATTR_WEAK int _write(int file, char *data, int size)
+{
+    (void) file;
+    (void) data;
+    return size;
+}
+
+ATTR_WEAK int _read(int file, char *s, int size)
+{
+    (void) file;
+    (void) size;
+    (void) s;
+    return 1;
+}
+
+#endif
+
+#ifndef __ICCRISCV__
 int _fstat(int file, struct stat *s)
 {
     (void) file;
     s->st_mode = S_IFCHR;
     return 0;
 }
+#else
+
+#ifndef _DLIB_FILE_DESCRIPTOR
+#define _DLIB_FILE_DESCRIPTOR 0
+#endif
+
+int __write(int file, char *data, int size)
+{
+    return _write(file, data, size);
+}
+
+int __read(int file, char *s, int size)
+{
+    return _read(file, s, size);
+}
+#endif
+
