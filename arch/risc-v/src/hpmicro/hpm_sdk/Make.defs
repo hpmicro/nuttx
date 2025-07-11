@@ -23,20 +23,20 @@ CFLAGS += -DHPM_SDK_L1C_NO_REENTRANT=1
 
 # Specify our HEAD assembly file.  This will be linked as
 # the first object file, so it will appear at address 0
-CHIP_ASRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)${HPM_CHIP_SERIES}$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)toolchains$(DELIM)gcc$(DELIM)start.S
+CHIP_ASRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SERIES)$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)toolchains$(DELIM)gcc$(DELIM)start.S
 
 # Include arch files
 CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)arch$(DELIM)riscv$(DELIM)l1c$(DELIM)hpm_l1c_drv.c
 
 # Include soc files
-CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)${HPM_CHIP_SERIES}$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)system.c
-CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)${HPM_CHIP_SERIES}$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)hpm_sysctl_drv.c
-CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)${HPM_CHIP_SERIES}$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)hpm_clock_drv.c
-CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)${HPM_CHIP_SERIES}$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)hpm_otp_drv.c
-CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)${HPM_CHIP_SERIES}$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)toolchains$(DELIM)gcc$(DELIM)initfini.c
-CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)${HPM_CHIP_SERIES}$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)toolchains$(DELIM)reset.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SERIES)$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)system.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SERIES)$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)hpm_sysctl_drv.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SERIES)$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)hpm_clock_drv.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SERIES)$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)hpm_otp_drv.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SERIES)$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)toolchains$(DELIM)gcc$(DELIM)initfini.c
+CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SERIES)$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)toolchains$(DELIM)reset.c
 ifeq ($(CONFIG_INCLUDE_BOOTHEADER),y)
-  CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)${HPM_CHIP_SERIES}$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)boot$(DELIM)hpm_bootheader.c
+  CHIP_CSRCS += hpmicro$(DELIM)hpm_sdk$(DELIM)soc$(DELIM)$(HPM_CHIP_SERIES)$(DELIM)$(HPM_CHIP_SELECT)$(DELIM)boot$(DELIM)hpm_bootheader.c
 endif
 
 # Include driver files
