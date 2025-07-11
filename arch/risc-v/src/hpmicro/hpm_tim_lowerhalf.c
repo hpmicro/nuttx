@@ -608,4 +608,105 @@ int hpm_timer_initialize(const char *devpath, int timer)
   return OK;
 }
 
+/************************************************************
+
+* 名 称: hpm_hrt_initialize
+
+* 描 述：高精度定时器初始化及启动。
+
+* 参 数：
+
+*     timer   - 定时器的编号（0~7）
+
+*     isr     - 中断服务入口
+
+*     hrt_channe - 高精度定时通道（1~4）
+
+*     ppm_channe - PPM通道（1~4）
+
+* 返 回：
+
+      成功时返回定时器基地址；返回负的errno值以指示任何失败的性质。
+
+************************************************************/
+uint32_t hpm_hrt_initialize(int timer, xcpt_t isr,  uint32_t hrt_channe, uint32_t ppm_channe)
+{
+  hpm_tim_lowerhalf_s *hrt;
+  switch (timer)
+    {
+    case 0:
+#ifdef CONFIG_HPM_TIMER0
+      hrt = &g_tim0_lowerhalf;
+#endif
+      break;
+    case 1:
+#ifdef CONFIG_HPM_TIMER1
+      hrt = &g_tim1_lowerhalf;
+#endif
+      break;
+    case 2:
+#ifdef CONFIG_HPM_TIMER2
+      hrt = &g_tim2_lowerhalf;
+#endif
+      break;
+    case 3:
+#ifdef CONFIG_HPM_TIMER3
+      hrt = &g_tim3_lowerhalf;
+#endif
+      break;
+    case 4:
+#ifdef CONFIG_HPM_TIMER4
+      hrt = &g_tim4_lowerhalf;
+#endif
+      break;
+    case 5:
+#ifdef CONFIG_HPM_TIMER5
+      hrt = &g_tim5_lowerhalf;
+#endif
+      break;
+    case 6:
+#ifdef CONFIG_HPM_TIMER6
+      hrt = &g_tim6_lowerhalf;
+#endif
+      break;
+    case 7:
+#ifdef CONFIG_HPM_TIMER7
+      hrt = &g_tim7_lowerhalf;
+#endif
+      break;
+    default:
+      return -ENODEV;
+    }
+
+  uint32_t hrt_ch_index =  hrt_channe - 1;
+
+  clock_add_to_group(hrt->clock_name, BOARD_RUNNING_CORE);//添加时钟进
+  clock_set_source_divider(hrt->clock_name, clk_src_osc24m, 24U);//选择24MHz时钟，设置分频系数位24，使频率为1MHz
+
+  irq_attach(hrt->irq_num, isr, NULL);
+
+  irqstate_t flags = enter_critical_section();
+  gptmr_channel_config_update_reload(hrt->base, hrt_ch_index, 0xFFFFFFFFUL);// 重载值设置为最大
+  gptmr_enable_irq(hrt->base, GPTMR_CH_CMP_IRQ_MASK(hrt_ch_index, 0));//开启比较输出0中断
+  // gptmr_enable_irq(hrt->base, GPTMR_CH_RLD_IRQ_MASK(hrt_ch_index));//开启重载中断
+  hrt->base->CHANNEL[hrt_ch_index].CMP[0] = 1000UL;
+  hrt->base->CHANNEL[hrt_ch_index].CMP[1] = 0xFFFFFFFFUL;
+  gptmr_enable_cmp_output(hrt->base, hrt_ch_index);// 使能比较输出
+  gptmr_start_counter(hrt->base, hrt_ch_index);
+
+  if(ppm_channe > 0 && ppm_channe != hrt_channe){
+    uint32_t ppm_ch_index =  ppm_channe - 1;
+    gptmr_channel_config_update_reload(hrt->base, ppm_ch_index, 0xFFFFFFFFUL);// 重载值设置为最大
+    gptmr_enable_irq(hrt->base, GPTMR_CH_CAP_IRQ_MASK(ppm_ch_index));//开启捕获输入中断
+    gptmr_enable_cmp_output(hrt->base, ppm_ch_index);// 使能比较输出
+    gptmr_start_counter(hrt->base, ppm_ch_index);
+  }
+
+  up_enable_irq(hrt->irq_num);
+  leave_critical_section(flags);
+
+  return (uint32_t)hrt->base;
+}
+
+
 #endif

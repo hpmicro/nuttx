@@ -48,6 +48,29 @@ extern "C"
 
 int hpm_timer_initialize(const char *devpath, int timer);
 
+/************************************************************
+
+* 名 称: hpm_hrt_initialize
+
+* 描 述：高精度定时器初始化及启动。
+
+* 参 数：
+
+*     timer   - 定时器的编号（0~7）
+
+*     isr     - 中断服务入口
+
+*     hrt_channe - 高精度定时通道（1~4）
+
+*     ppm_channe - PPM通道（1~4）
+
+* 返 回：
+
+      成功时返回定时器基地址；返回负的errno值以指示任何失败的性质。
+
+************************************************************/
+uint32_t hpm_hrt_initialize(int timer, xcpt_t isr,  uint32_t hrt_channe, uint32_t ppm_channe);
+
 #endif
 
 #undef EXTERN
