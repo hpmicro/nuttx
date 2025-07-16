@@ -7,7 +7,6 @@ ENTRY(__start)
 
 STACK_SIZE = _stack_size;
 HEAP_SIZE = _heap_size;
-NX_HEAP_SIZE = _nx_heap_size;
 
 MEMORY
 {
@@ -259,13 +258,6 @@ SECTIONS
         . = ALIGN(8);
         _end = .;
         __bss_end__ = .;
-    } > SDRAM
-
-    .nx_heap (NOLOAD) : {
-        . = ALIGN(8);
-        __nx_heap_start__ = .;
-        . += NX_HEAP_SIZE;
-        __nx_heap_end__ = .;
     } > SDRAM
 
     .framebuffer (NOLOAD) : {

@@ -5,10 +5,6 @@
 
 if ARCH_BOARD_HPM5300EVK_SDK
 
-config NON_OS_HEAPSIZE
-	int "non os heap size"
-	default 16384
-
 config SYSTEM_HEAPSIZE
 	int "system heap size"
 	default 16384
