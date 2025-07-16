@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #ifndef USE_LIBC_INITFINI
-#define USE_LIBC_INITFINI 0
+#define USE_LIBC_INITFINI 1
 #endif
 
 #if USE_LIBC_INITFINI

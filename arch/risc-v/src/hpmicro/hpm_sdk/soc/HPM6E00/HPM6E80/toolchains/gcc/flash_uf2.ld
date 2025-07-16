@@ -22,6 +22,8 @@ MEMORY
 
 SECTIONS
 {
+    PROVIDE (_stext = .);
+
     .start : {
         KEEP(*(.uf2_signature))
         KEEP(*(.start))
@@ -93,6 +95,26 @@ SECTIONS
         . = ALIGN(8);
     } > FLASH
 
+    .init_section :
+    {
+        . = ALIGN(8);
+        PROVIDE(__preinit_array_start = .);
+        KEEP(*(.preinit_array))
+        PROVIDE(__preinit_array_end = .);
+
+        . = ALIGN(8);
+        PROVIDE(_sinit = .);
+        KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)))
+        KEEP(*(.init_array))
+        PROVIDE(_einit = .);
+
+        . = ALIGN(8);
+        PROVIDE(__fini_array_start = .);
+        KEEP(*(SORT_BY_INIT_PRIORITY(.fini_array.*)))
+        KEEP(*(.fini_array))
+        PROVIDE(__fini_array_end = .);
+    } > FLASH
+
     .eh_frame :
     {
         __eh_frame_start = .;
@@ -133,22 +155,6 @@ SECTIONS
         KEEP(*(.gcc_except_table))
         KEEP(*(.gcc_except_table.*))
 
-        . = ALIGN(8);
-        PROVIDE(__preinit_array_start = .);
-        KEEP(*(.preinit_array))
-        PROVIDE(__preinit_array_end = .);
-
-        . = ALIGN(8);
-        PROVIDE(__init_array_start = .);
-        KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)))
-        KEEP(*(.init_array))
-        PROVIDE(__init_array_end = .);
-
-        . = ALIGN(8);
-        PROVIDE(__fini_array_start = .);
-        KEEP(*(SORT_BY_INIT_PRIORITY(.fini_array.*)))
-        KEEP(*(.fini_array))
-        PROVIDE(__fini_array_end = .);
 
         . = ALIGN(8);
         KEEP(*crtbegin*.o(.ctors))

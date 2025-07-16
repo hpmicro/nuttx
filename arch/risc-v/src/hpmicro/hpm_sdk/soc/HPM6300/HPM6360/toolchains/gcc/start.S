@@ -62,9 +62,6 @@ __start:
      */
     call c_startup
 
-    /* Do global constructors */
-    call __libc_init_array
-
 #ifndef NO_CLEANUP_AT_START
     /* clean up */
     call _clean_up
