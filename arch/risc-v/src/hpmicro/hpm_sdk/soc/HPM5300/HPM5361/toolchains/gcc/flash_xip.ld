@@ -37,8 +37,6 @@ SECTIONS
         __boot_header_end__ = .;
     } > FLASH
 
-    PROVIDE (_stext = .);
-
     .start __app_load_addr__ : {
         . = ALIGN(8);
         KEEP(*(.start))
@@ -61,6 +59,9 @@ SECTIONS
 
     .text (__vector_load_addr__ + SIZEOF(.vectors)) : {
         . = ALIGN(8);
+        PROVIDE (__stext = .);
+        PROVIDE (_stext = .);
+        PROVIDE (stext = .);
         *(.text)
         *(.text*)
         *(.rodata)
@@ -105,29 +106,19 @@ SECTIONS
         __rtmsymtab_start = .;
         KEEP(*(RTMSymTab))
         __rtmsymtab_end = .;
-
         /* RT-Thread related sections - end */
+
         . = ALIGN(8);
+        PROVIDE (__etext = .);
+        PROVIDE (_etext = .);
+        PROVIDE (etext = .);
     } > FLASH
 
     .init_section :
     {
-        . = ALIGN(8);
-        PROVIDE(__preinit_array_start = .);
-        KEEP(*(.preinit_array))
-        PROVIDE(__preinit_array_end = .);
-
-        . = ALIGN(8);
-        PROVIDE(_sinit = .);
-        KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*)))
-        KEEP(*(.init_array))
-        PROVIDE(_einit = .);
-
-        . = ALIGN(8);
-        PROVIDE(__fini_array_start = .);
-        KEEP(*(SORT_BY_INIT_PRIORITY(.fini_array.*)))
-        KEEP(*(.fini_array))
-        PROVIDE(__fini_array_end = .);
+        _sinit = ABSOLUTE(.);
+        KEEP(*(.init_array .init_array.*))
+        _einit = ABSOLUTE(.);
     } > FLASH
 
     .eh_frame :
@@ -149,11 +140,7 @@ SECTIONS
     } > FLASH
 
     . = ALIGN(8);
-    PROVIDE (__etext = .);
-    PROVIDE (_etext = .);
-    PROVIDE (etext = .);
-
-    __data_load_addr__ = etext;
+    __data_load_addr__ = .;
     .data : AT(__data_load_addr__) {
         . = ALIGN(8);
         __data_start__ = .;
@@ -169,7 +156,6 @@ SECTIONS
         KEEP(*(.got))
         KEEP(*(.gcc_except_table))
         KEEP(*(.gcc_except_table.*))
-
 
         . = ALIGN(8);
         KEEP(*crtbegin*.o(.ctors))
@@ -189,7 +175,7 @@ SECTIONS
         PROVIDE (edata = .);
     } > DLM
 
-    __fast_load_addr__ = etext + SIZEOF(.data);
+    __fast_load_addr__ = __data_load_addr__ + SIZEOF(.data);
     .fast : AT(__fast_load_addr__) {
         . = ALIGN(8);
         PROVIDE(__ramfunc_start__ = .);
@@ -214,7 +200,7 @@ SECTIONS
         __bss_end__ = .;
     } > DLM
 
-    __tdata_load_addr__ = etext + SIZEOF(.data) + SIZEOF(.fast);
+    __tdata_load_addr__ = __data_load_addr__ + SIZEOF(.data) + SIZEOF(.fast);
     .tdata : AT(__tdata_load_addr__) {
         . = ALIGN(8);
         PROVIDE(__tdata_start__ = .);
@@ -237,14 +223,7 @@ SECTIONS
         PROVIDE(__tbss_end__ = .);
     } > DLM
 
-    .framebuffer (NOLOAD) : {
-        . = ALIGN(8);
-        KEEP(*(.framebuffer))
-        KEEP(*(.framebuffer.*))
-        . = ALIGN(8);
-    } > DLM
-
-    __noncacheable_init_load_addr__ = etext + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata);
+    __noncacheable_init_load_addr__ = __data_load_addr__ + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata);
     .noncacheable.init : AT(__noncacheable_init_load_addr__) {
         . = ALIGN(8);
         __noncacheable_init_start__ = .;
@@ -259,21 +238,22 @@ SECTIONS
         KEEP(*(.noncacheable))  /* Legacy sections, kept for backwards compatibility */
         KEEP(*(.noncacheable.non_init))
         KEEP(*(.noncacheable.non_init.*))
+        . = ALIGN(8);
         __noncacheable_bss_start__ = .;
         KEEP(*(.noncacheable.bss))
         KEEP(*(.noncacheable.bss.*))
-        __noncacheable_bss_end__ = .;
         . = ALIGN(8);
+         __noncacheable_bss_end__ = .;
     } > DLM
 
-    __fast_ram_init_load_addr__ = etext + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata) + SIZEOF(.noncacheable.init);
+    __fast_ram_init_load_addr__ = __data_load_addr__ + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata) + SIZEOF(.noncacheable.init);
     .fast_ram.init : AT(__fast_ram_init_load_addr__) {
         . = ALIGN(8);
         __fast_ram_init_start__ = .;
         KEEP(*(.fast_ram.init))
         KEEP(*(.fast_ram.init.*))
-        __fast_ram_init_end__ = .;
         . = ALIGN(8);
+        __fast_ram_init_end__ = .;
     } > DLM
 
     .ahb_sram (NOLOAD) : {
@@ -286,17 +266,19 @@ SECTIONS
         KEEP(*(.fast_ram))  /* Legacy sections, kept for backwards compatibility */
         KEEP(*(.fast_ram.non_init))
         KEEP(*(.fast_ram.non_init.*))
+        . = ALIGN(8);
         __fast_ram_bss_start__ = .;
         KEEP(*(.fast_ram.bss))
         KEEP(*(.fast_ram.bss.*))
-        __fast_ram_bss_end__ = .;
         . = ALIGN(8);
+        __fast_ram_bss_end__ = .;
     } > DLM
 
     .heap (NOLOAD) : {
         . = ALIGN(8);
         __heap_start__ = .;
         . += HEAP_SIZE;
+        . = ALIGN(8);
         __heap_end__ = .;
     } > DLM
 
@@ -309,7 +291,8 @@ SECTIONS
         PROVIDE (_stack_safe = .);
     } > DLM
 
-    __fw_size__ = SIZEOF(.start) + SIZEOF(.vectors) + SIZEOF(.rel) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata) + SIZEOF(.noncacheable.init) + SIZEOF(.fast_ram.init) + SIZEOF(.eh_frame) + SIZEOF(.eh_frame_hdr);
+    __fw_size__ = SIZEOF(.start) + SIZEOF(.vectors) + SIZEOF(.rel) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata)
+                + SIZEOF(.noncacheable.init) + SIZEOF(.fast_ram.init) + SIZEOF(.eh_frame) + SIZEOF(.eh_frame_hdr) + SIZEOF(.init_section);
     __last_addr__ = __fast_ram_init_load_addr__ + SIZEOF(.fast_ram.init);
     ASSERT(((__fw_size__ <= LENGTH(FLASH)) && (__last_addr__ <= (ORIGIN(FLASH) + LENGTH(FLASH)))), "******  FAILED! FLASH does not have enough space!  ******")
 }

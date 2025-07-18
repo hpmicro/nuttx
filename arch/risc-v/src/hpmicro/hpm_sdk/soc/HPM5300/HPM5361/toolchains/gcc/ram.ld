@@ -34,12 +34,11 @@ SECTIONS
         . = ALIGN(8);
     } > ILM
 
-    .rel : {
-        KEEP(*(.rel*))
-    } > ILM
-
     .text : {
         . = ALIGN(8);
+        PROVIDE (__stext = .);
+        PROVIDE (_stext = .);
+        PROVIDE (stext = .);
         *(.text)
         *(.text*)
         *(.rodata)
@@ -84,9 +83,19 @@ SECTIONS
         __rtmsymtab_start = .;
         KEEP(*(RTMSymTab))
         __rtmsymtab_end = .;
-
         /* RT-Thread related sections - end */
+
         . = ALIGN(8);
+        PROVIDE (__etext = .);
+        PROVIDE (_etext = .);
+        PROVIDE (etext = .);
+    } > ILM
+
+    .init_section :
+    {
+        _sinit = ABSOLUTE(.);
+        KEEP(*(.init_array .init_array.*))
+        _einit = ABSOLUTE(.);
     } > ILM
 
     .eh_frame :
@@ -103,12 +112,12 @@ SECTIONS
     __eh_frame_hdr_start = SIZEOF(.eh_frame_hdr) > 0 ? ADDR(.eh_frame_hdr) : 0;
     __eh_frame_hdr_end = SIZEOF(.eh_frame_hdr) > 0 ? . : 0;
 
-    . = ALIGN(8);
-    PROVIDE (__etext = .);
-    PROVIDE (_etext = .);
-    PROVIDE (etext = .);
+    .rel : {
+        KEEP(*(.rel*))
+    } > ILM
 
-    __data_load_addr__ = etext;
+    . = ALIGN(8);
+    __data_load_addr__ = .;
     .data : AT(__data_load_addr__) {
         . = ALIGN(8);
         __data_start__ = .;
@@ -125,7 +134,6 @@ SECTIONS
         KEEP(*(.gcc_except_table))
         KEEP(*(.gcc_except_table.*))
 
-
         . = ALIGN(8);
         KEEP(*crtbegin*.o(.ctors))
         KEEP(*(EXCLUDE_FILE (*crtend*.o) .ctors))
@@ -137,7 +145,6 @@ SECTIONS
         KEEP(*(EXCLUDE_FILE (*crtend*.o) .dtors))
         KEEP(*(SORT(.dtors.*)))
         KEEP(*(.dtors))
-
         . = ALIGN(8);
         __data_end__ = .;
         PROVIDE (__edata = .);
@@ -145,7 +152,7 @@ SECTIONS
         PROVIDE (edata = .);
     } > DLM
 
-    __fast_load_addr__ = etext + SIZEOF(.data);
+    __fast_load_addr__ = __data_load_addr__ + SIZEOF(.data);
     .fast : AT(__fast_load_addr__) {
         . = ALIGN(8);
         PROVIDE(__ramfunc_start__ = .);
@@ -155,7 +162,7 @@ SECTIONS
         PROVIDE(__ramfunc_end__ = .);
     } > ILM
 
-    __tdata_load_addr__ = etext + SIZEOF(.data) + SIZEOF(.fast);
+    __tdata_load_addr__ = __data_load_addr__ + SIZEOF(.data) + SIZEOF(.fast);
     .tdata : AT(__tdata_load_addr__) {
         . = ALIGN(8);
         PROVIDE(__tdata_start__ = .);
@@ -178,7 +185,7 @@ SECTIONS
         PROVIDE(__tbss_end__ = .);
     } > DLM
 
-    __noncacheable_init_load_addr__ = etext + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata);
+    __noncacheable_init_load_addr__ = __data_load_addr__ + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata);
     .noncacheable.init : AT(__noncacheable_init_load_addr__) {
         . = ALIGN(8);
         __noncacheable_init_start__ = .;
@@ -188,14 +195,14 @@ SECTIONS
         . = ALIGN(8);
     } > DLM
 
-    __fast_ram_init_load_addr__ = etext + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata) + SIZEOF(.noncacheable.init);
+    __fast_ram_init_load_addr__ = __data_load_addr__ + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata) + SIZEOF(.noncacheable.init);
     .fast_ram.init : AT(__fast_ram_init_load_addr__) {
         . = ALIGN(8);
         __fast_ram_init_start__ = .;
         KEEP(*(.fast_ram.init))
         KEEP(*(.fast_ram.init.*))
-        __fast_ram_init_end__ = .;
         . = ALIGN(8);
+        __fast_ram_init_end__ = .;
     } > DLM
 
     .ahb_sram (NOLOAD) : {
@@ -230,11 +237,12 @@ SECTIONS
         KEEP(*(.noncacheable))  /* Legacy sections, kept for backwards compatibility */
         KEEP(*(.noncacheable.non_init))
         KEEP(*(.noncacheable.non_init.*))
+        . = ALIGN(8);
         __noncacheable_bss_start__ = .;
         KEEP(*(.noncacheable.bss))
         KEEP(*(.noncacheable.bss.*))
-        __noncacheable_bss_end__ = .;
         . = ALIGN(8);
+         __noncacheable_bss_end__ = .;
     } > DLM
 
     .fast_ram (NOLOAD) : {
@@ -242,17 +250,19 @@ SECTIONS
         KEEP(*(.fast_ram))  /* Legacy sections, kept for backwards compatibility */
         KEEP(*(.fast_ram.non_init))
         KEEP(*(.fast_ram.non_init.*))
+        . = ALIGN(8);
         __fast_ram_bss_start__ = .;
         KEEP(*(.fast_ram.bss))
         KEEP(*(.fast_ram.bss.*))
-        __fast_ram_bss_end__ = .;
         . = ALIGN(8);
+        __fast_ram_bss_end__ = .;
     } > DLM
 
     .heap (NOLOAD) : {
         . = ALIGN(8);
         __heap_start__ = .;
         . += HEAP_SIZE;
+        . = ALIGN(8);
         __heap_end__ = .;
     } > DLM
 
@@ -265,7 +275,8 @@ SECTIONS
         PROVIDE (_stack_safe = .);
     } > DLM
 
-    __fw_size__ = SIZEOF(.start) + SIZEOF(.vectors) + SIZEOF(.rel) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata) + SIZEOF(.noncacheable.init) + SIZEOF(.fast_ram.init) + SIZEOF(.eh_frame) + SIZEOF(.eh_frame_hdr);
+    __fw_size__ = SIZEOF(.start) + SIZEOF(.vectors) + SIZEOF(.rel) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata)
+                + SIZEOF(.noncacheable.init) + SIZEOF(.fast_ram.init) + SIZEOF(.eh_frame) + SIZEOF(.eh_frame_hdr) + SIZEOF(.init_section);
     __last_addr__ = __fast_ram_init_load_addr__ + SIZEOF(.fast_ram.init);
     ASSERT(((__fw_size__ <= LENGTH(ILM)) && (__last_addr__ <= (ORIGIN(ILM) + LENGTH(ILM)))), "******  FAILED! ILM does not have enough space!  ******")
 }
