@@ -217,8 +217,8 @@ SECTIONS
         __noncacheable_init_start__ = .;
         KEEP(*(.noncacheable.init))
         KEEP(*(.noncacheable.init.*))
-        __noncacheable_init_end__ = .;
         . = ALIGN(8);
+        __noncacheable_init_end__ = .;
     } > AXI_SRAM_NONCACHEABLE
 
     __fast_ram_init_load_addr__ = __data_load_addr__ + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata) + SIZEOF(.noncacheable.init);
@@ -263,7 +263,7 @@ SECTIONS
         KEEP(*(.noncacheable.bss))
         KEEP(*(.noncacheable.bss.*))
         . = ALIGN(8);
-         __noncacheable_bss_end__ = .;
+        __noncacheable_bss_end__ = .;
     } > AXI_SRAM_NONCACHEABLE
 
     .sh_mem (NOLOAD) : {
