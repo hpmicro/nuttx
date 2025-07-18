@@ -14,8 +14,4 @@ config HAVE_LEDS
 	default n
 	select ARCH_HAVE_LEDS
 
-config INCLUDE_BOOTHEADER
-	bool
-	default n
-
 endif

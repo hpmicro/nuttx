@@ -70,6 +70,10 @@ endif
 
 endchoice # HPMicro Linker File Selection
 
+config INCLUDE_BOOTHEADER
+	bool
+	default n
+
 #####################################################################
 #  HPM_SDK Peripheral support
 #####################################################################
