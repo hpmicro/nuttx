@@ -39,7 +39,7 @@
 #include "hpm_soc.h"
 #include "hpm_gpiom_drv.h"
 #include "hpm6200evk.h"
-#include "hpm_gpio.h"
+#include "hpm_gpio_internal.h"
 
 #if defined(CONFIG_DEV_GPIO) && !defined(CONFIG_GPIO_LOWER_HALF)
 
@@ -179,7 +179,7 @@ static int hpm6200_gpio_interrupt(int irq, void *context, void *arg)
   gpioinfo("Interrupt! callback=%p\n", hpm6200xgpint->callback);
 
   gpio_pin = g_gpiointinputs[hpm6200xgpint->hpm6200gpio.id];
-   
+
   gpio_clear_pin_interrupt_flag(BOARD_APP_GPIO_CTRL, GPIO_GET_PORT_INDEX(gpio_pin),
                           GPIO_GET_PIN_INDEX(gpio_pin));
 
@@ -303,7 +303,7 @@ static int gpint_attach(struct gpio_dev_s *dev, pin_interrupt_t callback)
   struct hpm6200_gpint_dev_s *hpm6200xgpint =
     (struct hpm6200_gpint_dev_s *)dev;
 
-  uint32_t gpio_pin = g_gpiointinputs[hpm6200xgpint->hpm6200gpio.id]; 
+  uint32_t gpio_pin = g_gpiointinputs[hpm6200xgpint->hpm6200gpio.id];
   gpioinfo("Attaching the callback\n");
 
   /* Make sure the interrupt is disabled */
@@ -329,7 +329,7 @@ static int gpint_enable(struct gpio_dev_s *dev, bool enable)
   struct hpm6200_gpint_dev_s *hpm6200xgpint =
     (struct hpm6200_gpint_dev_s *)dev;
 
-  uint32_t gpio_pin = g_gpiointinputs[hpm6200xgpint->hpm6200gpio.id]; 
+  uint32_t gpio_pin = g_gpiointinputs[hpm6200xgpint->hpm6200gpio.id];
   if (enable)
     {
       if (hpm6200xgpint->callback != NULL)

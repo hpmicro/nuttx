@@ -39,7 +39,7 @@
 #include "hpm_soc.h"
 #include "hpm_gpiom_drv.h"
 #include "hpm6300evk.h"
-#include "hpm_gpio.h"
+#include "hpm_gpio_internal.h"
 
 #if defined(CONFIG_DEV_GPIO) && !defined(CONFIG_GPIO_LOWER_HALF)
 
@@ -163,7 +163,7 @@ static uint32_t gpio_get_irq_index(GPIO_Type *ptr, uint32_t pin)
         offset = IOC_PAD_PX00;
         start_irqnum = HPM_IRQn_GPIO0_X;
       }
-    
+
     return (((pin - offset) / PORT_PIN_COUNT) + start_irqnum);
 }
 
@@ -186,7 +186,7 @@ static int hpm6300_gpio_interrupt(int irq, void *context, void *arg)
   gpioinfo("Interrupt! callback=%p\n", hpm6300xgpint->callback);
 
   gpio_pin = g_gpiointinputs[hpm6300xgpint->hpm6300gpio.id];
-   
+
   gpio_clear_pin_interrupt_flag(BOARD_APP_GPIO_CTRL, GPIO_GET_PORT_INDEX(gpio_pin),
                           GPIO_GET_PIN_INDEX(gpio_pin));
 
@@ -330,7 +330,7 @@ static int gpint_attach(struct gpio_dev_s *dev, pin_interrupt_t callback)
   struct hpm6300_gpint_dev_s *hpm6300xgpint =
     (struct hpm6300_gpint_dev_s *)dev;
 
-  uint32_t gpio_pin = g_gpiointinputs[hpm6300xgpint->hpm6300gpio.id]; 
+  uint32_t gpio_pin = g_gpiointinputs[hpm6300xgpint->hpm6300gpio.id];
   gpioinfo("Attaching the callback\n");
 
   /* Make sure the interrupt is disabled */
@@ -356,7 +356,7 @@ static int gpint_enable(struct gpio_dev_s *dev, bool enable)
   struct hpm6300_gpint_dev_s *hpm6300xgpint =
     (struct hpm6300_gpint_dev_s *)dev;
 
-  uint32_t gpio_pin = g_gpiointinputs[hpm6300xgpint->hpm6300gpio.id]; 
+  uint32_t gpio_pin = g_gpiointinputs[hpm6300xgpint->hpm6300gpio.id];
   if (enable)
     {
       if (hpm6300xgpint->callback != NULL)
@@ -391,7 +391,7 @@ int hpm6300_gpio_initialize(void)
   int i;
   int pincount = 0;
   uint32_t gpio_pin = 0;
- 
+
 #if BOARD_NGPIOIN > 0
   for (i = 0; i < BOARD_NGPIOIN; i++)
     {

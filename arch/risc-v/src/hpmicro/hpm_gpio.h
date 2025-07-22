@@ -36,7 +36,6 @@
 
 #include "chip.h"
 #include "nuttx/ioexpander/gpio.h"
-#include "hpm_gpio_drv.h"
 
 /****************************************************************************
  * Pre-Processor Declarations
@@ -70,54 +69,6 @@ typedef uint32_t gpio_pin_t;
 /****************************************************************************
  * Public Function Prototypes
  ****************************************************************************/
-
-/****************************************************************************
- * Name: hpm_configgpio
- *
- * Description:
- *   Configure a GPIO pin based on bit-encoded description of the pin.
- *
- * Returned Value:
- *   OK on success
- *   ERROR on invalid port.
- *
- ****************************************************************************/
-
-int hpm_configgpio(GPIO_Type *ptr, gpio_pin_t pin, enum gpio_pintype_e type);
-
-/****************************************************************************
- * Name: hpm_gpiowrite
- *
- * Description:
- *   Write one or zero to the selected GPIO pin
- *
- ****************************************************************************/
-
-void hpm_gpiowrite(GPIO_Type *ptr, gpio_pin_t pin, bool value);
-
-/****************************************************************************
- * Name: hpm_gpioread
- *
- * Description:
- *   Read one or zero from the selected GPIO pin
- *
- ****************************************************************************/
-
-bool hpm_gpioread(GPIO_Type *ptr, gpio_pin_t pin, uint8_t mode);
-
-/****************************************************************************
- * Function:  hpm6750_dumpgpio
- *
- * Description:
- *   Dump all GPIO registers associated with the provided base address
- *
- ****************************************************************************/
-
-#ifdef CONFIG_DEBUG_GPIO_INFO
-int hpm6750_dumpgpio(gpio_pinset_t pinset, const char *msg);
-#else
-#define hpm6750_dumpgpio(p, m)
-#endif
 
 #if 1
 /****************************************************************************
