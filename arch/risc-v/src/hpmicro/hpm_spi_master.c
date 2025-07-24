@@ -362,7 +362,7 @@ static struct hpm_spidev_s g_spi1dev =
   .spibase                 = HPM_SPI1,
   .spiclock                = clock_spi1,
   .spiirq                  = IRQn_SPI1,
-#if defined(CONFIG_HPM_SPI1_DMA) 
+#if defined(CONFIG_HPM_SPI1_DMA)
   .spi_context             = &spi1_context,
 #endif
 #ifdef CONFIG_PM
@@ -514,7 +514,7 @@ static struct hpm_spidev_s g_spi3dev =
   .spidev                  =
   {
     .ops                   = &g_sp3iops,
-  }, 
+  },
   .spibase                 = HPM_SPI3,
   .spiclock                = clock_spi3,
   .spiirq                  = IRQn_SPI3,
@@ -533,47 +533,6 @@ static struct hpm_spidev_s g_spi3dev =
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
-
-static uint32_t get_frequency_for_clock_source(clock_source_t source)
-{
-    uint32_t clk_freq = 0UL;
-    uint32_t div = 1;
-    switch (source) {
-    case clock_source_osc0_clk0:
-        clk_freq = 24000000UL;
-        break;
-    case clock_source_pll0_clk0:
-        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 0U);
-        break;
-    case clock_source_pll1_clk0:
-        div = pllctl_get_div(HPM_PLLCTL, 1, 0);
-        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 1U) / div;
-        break;
-    case clock_source_pll1_clk1:
-        div = pllctl_get_div(HPM_PLLCTL, 1, 1);
-        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 1U) / div;
-        break;
-    case clock_source_pll2_clk0:
-        div = pllctl_get_div(HPM_PLLCTL, 2, 0);
-        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 2U) / div;
-        break;
-    case clock_source_pll2_clk1:
-        div = pllctl_get_div(HPM_PLLCTL, 2, 1);
-        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 2U) / div;
-        break;
-    case clock_source_pll3_clk0:
-        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 3U);
-        break;
-    case clock_source_pll4_clk0:
-        clk_freq = pllctl_get_pll_freq_in_hz(HPM_PLLCTL, 4U);
-        break;
-    default:
-        clk_freq = 0UL;
-        break;
-    }
-
-    return clk_freq;
-}
 
 /****************************************************************************
  * Name: spi_dumpregs
@@ -686,7 +645,7 @@ static void  spi_rx_dma_channel_tc_callback(DMA_Type *ptr, uint32_t channel, voi
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)user_data;
   UNUSED(channel);
-  spiinfo("RX interrupt fired with tc status\n");  
+  spiinfo("RX interrupt fired with tc status\n");
   nxsem_post(&priv->rxsem);
 
 }
@@ -781,15 +740,7 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
   uint32_t actual  = 0;
   spi_timing_config_t timing_config = {0};
-  SPI_Type *spi_ptr = (SPI_Type *)priv->spibase;
-  int freq_list[clock_source_general_source_end] = {0};
-  int min_diff_freq;
-  int current_diff_freq;
-  int best_freq;
-  uint32_t div, i;
-  clock_source_t clock_source;
-  clk_src_t clk_src;
-  uint32_t pll_clk = 0;
+
   /* Limit to max possible (if STM32_SPI_CLK_MAX is defined in board.h) */
 
   if (frequency > HPMICRO_SPI_CLK_MAX)
@@ -801,59 +752,13 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
 
   if (frequency != priv->frequency)
     {
-      if (frequency <= 40000000)
-        {
-          /* set SPI sclk frequency for master */
-          spi_master_get_default_timing_config(&timing_config);
-          timing_config.master_config.clk_src_freq_in_hz = clock_get_frequency(priv->spiclock);
-          timing_config.master_config.sclk_freq_in_hz = frequency;
-          actual = frequency;
-          if (spi_master_timing_init((SPI_Type *)priv->spibase, &timing_config) !=status_success)
-            {
-                spi_ptr->TIMING = (spi_ptr->TIMING & ~SPI_TIMING_SCLK_DIV_MASK) | SPI_TIMING_SCLK_DIV_SET(0); /* 40 M */
-                actual = 40000000;
-            }
-        }
-      else
-        {
-          spi_ptr->TIMING = (spi_ptr->TIMING & ~SPI_TIMING_SCLK_DIV_MASK) | SPI_TIMING_SCLK_DIV_SET(0xFF);
-          for (clock_source = (clock_source_t)0; clock_source < clock_source_general_source_end; clock_source++)
-            {
-              pll_clk = get_frequency_for_clock_source(clock_source);
-              div = pll_clk / frequency;
-                /* The division factor ranges from 1 to 256 as any integer */
-              if ((div > 0) && (div <= 0x100))
-                {
-                  freq_list[clock_source] = pll_clk / div;
-                }
-            }
-            /* Find the best sclk frequency */
-            min_diff_freq = abs(freq_list[0] - frequency);
-            best_freq = freq_list[0];
-            for (i = 1; i < clock_source_general_source_end; i++)
-              {
-                current_diff_freq = abs(freq_list[i] - frequency);
-                if (current_diff_freq < min_diff_freq)
-                {
-                  min_diff_freq = current_diff_freq;
-                  best_freq = freq_list[i];
-                }
-              }
-            /* Find the best spi clock frequency */
-            for (i = 0; i < clock_source_general_source_end; i++)
-              {
-                if (best_freq == freq_list[i])
-                  {
-                    pll_clk = get_frequency_for_clock_source((clock_source_t)i);
-                    clk_src = MAKE_CLK_SRC(CLK_SRC_GROUP_COMMON, i);
-                    div = pll_clk / best_freq;
-                    clock_set_source_divider(priv->spiclock, clk_src, div);
-                    break;
-                  }
-              }
-            actual =  clock_get_frequency(priv->spiclock);
-        }
-      spiinfo("Frequency %" PRId32 "->%" PRId32 "\n", frequency, actual);
+      /* set SPI sclk frequency for master */
+      spi_master_get_default_timing_config(&timing_config);
+      timing_config.master_config.clk_src_freq_in_hz = clock_get_frequency(priv->spiclock);
+      timing_config.master_config.sclk_freq_in_hz = frequency;
+      spi_master_timing_init((SPI_Type *)priv->spibase, &timing_config);
+
+      printf("Frequency %" PRId32 "->%" PRId32 "\n", frequency, actual);
       priv->frequency = frequency;
       priv->actual    = actual;
     }
@@ -986,7 +891,7 @@ static void spi_setbits(struct spi_dev_s *dev, int nbits)
   uint32_t transfmt = priv->spibase->TRANSFMT;
   if (nbits != priv->nbits)
     {
-      /* set SPI format config for master */    
+      /* set SPI format config for master */
       format_config.common_config.data_merge        = false;
       format_config.common_config.lsb               = SPI_TRANSFMT_LSB_GET(transfmt);
       format_config.common_config.mode              = SPI_TRANSFMT_SLVMODE_SET(transfmt);
@@ -1081,7 +986,7 @@ static uint32_t spi_send(struct spi_dev_s *dev, uint32_t wd)
     {
       control_config.common_config.trans_mode = spi_trans_read_only;
     }
-  else if(priv->config == SIMPLEX_TX) 
+  else if(priv->config == SIMPLEX_TX)
     {
       control_config.common_config.trans_mode = spi_trans_write_only;
     }
@@ -1209,7 +1114,7 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
   DEBUGASSERT(priv != NULL);
-  
+
 #ifdef CONFIG_HPM_SPI_DMA
   spi_control_config_t control_config = {0};
   uint8_t cmd = 0x1a;
@@ -1225,14 +1130,14 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
       return;
     }
   else
-    { 
+    {
     nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
     len = nwords;
         /* set SPI control config for master */
     spi_master_get_default_control_config(&control_config);
     control_config.master_config.cmd_enable     = false;
     control_config.master_config.addr_enable    = false;
-    control_config.master_config.addr_phase_fmt = spi_address_phase_format_single_io_mode;   
+    control_config.master_config.addr_phase_fmt = spi_address_phase_format_single_io_mode;
     control_config.common_config.data_phase_fmt = spi_single_io_mode;
     control_config.common_config.dummy_cnt      = spi_dummy_count_1;
 
@@ -1272,16 +1177,16 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
           priv->spi_context->addr             = addr;
           priv->spi_context->data_len_in_byte = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase);
 
-          priv->spi_context->tx_buff          = &((uint8_t *)txbuffer)[inc_len];    
+          priv->spi_context->tx_buff          = &((uint8_t *)txbuffer)[inc_len];
           priv->spi_context->tx_count         = priv->spi_context->tx_size / priv->spi_context->data_len_in_byte;
 
           priv->spi_context->rx_buff          = &((uint8_t *)&rxbuffer)[inc_len];
           priv->spi_context->rx_count         = priv->spi_context->rx_size / priv->spi_context->data_len_in_byte;
 
           priv->spi_context->dma_context.data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) - 1;
-          
+
           stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
-          if (stat != status_success) 
+          if (stat != status_success)
             {
               return;
             }
@@ -1574,7 +1479,7 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
 
           /* Set up default configuration: Master, 8-bit, etc. */
 
-#if defined(CONFIG_HPM_SPI0_DMA) 
+#if defined(CONFIG_HPM_SPI0_DMA)
           nxsem_init(&priv->rxsem, 0, 0);
           nxsem_init(&priv->txsem, 0, 0);
 
@@ -1646,7 +1551,7 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
           nxsem_init(&priv->exclsem, 0, 1);
 
           /* Set up default configuration: Master, 8-bit, etc. */
-#if defined(CONFIG_HPM_SPI2_DMA) 
+#if defined(CONFIG_HPM_SPI2_DMA)
           nxsem_init(&priv->rxsem, 0, 0);
           nxsem_init(&priv->txsem, 0, 0);
 
@@ -1683,7 +1588,7 @@ struct spi_dev_s *hpm_spibus_initialize(int bus)
 
           /* Set up default configuration: Master, 8-bit, etc. */
 
-#if defined(CONFIG_HPM_SPI3_DMA) 
+#if defined(CONFIG_HPM_SPI3_DMA)
           nxsem_init(&priv->rxsem, 0, 0);
           nxsem_init(&priv->txsem, 0, 0);
 
