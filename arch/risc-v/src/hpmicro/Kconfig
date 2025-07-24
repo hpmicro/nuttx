@@ -1657,6 +1657,36 @@ config HPM_SDXC1
     select MMCSD_SDIO
     select SDIO_DMA
 
+menu "Board SD Parameters"
+    config BOARD_SDXC1_PARAMS
+        bool "Enable SDXC1"
+        depends on CONFIG_HPM_SDXC1
+        choice
+            prompt "Select Voltage type"
+            default BOARD_SDXC1_VOLTAGE_DUAL
+            config BOARD_SDXC1_VOLTAGE_DUAL
+                bool "Dual voltage"
+            config BOARD_SDXC1_VOLTAGE_3V3
+                bool "3.3V"
+            config BOARD_SDXC1_VOLTAGE_1V8
+                bool "1.8V"
+        endchoice
+        choice
+            prompt "Select Bus Width"
+            default BOARD_SDXC1_BUSWIDTH_4BIT
+            config BOARD_SDXC1_BUSWIDTH_4BIT
+                bool "4-bit"
+            config BOARD_SDXC1_BUSWIDTH_8BIT
+                bool "8-bit"
+        endchoice
+        config BOARD_SDXC1_VSEL_PIN
+            default "PZ08"
+            string "VSEL pin"
+        config BOARD_SDXC1_PWR_PIN
+            default "PC20"
+            string "Power Switch pin"
+endmenu
+
 #####################################################################
 #  Enet Configuration
 #####################################################################

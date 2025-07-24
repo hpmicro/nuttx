@@ -52,6 +52,18 @@
 #define MMCSD_ACMD6_BUSWIDTH_1      ((uint32_t)0)          /* Bus width = 1-bit */
 #define MMCSD_ACMD6_BUSWIDTH_4      ((uint32_t)2)          /* Bus width = 4-bit */
 
+
+/* CMD6 argument */
+#define MMCSD_MODE_SET_FUNC         (0x80000000UL)
+#define MMCSD_MODE_CHK_FUNC         (0x0UL)
+#define MMCSD_CMD6_SPEED_DEFAULT    ((uint32_t)0xFFFFF0)   /* Speed: default */
+#define MMCSD_CMD6_SPEED_SDR12      ((uint32_t)0xFFFFF0)   /* Speed: SDR12 */
+#define MMCSD_CMD6_SPEED_HIGHSPEED  ((uint32_t)0xFFFFF1)   /* Speed: High-speed */
+#define MMCSD_CMD6_SPEED_SDR25      ((uint32_t)0xFFFFF1)   /* Speed: SDR25 */
+#define MMCSD_CMD6_SPEED_SDR50      ((uint32_t)0xFFFFF2)   /* Speed: SDR50 */
+#define MMCSD_CMD6_SPEED_SDR104     ((uint32_t)0xFFFFF3)   /* Speed: SDR104 */
+#define MMCSD_CMD6_SPEED_DDR50      ((uint32_t)0xFFFFF4)   /* Speed: DDR50 */
+
 /* ACMD41 argument */
 
 #define MMCSD_ACMD41_VOLTAGEWINDOW_34_33 ((uint32_t)1 << 21)
@@ -139,6 +151,7 @@
 #define MMCSD_VDD_33_34             ((uint32_t)1 << 21)    /* VDD voltage 3.3-3.4 */
 #define MMCSD_VDD_34_35             ((uint32_t)1 << 22)    /* VDD voltage 3.4-3.5 */
 #define MMCSD_VDD_35_36             ((uint32_t)1 << 23)    /* VDD voltage 3.5-3.6 */
+#define MMCSD_R3_S18A               ((uint32_t)1 << 24)
 #define MMCSD_R3_HIGHCAPACITY       ((uint32_t)1 << 30)    /* true: Card supports block addressing */
 #define MMCSD_CARD_BUSY             ((uint32_t)1 << 31)    /* Card power-up busy bit */
 #define MMCSD_R3_STDCAPACITY        ((uint32_t)0)
@@ -188,6 +201,18 @@
 #define MMCSD_R7ECHO_SHIFT          (0)                    /* Bits 0-7: Echoed check pattern */
 #define MMCSD_R7ECHO_MASK           ((uint32_t)0xff << MMCSD_R7ECHO_SHIFT)
 #  define MMCSD_R7CHECKPATTERN      ((uint32_t)0xaa << MMCSD_R7ECHO_SHIFT)
+
+#define EXT_CSD_HS_TIMING_NORMAL    0
+#define EXT_CSD_HS_TIMING_HIGHSPEED 1
+#define EXT_CSD_HS_TIMING_HS200     2
+#define EXT_CSD_HS_TIMING_HS400     3
+
+#define EXT_CSD_BUS_WIDTH_1BIT                  0
+#define EXT_CSD_BUS_WIDTH_4BIT                  1
+#define EXT_CSD_BUS_WIDTH_8BIT                  2
+#define EXT_CSD_BUS_WDITH_4BIT_DDR              5
+#define EXT_CSD_BUS_WIDTH_8BIT_DDR              6
+#define EXT_CSD_BUS_WIDTH_8BIT_DDR_ENH_STROBE   0x86
 
 /****************************************************************************
  * Public Types
@@ -308,11 +333,12 @@ struct mmcsd_csd_s
 struct mmcsd_scr_s
 {
   uint8_t  scrversion;         /* 63:60 Version of SCR structure */
-  uint8_t  sdversion;          /* 59:56 SD memory card physical layer version */
+  uint8_t  sdversion;          /* 59:56,47,42 SD memory card physical layer version */
   uint8_t  erasestate;         /* 55:55 Data state after erase (1 or 0) */
   uint8_t  security;           /* 54:52 SD security support */
   uint8_t  buswidth;           /* 51:48 DAT bus widths supported */
                                /* 47:32 SD reserved space */
+  uint8_t  cmd23_support;      /* 33 */
   uint32_t mfgdata;            /* 31:0  Reserved for manufacturing data */
 };
 

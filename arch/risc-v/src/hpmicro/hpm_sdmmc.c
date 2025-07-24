@@ -52,15 +52,19 @@
 #include "hpm_l1c_drv.h"
 #include "hpm_misc.h"
 
-#define HPM_SDMMC_CLK_INIT_FREQ (37500UL)
-#define HPM_SDMMC_CLK_NORMAL_FREQ (25000000UL)
-#define HPM_SDMMC_CLK_HIGH_FREQ (50000000UL)
+#define HPM_SDMMC_CLK_INIT_FREQ             (37500UL)
+#define HPM_SDMMC_CLK_NORMAL_FREQ           (25000000UL)
+#define HPM_SDMMC_CLK_HIGH_FREQ             (50000000UL)
+#define HPM_SDMMC_CLK_SDR50                 (100000000UL)
+#define HPM_SDMMC_CLK_SDR104_HS200_HS400    (200000000UL)
 
 #define HPM_SDMMC_CMDTIMEOUT (100000)
 #define HPM_SDMMC_LONGTIMEOUT (0x7fffffff)
 
 #define HPM_SDMMC_DMA_MODE_NONE (0)
 #define HPM_SDMMC_DMA_MODE_ADMA2 (2)
+
+#define HPM_SDMMC_PIN_NOT_SUPPORTED (0xffff)
 
 #ifdef CONFIG_HPM_SDXC_DRV
 
@@ -105,13 +109,22 @@ struct hpm_sdmmc_dev_s
     uint32_t *buffer; /* Address of current R/W buffer */
     size_t remaining; /* Number of bytes remaining in the transfer */
     uint32_t xfrmask; /* Interrupt enables for data transfer */
+    uint32_t *dst_buf;
+    uint32_t xfer_size;
+    bool need_free_buf;
+    bool need_copy_data;
 
 #ifdef CONFIG_HPM_SDXC_DRV
     /* Interrupt at SDIO_D1 pin, only for SDIO cards */
 
-    uint32_t sdiointmask;        /* STM32 SDIO register mask */
+    uint32_t sdiointmask;        /* HPM SDIO register mask */
     int (*do_sdio_card)(void *); /* SDIO card ISR */
     void *do_sdio_arg;           /* arg for SDIO card ISR */
+    bool support_1v8;
+    bool support_3v3;
+    uint32_t vsel_pin;
+    uint32_t power_switch_pin;
+    bool is_1v8_signaling;
 #endif
 
     /* Fixed transfer block size support */
@@ -133,9 +146,16 @@ static int hpm_sdmmc_lock(FAR struct sdio_dev_s *dev, bool lock);
 static void hpm_sdmmc_reset(FAR struct sdio_dev_s *dev);
 static sdio_capset_t hpm_sdmmc_capabilities(FAR struct sdio_dev_s *dev);
 static sdio_capset_t hpm_sdmmc_status(FAR struct sdio_dev_s *dev);
-static void hpm_sdmmc_widebus(FAR struct sdio_dev_s *dev, bool wide);
+static void hpm_sdmmc_widebus(FAR struct sdio_dev_s *dev, uint8_t wide);
 static void hpm_sdmmc_clock(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate);
 static int hpm_sdmmc_attach(FAR struct sdio_dev_s *dev);
+
+static int hpm_sdmmc_switch_uhs_voltage(FAR struct sdio_dev_s *dev);
+
+void hpm_sdmmc_switch_to_1v8(struct hpm_sdmmc_dev_s *dev);
+void hpm_sdmmc_switch_to_3v3(struct hpm_sdmmc_dev_s *dev);
+void hpm_sdmmc_power_on(struct hpm_sdmmc_dev_s *dev);
+void hpm_sdmmc_power_off(struct hpm_sdmmc_dev_s *dev);
 
 /* Command/Status/Data Transfer */
 static int hpm_sdmmc_sendcmd(FAR struct sdio_dev_s *dev, uint32_t cmd, uint32_t arg);
@@ -191,6 +211,13 @@ static void hpm_sdmmc_config_xfer_ints(struct hpm_sdmmc_dev_s *priv, uint32_t xf
 
 static void hpm_sdmmc_event_timeout(wdparm_t arg);
 
+static int hpm_sdmmc_tuning(FAR struct sdio_dev_s *dev, uint8_t tuning_cmd);
+static int hpm_sdmmc_timing(FAR struct sdio_dev_s *dev, enum sdio_clock_e timing);
+
+static uint32_t hpm_sdmmc_pin_get(const char *name);
+static void hpm_sdmmc_vsel_pin_init(struct hpm_sdmmc_dev_s *priv);
+static void hpm_sdmmc_pwr_pin_init(struct hpm_sdmmc_dev_s *priv);
+
 #if defined(CONFIG_HPM_SDXC0)
 ATTR_PLACE_AT_NONCACHEABLE hpm_sdmmc_noncacheable_ctx_t sdxc0_nc_ctx;
 struct hpm_sdmmc_dev_s hpm_sdxc0_dev_s = {
@@ -231,6 +258,8 @@ struct hpm_sdmmc_dev_s hpm_sdxc0_dev_s = {
 #endif
             .dmarecvsetup = hpm_sdmmc_dmarecvsetup,
             .dmasendsetup = hpm_sdmmc_dmasendsetup,
+            .switch_uhs_voltage = hpm_sdmmc_switch_uhs_voltage,
+            .timing = hpm_sdmmc_timing,
         },
     .base = HPM_SDXC0,
     .clock_name = clock_sdxc0,
@@ -238,7 +267,15 @@ struct hpm_sdmmc_dev_s hpm_sdxc0_dev_s = {
     .nc_ctx = &sdxc0_nc_ctx,
     .waitsem = SEM_INITIALIZER(0),
     .dma_mode = HPM_SDMMC_DMA_MODE_NONE,
+#if defined(CONFIG_BOARD_SDXC0_BUSWIDTH_4BIT)
     .bus_width = 4,
+#elif defined(CONFIG_BOARD_SDXC0_BUSWIDTH_8BIT)
+    .bus_width = 8,
+#else
+    .bus_width  = 1,
+#endif
+    .vsel_pin = HPM_SDMMC_PIN_NOT_SUPPORTED,
+    .power_switch_pin = HPM_SDMMC_PIN_NOT_SUPPORTED,
 };
 #endif
 
@@ -282,6 +319,8 @@ struct hpm_sdmmc_dev_s hpm_sdxc1_dev_s = {
 #endif
             .dmarecvsetup = hpm_sdmmc_dmarecvsetup,
             .dmasendsetup = hpm_sdmmc_dmasendsetup,
+            .switch_uhs_voltage = hpm_sdmmc_switch_uhs_voltage,
+            .timing = hpm_sdmmc_timing,
         },
     .base = HPM_SDXC1,
     .clock_name = clock_sdxc1,
@@ -289,9 +328,96 @@ struct hpm_sdmmc_dev_s hpm_sdxc1_dev_s = {
     .nc_ctx = &sdxc1_nc_ctx,
     .waitsem = SEM_INITIALIZER(0),
     .dma_mode = HPM_SDMMC_DMA_MODE_NONE,
+#if defined(CONFIG_BOARD_SDXC1_BUSWIDTH_4BIT)
     .bus_width = 4,
+#elif defined(CONFIG_BOARD_SDXC1_BUSWIDTH_8BIT)
+    .bus_width = 8,
+#else
+    .bus_width  = 1,
+#endif
+    .vsel_pin = HPM_SDMMC_PIN_NOT_SUPPORTED,
+    .power_switch_pin = HPM_SDMMC_PIN_NOT_SUPPORTED,
 };
 #endif
+
+static uint32_t hpm_sdmmc_pin_get(const char *name)
+{
+    uint32_t pad_idx = HPM_SDMMC_PIN_NOT_SUPPORTED;
+
+    if (!((strlen(name) == 4) &&
+          (name[0] == 'P') &&
+          ((('A' <= name[1]) && (name[1] <= 'F')) || (('V' <= name[1]) && (name[1] <= 'Z'))) &&
+          (('0' <= name[2]) && (name[2] <= '9')) &&
+          (('0' <= name[3]) && (name[3] <= '9'))))
+    {
+        return pad_idx;
+    }
+
+    uint32_t gpio_idx = (name[1] <= 'F') ? (name[1] - 'A') : (11 + name[1] - 'V');
+    uint32_t pin_idx = (uint32_t)(name[2] - '0') * 10 + (name[3] - '0');
+    pad_idx = (gpio_idx * 32 + pin_idx);
+
+    return pad_idx;
+}
+
+static void hpm_sdmmc_vsel_pin_init(struct hpm_sdmmc_dev_s *priv)
+{
+    if (priv->vsel_pin != HPM_SDMMC_PIN_NOT_SUPPORTED)
+    {
+        uint32_t pad_idx = priv->vsel_pin;
+        uint32_t gpio_idx = pad_idx / 32;
+        uint32_t pin_idx = pad_idx % 32;
+#if defined(GPIO_DO_GPIOY)
+        if (gpio_idx == GPIO_DO_GPIOY)
+        {
+            HPM_PIOC->PAD[pad_idx].FUNC_CTL = 3;
+        }
+
+#endif
+#if defined(GPIO_DO_GPIOZ)
+        if (gpio_idx == GPIO_DO_GPIOZ)
+        {
+            HPM_BIOC->PAD[pad_idx].FUNC_CTL = 3;
+        }
+#endif
+        HPM_IOC->PAD[pad_idx].FUNC_CTL = 0;
+#if defined(IOC_PAD_PAD_CTL_MS_MASK)
+        HPM_IOC->PAD[pad_idx].PAD_CTL = 0x1E;
+#else
+        HPM_IOC->PAD[pad_idx].PAD_CTL = IOC_PAD_PAD_CTL_PS_MASK | IOC_PAD_PAD_CTL_PE_MASK | IOC_PAD_PAD_CTL_SR_MASK | IOC_PAD_PAD_CTL_SPD_SET(1);
+#endif
+        HPM_GPIO0->OE[gpio_idx].SET = (1UL << pin_idx);
+    }
+}
+static void hpm_sdmmc_pwr_pin_init(struct hpm_sdmmc_dev_s *priv)
+{
+    if (priv->power_switch_pin != HPM_SDMMC_PIN_NOT_SUPPORTED)
+    {
+        uint32_t pad_idx = priv->power_switch_pin;
+        uint32_t gpio_idx = pad_idx / 32;
+        uint32_t pin_idx = pad_idx % 32;
+#if defined(GPIO_DO_GPIOY)
+        if (gpio_idx == GPIO_DO_GPIOY)
+        {
+            HPM_PIOC->PAD[pad_idx].FUNC_CTL = 3;
+        }
+
+#endif
+#if defined(GPIO_DO_GPIOZ)
+        if (gpio_idx == GPIO_DO_GPIOZ)
+        {
+            HPM_BIOC->PAD[pad_idx].FUNC_CTL = 3;
+        }
+#endif
+        HPM_IOC->PAD[pad_idx].FUNC_CTL = 0;
+#if defined(IOC_PAD_PAD_CTL_MS_MASK)
+        HPM_IOC->PAD[pad_idx].PAD_CTL = 0x1E;
+#else
+        HPM_IOC->PAD[pad_idx].PAD_CTL = IOC_PAD_PAD_CTL_PS_MASK | IOC_PAD_PAD_CTL_PE_MASK | IOC_PAD_PAD_CTL_SR_MASK | IOC_PAD_PAD_CTL_SPD_SET(1);
+#endif
+        HPM_GPIO0->OE[gpio_idx].SET = (1UL << pin_idx);
+    }
+}
 
 static void hpm_sdmmc_config_wait_ints(struct hpm_sdmmc_dev_s *priv, uint32_t waitmask,
                                        sdio_eventset_t waitevents,
@@ -395,9 +521,11 @@ static void hpm_sdmmc_reset(FAR struct sdio_dev_s *dev)
 
     flags = enter_critical_section();
     clock_add_to_group(priv->clock_name, 0);
+    up_mdelay(10);
     sdxc_config_t sdxc_config;
     sdxc_config.data_timeout = 1000;
     sdxc_init(priv->base, &sdxc_config);
+    sdxc_wait_card_active(priv->base);
     leave_critical_section(flags);
 }
 
@@ -430,6 +558,19 @@ static sdio_capset_t hpm_sdmmc_capabilities(FAR struct sdio_dev_s *dev)
     {
         caps |= SDIO_CAPS_4BIT | SDIO_CAPS_8BIT;
     }
+    if (priv->support_3v3)
+    {
+        caps |= SDIO_CAPS_3V3;
+    }
+    if (priv->support_1v8)
+    {
+        caps |= SDIO_CAPS_1V8 | SDIO_CAPS_MMC_HS200 | SDIO_CAPS_SD_SDR50 | SDIO_CAPS_SD_SDR104;
+        if (priv->bus_width == 8)
+        {
+            caps |= SDIO_CAPS_MMC_HS400 | SDIO_CAPS_MMC_ENH_DQS;
+        }
+    }
+
 
     return caps;
 }
@@ -454,16 +595,215 @@ static sdio_capset_t hpm_sdmmc_status(FAR struct sdio_dev_s *dev)
     return priv->cdstatus;
 }
 
-/**********************************************************************
- *
- *
- *
- *
- **/
-static void hpm_sdmmc_widebus(FAR struct sdio_dev_s *dev, bool wide)
+static int hpm_sdmmc_switch_uhs_voltage(FAR struct sdio_dev_s *dev)
+{
+    struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
+    SDXC_Type *base = priv->base;
+
+    /* 1. Stop providing clock to the card */
+    sdxc_enable_inverse_clock(base, false);
+    sdxc_enable_sd_clock(base, false);
+
+    /* 2. Wait until DAT[3:0] are 4'b0000 */
+    uint32_t data3_0_level;
+    uint32_t delay_cnt = 1000000UL;
+    do
+    {
+        data3_0_level = sdxc_get_data3_0_level(base);
+        --delay_cnt;
+    } while ((data3_0_level != 0U) && (delay_cnt > 0U));
+    if (delay_cnt < 1)
+    {
+        return -ETIMEDOUT;
+    }
+
+    /* 3. Switch signaling to 1.8v */
+    hpm_sdmmc_switch_to_1v8(priv);
+    /* 4. delay 5ms */
+    up_mdelay(7);
+    /* 5. Provide SD clock the card again */
+    sdxc_enable_sd_clock(base, true);
+    /* 6. wait 1ms */
+    up_mdelay(2);
+    /* 7. Check DAT[3:0], make sure the value is 4'b0000 */
+    delay_cnt = 1000000UL;
+    do
+    {
+        data3_0_level = sdxc_get_data3_0_level(base);
+        --delay_cnt;
+    } while ((data3_0_level == 0U) && (delay_cnt > 0));
+    if (delay_cnt < 1)
+    {
+        return -ETIMEDOUT;
+    }
+
+    priv->is_1v8_signaling = true;
+
+    sdxc_enable_sd_clock(base, false);
+    init_sdxc_cmd_pin(base, false, true);
+    init_sdxc_clk_data_pins(base, priv->bus_width, true);
+    up_udelay(100);
+    sdxc_enable_sd_clock(base, true);
+
+    return OK;
+}
+
+static int hpm_sdmmc_tuning(FAR struct sdio_dev_s *dev, uint8_t tuning_cmd)
+{
+    int ret = OK;
+    struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
+    /* Tuning can work in 1.8V signaling only */
+    if (!priv->is_1v8_signaling)
+    {
+        return ERROR;
+    }
+
+    SDXC_Type *base = priv->base;
+    /* Prepare the Auto tuning environment */
+    sdxc_stop_clock_during_phase_code_change(base, true);
+    sdxc_set_post_change_delay(base, 3U);
+    sdxc_select_cardclk_delay_source(base, false);
+    sdxc_enable_power(base, true);
+
+    bool need_inverse = sdxc_is_inverse_clock_enabled(base);
+    sdxc_enable_inverse_clock(base, false);
+    sdxc_enable_sd_clock(base, false);
+    sdxc_enable_auto_tuning(base, true);
+    sdxc_enable_inverse_clock(base, need_inverse);
+    sdxc_enable_sd_clock(base, true);
+
+    hpm_stat_t status = status_success;
+
+    /* Turn off Sampling clock */
+    sdxc_enable_sd_clock(base, false);
+    sdxc_execute_tuning(base);
+    uint32_t block_size = SDXC_PROT_CTRL_EXT_DAT_XFER_GET(base->PROT_CTRL) ? 128U : 64U;
+    sdxc_command_t cmd;
+    (void) memset(&cmd, 0, sizeof(cmd));
+    cmd.cmd_index = tuning_cmd;
+    cmd.cmd_argument = 0;
+    cmd.cmd_flags = SDXC_CMD_XFER_DATA_PRESENT_SEL_MASK | SDXC_CMD_XFER_DATA_XFER_DIR_MASK;
+    cmd.resp_type = sdxc_dev_resp_r1;
+    clock_t start = clock_systime_ticks();
+    clock_t elapsed_ticks;
+    sdxc_enable_sd_clock(base, true);
+    do {
+        base->BLK_ATTR = block_size;
+        base->SDMASA = 1;
+        status = sdxc_send_command(base, &cmd);
+        while (!IS_HPM_BITMASK_SET(base->INT_STAT, SDXC_INT_STAT_BUF_RD_READY_MASK)) {
+            elapsed_ticks = clock_systime_ticks() - start;
+            if (elapsed_ticks > TICK_PER_SEC)
+            {
+                status = status_timeout;
+                break;
+            }
+        }
+        sdxc_clear_interrupt_status(base, SDXC_INT_STAT_BUF_RD_READY_MASK);
+    } while (IS_HPM_BITMASK_SET(base->AC_HOST_CTRL, SDXC_AC_HOST_CTRL_EXEC_TUNING_MASK) && (status == status_success));
+
+    if (!IS_HPM_BITMASK_SET(base->AC_HOST_CTRL, SDXC_AC_HOST_CTRL_SAMPLE_CLK_SEL_MASK)) {
+        /*FIXME*/
+        ret = ERROR;
+    }
+
+    return ret;
+}
+
+static int hpm_sdmmc_timing(FAR struct sdio_dev_s *dev, enum sdio_clock_e timing)
+{
+    struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
+
+    int ret = OK;
+
+    bool is_sd = true;
+    bool need_tuning = false;
+    sdxc_speed_mode_t speed_mode = sdxc_sd_speed_normal;
+    switch (timing)
+    {
+    case CLOCK_IDMODE:
+        break;
+    case CLOCK_SD_TRANSFER_1BIT:
+        speed_mode = sdxc_sd_speed_normal;
+        break;
+    case CLOCK_SD_TRANSFER_4BIT:
+        speed_mode = sdxc_sd_speed_high;
+        break;
+    case CLOCK_SD_SDR50:
+        speed_mode = sdxc_sd_speed_sdr50;
+        need_tuning = true;
+        break;
+    case CLOCK_SD_SDR104:
+        speed_mode = sdxc_sd_speed_sdr104;
+        need_tuning = true;
+        break;
+    case CLOCK_SD_DDR50:
+        speed_mode = sdxc_sd_speed_ddr50;
+        break;
+    case CLOCK_MMC_TRANSFER:
+        speed_mode = sdxc_emmc_speed_high_speed_sdr;
+        is_sd = false;
+        break;
+    case CLOCK_MMC_HS200:
+        speed_mode = sdxc_emmc_speed_hs200;
+        need_tuning = true;
+        is_sd = false;
+        break;
+    case CLOCK_MMC_HS400:
+        speed_mode = sdxc_emmc_speed_hs400;
+        need_tuning = true;
+        is_sd = false;
+        break;
+    case CLOCK_MMC_HS400_ENH_DQS:
+        speed_mode = sdxc_emmc_speed_hs400;
+        is_sd = false;
+        break;
+    case CLOCK_MMC_HS_DDR:
+        break;
+    default:
+        break;
+    }
+    sdxc_set_speed_mode(priv->base, speed_mode);
+
+    hpm_sdmmc_clock(dev, timing);
+
+    if (need_tuning)
+    {
+        uint8_t tuning_cmd = is_sd ? 19 : 21;
+        ret = hpm_sdmmc_tuning(dev, tuning_cmd);
+    }
+    if (ret != OK)
+    {
+        return ret;
+    }
+    return OK;
+}
+
+static void hpm_sdmmc_widebus(FAR struct sdio_dev_s *dev, uint8_t wide)
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
     sdxc_bus_width_t bus_width = wide ? sdxc_bus_width_4bit : sdxc_bus_width_1bit;
+    switch (wide)
+    {
+    default:
+        bus_width = sdxc_bus_width_1bit;
+        break;
+    case 1:
+        bus_width = sdxc_bus_width_4bit;
+        break;
+    case 2:
+        bus_width = sdxc_bus_width_8bit;
+        break;
+    case 5:
+        bus_width = sdxc_bus_width_4bit;
+        break;
+    case 6:
+        bus_width = sdxc_bus_width_8bit;
+        break;
+    case 0x86:
+        bus_width = sdxc_bus_width_8bit;
+        break;
+    }
     sdxc_set_data_bus_width(priv->base, bus_width);
 }
 
@@ -473,6 +813,9 @@ static void hpm_sdmmc_clock(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate)
 
     bool need_disable = false;
     uint32_t clock_freq = 0;
+    bool clock_inverse = true;
+    bool is_emmc = false;
+    bool enable_enh_strobe = false;
     switch (rate)
     {
     default:
@@ -491,6 +834,36 @@ static void hpm_sdmmc_clock(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate)
     case CLOCK_SD_TRANSFER_1BIT:
         clock_freq = HPM_SDMMC_CLK_NORMAL_FREQ;
         break;
+    case CLOCK_SD_SDR50:
+        clock_freq = HPM_SDMMC_CLK_SDR50;
+        break;
+    case CLOCK_SD_SDR104:
+        clock_freq = HPM_SDMMC_CLK_SDR104_HS200_HS400;
+        break;
+    case CLOCK_SD_DDR50:
+        clock_freq = HPM_SDMMC_CLK_HIGH_FREQ;
+        clock_inverse = false;
+        break;
+    case CLOCK_MMC_HS200:
+        clock_freq = HPM_SDMMC_CLK_SDR104_HS200_HS400;
+        is_emmc = true;
+        break;
+    case CLOCK_MMC_HS400:
+        clock_freq = HPM_SDMMC_CLK_SDR104_HS200_HS400;
+        clock_inverse = false;
+        is_emmc = true;
+        break;
+    case CLOCK_MMC_HS400_ENH_DQS:
+        clock_freq = HPM_SDMMC_CLK_SDR104_HS200_HS400;
+        clock_inverse = false;
+        is_emmc = true;
+        enable_enh_strobe = true;
+        break;
+    case CLOCK_MMC_HS_DDR:
+        clock_freq = HPM_SDMMC_CLK_HIGH_FREQ;
+        clock_inverse = false;
+        is_emmc = true;
+        break;
     }
     if (need_disable)
     {
@@ -499,8 +872,10 @@ static void hpm_sdmmc_clock(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate)
     else
     {
         clock_add_to_group(priv->clock_name, 0);
-        board_sd_configure_clock(priv->base, clock_freq, true);
+        board_sd_configure_clock(priv->base, clock_freq, clock_inverse);
     }
+    sdxc_enable_emmc_support(priv->base, is_emmc);
+    sdxc_enable_enhanced_strobe(priv->base, enable_enh_strobe);
 }
 
 static void hpm_sdmmc_sendfifo(struct hpm_sdmmc_dev_s *priv)
@@ -686,6 +1061,7 @@ static int hpm_sdmmc_sendcmd(FAR struct sdio_dev_s *dev, uint32_t cmd, uint32_t 
         sdxc_cmd->cmd_flags |= SDXC_CMD_XFER_MULTI_BLK_SEL_MASK | SDXC_CMD_XFER_BLOCK_COUNT_ENABLE_MASK;
     }
 
+
     if ((sdxc_cmd->cmd_flags & SDXC_CMD_XFER_DATA_PRESENT_SEL_MASK) != 0U)
     {
         if (priv->dma_mode == HPM_SDMMC_DMA_MODE_ADMA2)
@@ -756,6 +1132,7 @@ static int hpm_sdmmc_cancel(FAR struct sdio_dev_s *dev)
 
 static int hpm_sdmmc_waitresponse(FAR struct sdio_dev_s *dev, uint32_t cmd)
 {
+    int ret = OK;
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
 
     int32_t timeout = HPM_SDMMC_CMDTIMEOUT;
@@ -778,15 +1155,23 @@ static int hpm_sdmmc_waitresponse(FAR struct sdio_dev_s *dev, uint32_t cmd)
         break;
     }
 
-    while ((sdxc_get_interrupt_status(priv->base) & events) == 0)
+    uint32_t int_stat;
+    while (((int_stat = sdxc_get_interrupt_status(priv->base)) & events) == 0)
     {
+        if ((int_stat & SDXC_STS_ERROR) != 0U)
+        {
+            ret = ERROR;
+            break;
+        }
         if (--timeout <= 0)
         {
-            return -ETIMEDOUT;
+            ret = -ETIMEDOUT;
+            break;
         }
+
     }
 
-    return OK;
+    return ret;
 }
 
 static hpm_stat_t hpm_sdmmc_receive_response(SDXC_Type *base, sdxc_command_t *cmd)
@@ -797,6 +1182,11 @@ static hpm_stat_t hpm_sdmmc_receive_response(SDXC_Type *base, sdxc_command_t *cm
         sdxc_command_t *sdxc_cmd = cmd;
         sdxc_clear_interrupt_status(base, SDXC_INT_STAT_CMD_COMPLETE_MASK);
         status = sdxc_receive_cmd_response(base, sdxc_cmd);
+    }
+    else
+    {
+        sdxc_reset(base, sdxc_reset_cmd_line, 0xffff);
+        sdxc_clear_interrupt_status(base, ~0UL);
     }
     return status;
 }
@@ -1028,6 +1418,24 @@ static sdio_eventset_t hpm_sdmmc_eventwait(FAR struct sdio_dev_s *dev)
 errout_with_waitints:
     leave_critical_section(flags);
 #endif
+
+    if ((wakeupevents & SDIOWAIT_TRANSFERDONE) != 0)
+    {
+        if (priv->need_copy_data)
+        {
+            memcpy(priv->dst_buf, priv->buffer, priv->xfer_size);
+            priv->need_copy_data = false;
+        }
+    }
+    if (((wakeupevents & SDIOWAIT_TRANSFERDONE) != 0) || ((wakeupevents & SDIOWAIT_ERROR) != 0))
+    {
+        if (priv->need_free_buf)
+        {
+            free(priv->buffer);
+            priv->need_free_buf = false;
+        }
+    }
+
     return wakeupevents;
 }
 
@@ -1036,7 +1444,7 @@ static void hpm_sdmmc_callback(void *arg)
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)arg;
     DEBUGASSERT(priv != NULL);
 
-    mcinfo("Callback %p(%p) cbevents: %02" PRIx8 " cdstatus: %02" PRIx8 "\n",
+    mcinfo("Callback %p(%p) cbevents: %04" PRIx16 " cdstatus: %04" PRIx16 "\n",
            priv->callback, priv->cbarg, priv->cbevents, priv->cdstatus);
 
     if (priv->callback)
@@ -1136,10 +1544,24 @@ static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffe
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
     DEBUGASSERT((priv != NULL) && (buffer != NULL) && (buflen > 0));
-    DEBUGASSERT(((uint32_t)buffer & 3) == 0);
+
+    uint8_t *recv_buf = buffer;
+    if ((uint32_t)buffer % 4 != 0)
+    {
+        uint8_t *new_buf = (uint8_t*)malloc(buflen + HPM_L1C_CACHE_SIZE);
+        if (new_buf == NULL)
+        {
+            return -ENOMEM;
+        }
+        recv_buf = HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)new_buf);
+        priv->buffer = new_buf;
+        priv->need_free_buf = true;
+        priv->dst_buf = buffer;
+        priv->xfer_size = buflen;
+    }
 
     /* Prepare DMA parameter */
-    uint32_t sys_addr = core_local_mem_to_sys_address(BOARD_RUNNING_CORE, (uint32_t)buffer);
+    uint32_t sys_addr = core_local_mem_to_sys_address(BOARD_RUNNING_CORE, (uint32_t)recv_buf);
     hpm_sdmmc_noncacheable_ctx_t *nc_ctx = priv->nc_ctx;
     nc_ctx->adma_desc.addr = (uint32_t*)sys_addr;
     nc_ctx->adma_desc.len_attr = 0;
@@ -1156,7 +1578,7 @@ static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffe
     priv->dma_mode = HPM_SDMMC_DMA_MODE_ADMA2;
 
     /* Flush data to memory */
-    if (!ADDRESS_IN_ILM((uint32_t)buffer) && !ADDRESS_IN_DLM((uint32_t)buffer))
+    if (!ADDRESS_IN_ILM((uint32_t)recv_buf) && !ADDRESS_IN_DLM((uint32_t)recv_buf))
     {
         /* Cache coherency maintenance
          *  In case the buffer address is not cache-line aligned, the software need to flush all data
@@ -1174,10 +1596,23 @@ static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t 
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
     DEBUGASSERT((priv != NULL) && (buffer != NULL) && (buflen > 0));
-    DEBUGASSERT(((uint32_t)buffer & 3) == 0);
+    uint8_t *send_buf = buffer;
+    priv->need_free_buf = false;
+    if ((uint32_t)buffer % 4 != 0)
+    {
+        uint8_t *new_buf = (uint8_t*)malloc(buflen + HPM_L1C_CACHE_SIZE);
+        if (new_buf == NULL)
+        {
+            return -ENOMEM;
+        }
+        send_buf = HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)new_buf);
+        memcpy(send_buf, buffer, buflen);
+        priv->buffer = new_buf;
+        priv->need_free_buf = true;
+    }
 
     /* Prepare DMA parameter */
-    uint32_t sys_addr = core_local_mem_to_sys_address(BOARD_RUNNING_CORE, (uint32_t)buffer);
+    uint32_t sys_addr = core_local_mem_to_sys_address(BOARD_RUNNING_CORE, (uint32_t)send_buf);
     hpm_sdmmc_noncacheable_ctx_t *nc_ctx = priv->nc_ctx;
     nc_ctx->adma_desc.addr = (uint32_t*)sys_addr;
     nc_ctx->adma_desc.len_attr = 0;
@@ -1193,7 +1628,7 @@ static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t 
     priv->adma_cfg.adma_table_words = sizeof(nc_ctx->adma_desc) / sizeof(uint32_t);
     priv->dma_mode = HPM_SDMMC_DMA_MODE_ADMA2;
 
-    if (!ADDRESS_IN_ILM((uint32_t)buffer) && !ADDRESS_IN_DLM((uint32_t)buffer))
+    if (!ADDRESS_IN_ILM((uint32_t)send_buf) && !ADDRESS_IN_DLM((uint32_t)send_buf))
     {
         /* Cache coherency maintenance */
         uint32_t aligned_start = HPM_L1C_CACHELINE_ALIGN_DOWN(sys_addr);
@@ -1205,6 +1640,50 @@ static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t 
     return OK;
 }
 
+void hpm_sdmmc_switch_to_1v8(struct hpm_sdmmc_dev_s *dev)
+{
+    uint32_t vsel_pin = dev->vsel_pin;
+    if (vsel_pin != HPM_SDMMC_PIN_NOT_SUPPORTED)
+    {
+        uint32_t gpio_index = vsel_pin / 32;
+        uint32_t pin_index = vsel_pin % 32;
+        HPM_GPIO0->OE[gpio_index].SET = (1UL << pin_index);
+        HPM_GPIO0->DO[gpio_index].SET = (1UL << pin_index);
+    }
+}
+void hpm_sdmmc_switch_to_3v3(struct hpm_sdmmc_dev_s *dev)
+{
+    uint32_t vsel_pin = dev->vsel_pin;
+    if (vsel_pin != HPM_SDMMC_PIN_NOT_SUPPORTED)
+    {
+        uint32_t gpio_index = vsel_pin / 32;
+        uint32_t pin_index = vsel_pin % 32;
+        HPM_GPIO0->OE[gpio_index].SET = (1UL << pin_index);
+        HPM_GPIO0->DO[gpio_index].CLEAR = (1UL << pin_index);
+    }
+}
+void hpm_sdmmc_power_on(struct hpm_sdmmc_dev_s *dev)
+{
+    uint32_t power_switch_pin = dev->power_switch_pin;
+    if (power_switch_pin != HPM_SDMMC_PIN_NOT_SUPPORTED)
+    {
+        uint32_t gpio_index = power_switch_pin / 32;
+        uint32_t pin_index = power_switch_pin % 32;
+        HPM_GPIO0->OE[gpio_index].SET = (1UL << pin_index);
+        HPM_GPIO0->DO[gpio_index].SET = (1UL << pin_index);
+    }
+}
+void hpm_sdmmc_power_off(struct hpm_sdmmc_dev_s *dev)
+{
+    uint32_t power_switch_pin = dev->power_switch_pin;
+    if (power_switch_pin != HPM_SDMMC_PIN_NOT_SUPPORTED)
+    {
+        uint32_t gpio_index = power_switch_pin / 32;
+        uint32_t pin_index = power_switch_pin % 32;
+        HPM_GPIO0->OE[gpio_index].SET = (1UL << pin_index);
+        HPM_GPIO0->DO[gpio_index].CLEAR = (1UL << pin_index);
+    }
+}
 struct sdio_dev_s *sdio_initialize(int slotno)
 {
     struct hpm_sdmmc_dev_s *priv = NULL;
@@ -1213,33 +1692,68 @@ struct sdio_dev_s *sdio_initialize(int slotno)
     if (slotno == 0)
     {
         priv = &hpm_sdxc0_dev_s;
+#if defined(CONFIG_BOARD_SDXC0_VSEL_PIN)
+        priv->vsel_pin = hpm_sdmmc_pin_get(CONFIG_BOARD_SDXC0_VSEL_PIN);
+#endif
+#if defined(CONFIG_BOARD_SDXC0_PWR_PIN)
+        priv->power_switch_pin = hpm_sdmmc_pin_get(CONFIG_BOARD_SDXC0_PWR_PIN);
+#endif
+#if defined(CONFIG_BOARD_SDXC0_VOLTAGE_1V8) || defined(CONFIG_BOARD_SDXC0_VOLTAGE_DUAL)
+        priv->support_1v8 = true;
+#endif
+#if defined(CONFIG_BOARD_SDXC0_VOLTAGE_3V3) || defined(CONFIG_BOARD_SDXC0_VOLTAGE_DUAL)
+        priv->support_3v3 = true;
+#endif
     }
 #endif
 #if defined(CONFIG_HPM_SDXC1)
     if (slotno == 1)
     {
         priv = &hpm_sdxc1_dev_s;
+#if defined(CONFIG_BOARD_SDXC1_VSEL_PIN)
+        priv->vsel_pin = hpm_sdmmc_pin_get(CONFIG_BOARD_SDXC1_VSEL_PIN);
+#endif
+#if defined(CONFIG_BOARD_SDXC1_PWR_PIN)
+        priv->power_switch_pin = hpm_sdmmc_pin_get(CONFIG_BOARD_SDXC1_PWR_PIN);
+#endif
+#if defined(CONFIG_BOARD_SDXC1_VOLTAGE_1V8) || defined(CONFIG_BOARD_SDXC1_VOLTAGE_DUAL)
+        priv->support_1v8 = true;
+#endif
+#if defined(CONFIG_BOARD_SDXC1_VOLTAGE_3V3) || defined(CONFIG_BOARD_SDXC1_VOLTAGE_DUAL)
+        priv->support_3v3 = true;
+#endif
     }
 #endif
     if (priv != NULL)
     {
-#if defined(BOARD_APP_SDCARD_SUPPORT_POWER_SWITCH) && (BOARD_APP_SDCARD_SUPPORT_POWER_SWITCH == 1)
-        bool as_gpio = false;
-#if defined(BOARD_APP_SDCARD_POWER_SWITCH_USING_GPIO) && (BOARD_APP_SDCARD_POWER_SWITCH_USING_GPIO == 1)
-        as_gpio = true;
-#endif
-        init_sdxc_pwr_pin(priv->base, as_gpio);
-        if (as_gpio) {
-            uint32_t gpio_index = BOARD_APP_SDCARD_POWER_SWITCH_PIN / 32;
-            uint32_t pin_index = BOARD_APP_SDCARD_POWER_SWITCH_PIN % 32;
-            HPM_GPIO0->OE[gpio_index].SET = (1UL << pin_index);
-            HPM_GPIO0->DO[gpio_index].SET = (1UL << pin_index);
+        bool support_dual_voltage = (priv->support_1v8 && priv->support_3v3);
+        hpm_sdmmc_vsel_pin_init(priv);
+        hpm_sdmmc_pwr_pin_init(priv);
+
+        if (support_dual_voltage || priv->support_3v3)
+        {
+            hpm_sdmmc_switch_to_3v3(priv);
+            priv->is_1v8_signaling = false;
         }
-#endif
-        init_sdxc_cmd_pin(priv->base, false, false);
-        init_sdxc_clk_data_pins(priv->base, priv->bus_width, false);
+        else
+        {
+            hpm_sdmmc_switch_to_1v8(priv);
+            priv->is_1v8_signaling = true;
+        }
+
+        /* Power up the SD/MMC card */
+        hpm_sdmmc_power_off(priv);
+        up_mdelay(100);
+        hpm_sdmmc_power_on(priv);
+        up_mdelay(10);
+
+        /* Initialize the pins */
+        bool is_1v8 = support_dual_voltage ? false : (priv->support_1v8 ? true : false);
+        init_sdxc_cmd_pin(priv->base, false, is_1v8);
+        init_sdxc_clk_data_pins(priv->base, priv->bus_width, is_1v8);
         board_sd_configure_clock(priv->base, HPM_SDMMC_CLK_INIT_FREQ, true);
         hpm_sdmmc_reset(&priv->dev);
+
         return &priv->dev;
     }
     return NULL;

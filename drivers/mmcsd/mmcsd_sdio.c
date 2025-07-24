@@ -123,6 +123,8 @@ struct mmcsd_state_s
   uint8_t mode:2;                  /* (See MMCSDMODE_* definitions) */
   uint8_t type:4;                  /* Card type (See MMCSD_CARDTYPE_* definitions) */
   uint8_t buswidth:4;              /* Bus widths supported (SD only) */
+  uint8_t support_cmd23:1;
+  uint8_t is_1v8_signaling:1;
   sdio_capset_t caps;              /* SDIO driver capabilities/limitations */
   uint16_t selblocklen;            /* The currently selected block length */
   uint16_t rca;                    /* Relative Card Address (RCS) register */
@@ -167,6 +169,8 @@ static int     mmcsd_get_r1(FAR struct mmcsd_state_s *priv,
                  FAR uint32_t *r1);
 static int     mmcsd_verifystate(FAR struct mmcsd_state_s *priv,
                  uint32_t status);
+
+static int     mmcsd_get_ext_csd(FAR struct mmcsd_state_s *priv, uint32_t ext_csd[128]);
 
 /* Transfer helpers *********************************************************/
 
@@ -958,9 +962,7 @@ static void mmcsd_decode_cid(FAR struct mmcsd_state_s *priv, uint32_t cid[4])
 
 static void mmcsd_decode_scr(FAR struct mmcsd_state_s *priv, uint32_t scr[2])
 {
-#ifdef CONFIG_DEBUG_FS_INFO
   struct mmcsd_scr_s decoded;
-#endif
 
   /* Word 1, bits 63:32
    *   SCR_STRUCTURE          63:60 4-bit SCR structure version
@@ -968,26 +970,29 @@ static void mmcsd_decode_scr(FAR struct mmcsd_state_s *priv, uint32_t scr[2])
    *   DATA_STATE_AFTER_ERASE 55:55 1-bit erase status
    *   SD_SECURITY            54:52 3-bit SD security support level
    *   SD_BUS_WIDTHS          51:48 4-bit bus width indicator
+   *   SD_SPEC3               47 Spec. Version 3.00 or higher
+   *   EX_SECURITY            46:43 Extended Security Support
+   *   SD_SPEC4               42 Spec. Version 4.00 or higher
    *   Reserved               47:32 16-bit SD reserved space
    */
-
-#ifdef CONFIG_ENDIAN_BIG  /* Card transfers SCR in big-endian order */
-  priv->buswidth     = (scr[0] >> 16) & 15;
-#else
-  priv->buswidth     = (scr[0] >> 8) & 15;
-#endif
-
-#ifdef CONFIG_DEBUG_FS_INFO
+   uint8_t sd_spec;
+   uint8_t sd_spec3;
+   uint8_t sd_spec4;
 #ifdef CONFIG_ENDIAN_BIG
   /* Card SCR is big-endian order / CPU also big-endian
    *   60   56   52   48   44   40   36   32
    * VVVV SSSS ESSS BBBB RRRR RRRR RRRR RRRR
    */
 
-  decoded.scrversion =  scr[0] >> 28;
-  decoded.sdversion  = (scr[0] >> 24) & 15;
-  decoded.erasestate = (scr[0] >> 23) & 1;
-  decoded.security   = (scr[0] >> 20) & 7;
+  decoded.scrversion    =  scr[0] >> 28;
+  sd_spec               = (scr[0] >> 24) & 15;
+  sd_spec3              = (scr[0] >> 15) & 1;
+  sd_spec4              = (scr[0] >> 10) & 1;
+  decoded.sdversion     = (scr[0] >> 24) & 15;
+  decoded.erasestate    = (scr[0] >> 23) & 1;
+  decoded.security      = (scr[0] >> 20) & 7;
+  decoded.cmd23_support = (scr[0] >> 1)  & 1;
+  decoded.buswidth      = (scr[0] >> 16) & 15;
 #else
   /* Card SCR is big-endian order / CPU is little-endian
    *   36   32   44   40   52   48   60   56
@@ -995,23 +1000,55 @@ static void mmcsd_decode_scr(FAR struct mmcsd_state_s *priv, uint32_t scr[2])
    */
 
   decoded.scrversion = (scr[0] >> 4)  & 15;
-  decoded.sdversion  =  scr[0]        & 15;
+  sd_spec            = scr[0]         & 15;
+  sd_spec3           = (scr[0] >> 23) & 1;
+  sd_spec4           = (scr[0] >> 18) & 1;
   decoded.erasestate = (scr[0] >> 15) & 1;
   decoded.security   = (scr[0] >> 12) & 7;
+  decoded.buswidth   = (scr[0] >> 8)  & 15;
 #endif
-  decoded.buswidth   = priv->buswidth;
+
+  if ((sd_spec4 == 1) && (sd_spec3 == 1) && (sd_spec == 2))
+  {
+    decoded.sdversion = 0x40;
+  }
+  else if ((sd_spec3 == 1) && (sd_spec == 2))
+  {
+    decoded.sdversion = 0x30;
+  }
+  else if (sd_spec == 0x2)
+  {
+    decoded.sdversion = 0x20;
+  }
+  else if (sd_spec == 0x01)
+  {
+    decoded.sdversion = 0x11;
+  }
+  else
+  {
+    decoded.sdversion = 0x10;
+  }
+  priv->buswidth = decoded.buswidth;
+
+  decoded.cmd23_support = 0;
+  if (decoded.sdversion >= 0x30)
+  {
+#ifdef CONFIG_ENDIAN_BIG
+    decoded.cmd23_support = (scr[0] >> 1) & 1;
+#else
+    decoded.cmd23_support = (scr[0] >> 25) & 1;
 #endif
+  }
+  priv->support_cmd23 = decoded.cmd23_support;
 
   /* Word 1, bits 63:32
    *   Reserved               31:0  32-bits reserved for manufacturing usage.
    */
-
-#ifdef CONFIG_DEBUG_FS_INFO
   decoded.mfgdata   = scr[1];  /* Might be byte reversed! */
-
+#ifdef CONFIG_DEBUG_FS_INFO
   finfo("SCR:\n");
-  finfo("  SCR_STRUCTURE: %d SD_VERSION: %d\n",
-        decoded.scrversion, decoded.sdversion);
+  finfo("  SCR_STRUCTURE: %d SD_VERSION: %d.%d\n",
+        decoded.scrversion, decoded.sdversion >> 4, decoded.sdversion & 0xF);
   finfo("  DATA_STATE_AFTER_ERASE: %d SD_SECURITY: %d SD_BUS_WIDTHS: %x\n",
         decoded.erasestate, decoded.security, decoded.buswidth);
   finfo("  Manufacturing data: %08x\n",
@@ -1561,6 +1598,18 @@ static ssize_t mmcsd_readmultiple(FAR struct mmcsd_state_s *priv,
 
   /* Configure SDIO controller hardware for the read transfer */
 
+  if (priv->support_cmd23)
+  {
+    mmcsd_sendcmdpoll(priv, MMCSD_CMD23, nblocks);
+    ret = mmcsd_recv_r1(priv, MMCSD_CMD23);
+    if (ret != OK)
+      {
+        ferr("ERROR: mmcsd_recv_r1 for CMD23 failed: %d\n", ret);
+        SDIO_CANCEL(priv->dev);
+        return ret;
+      }
+  }
+
   SDIO_BLOCKSETUP(priv->dev, priv->blocksize, nblocks);
   SDIO_WAITENABLE(priv->dev,
                  SDIOWAIT_TRANSFERDONE | SDIOWAIT_TIMEOUT | SDIOWAIT_ERROR,
@@ -1607,18 +1656,123 @@ static ssize_t mmcsd_readmultiple(FAR struct mmcsd_state_s *priv,
 
   /* Send STOP_TRANSMISSION */
 
-  ret = mmcsd_stoptransmission(priv);
-
-  if (ret != OK)
+  if (!priv->support_cmd23)
+  {
+    ret = mmcsd_stoptransmission(priv);
+    if (ret != OK)
     {
       ferr("ERROR: mmcsd_stoptransmission failed: %d\n", ret);
     }
-
+  }
   /* On success, return the number of blocks read */
 
   return nblocks;
 }
 #endif
+
+static int mmcsd_get_ext_csd(FAR struct mmcsd_state_s *priv, uint32_t ext_csd[128])
+{
+    int ret;
+
+    finfo("read ext_csd\n");
+    DEBUGASSERT(priv != NULL && ext_csd != NULL);
+
+    /* Check if the card is locked */
+
+    if (priv->locked)
+      {
+        ferr("ERROR: Card is locked\n");
+        return -EPERM;
+      }
+
+  #if defined(CONFIG_SDIO_DMA) && defined(CONFIG_ARCH_HAVE_SDIO_PREFLIGHT)
+    /* If we think we are going to perform a DMA transfer, make sure that we
+     * will be able to before we commit the card to the operation.
+     */
+
+    if ((priv->caps & SDIO_CAPS_DMASUPPORTED) != 0)
+      {
+        ret = SDIO_DMAPREFLIGHT(priv->dev, ext_csd, 512);
+
+        if (ret != OK)
+          {
+            return ret;
+          }
+      }
+  #endif
+
+    /* Verify that the card is ready for the transfer.  The card may still be
+     * busy from the preceding write transfer.  It would be simpler to check
+     * for write busy at the end of each write, rather than at the beginning of
+     * each read AND write, but putting the busy-wait at the beginning of the
+     * transfer allows for more overlap and, hopefully, better performance
+     */
+
+    ret = mmcsd_transferready(priv);
+    if (ret != OK)
+      {
+        ferr("ERROR: Card not ready: %d\n", ret);
+        return ret;
+      }
+
+    /* Select the block size for the card */
+
+    ret = mmcsd_setblocklen(priv, 512);
+    if (ret != OK)
+      {
+        ferr("ERROR: mmcsd_setblocklen failed: %d\n", ret);
+        return ret;
+      }
+
+    /* Configure SDIO controller hardware for the read transfer */
+
+    SDIO_BLOCKSETUP(priv->dev, 512, 1);
+    SDIO_WAITENABLE(priv->dev,
+                    SDIOWAIT_TRANSFERDONE | SDIOWAIT_TIMEOUT | SDIOWAIT_ERROR,
+                    MMCSD_BLOCK_RDATADELAY);
+
+  #ifdef CONFIG_SDIO_DMA
+    if ((priv->caps & SDIO_CAPS_DMASUPPORTED) != 0)
+      {
+        ret = SDIO_DMARECVSETUP(priv->dev, (uint8_t *)ext_csd, 512);
+        if (ret != OK)
+          {
+            finfo("SDIO_DMARECVSETUP: error %d\n", ret);
+            SDIO_CANCEL(priv->dev);
+            return ret;
+          }
+      }
+    else
+  #endif
+      {
+        SDIO_RECVSETUP(priv->dev, (uint8_t *)ext_csd, 512);
+      }
+
+    /* Send CMD8, SEND_EXT_CSD
+     */
+
+    mmcsd_sendcmdpoll(priv, MMC_CMD8, 0);
+    ret = mmcsd_recv_r1(priv, MMC_CMD8);
+    if (ret != OK)
+      {
+        ferr("ERROR: mmcsd_recv_r1 for CMD8 failed: %d\n", ret);
+        SDIO_CANCEL(priv->dev);
+        return ret;
+      }
+
+    /* Then wait for the data transfer to complete */
+
+    ret = mmcsd_eventwait(priv, SDIOWAIT_TIMEOUT | SDIOWAIT_ERROR);
+    if (ret != OK)
+      {
+        ferr("ERROR: CMD17 transfer failed: %d\n", ret);
+        return ret;
+      }
+
+    /* Return value:  One sector read */
+
+    return ret;
+}
 
 /****************************************************************************
  * Name: mmcsd_writesingle
@@ -1908,6 +2062,18 @@ static ssize_t mmcsd_writemultiple(FAR struct mmcsd_state_s *priv,
    * now.
    */
 
+  if (priv->support_cmd23)
+  {
+    mmcsd_sendcmdpoll(priv, MMCSD_CMD23, nblocks);
+    ret = mmcsd_recv_r1(priv, MMCSD_CMD23);
+    if (ret != OK)
+    {
+      ferr("ERROR: mmcsd_recv_r1 for CMD23 failed: %d\n", ret);
+      SDIO_CANCEL(priv->dev);
+      return ret;
+    }
+  }
+
   if ((priv->caps & SDIO_CAPS_DMABEFOREWRITE) == 0)
     {
       /* Send CMD25, WRITE_MULTIPLE_BLOCK, and verify that good R1 status
@@ -1980,8 +2146,10 @@ static ssize_t mmcsd_writemultiple(FAR struct mmcsd_state_s *priv,
     }
 
   /* Send STOP_TRANSMISSION */
-
-  ret = mmcsd_stoptransmission(priv);
+  if (!priv->support_cmd23)
+  {
+    ret = mmcsd_stoptransmission(priv);
+  }
   if (evret != OK)
     {
       return evret;
@@ -2431,93 +2599,289 @@ static void mmcsd_mediachange(FAR void *arg)
  *   selected.
  *
  ****************************************************************************/
-
 static int mmcsd_widebus(FAR struct mmcsd_state_s *priv)
 {
-  int ret;
-
-  /* Check if the SD card supports wide bus operation (as reported in the
-   * SCR or in the SDIO driver capabililities)
-   */
-
-  if ((priv->buswidth & MMCSD_SCR_BUSWIDTH_4BIT) != 0 &&
-      (priv->caps & SDIO_CAPS_1BIT_ONLY) == 0)
+    int ret;
+    bool support_4bit = false;
+    if (IS_MMC(priv->type))
     {
-      /* Disconnect any CD/DAT3 pull up using ACMD42.  ACMD42 is optional and
-       * need not be supported by all SD calls.
-       *
-       * First end CMD55 APP_CMD with argument as card's RCA.
-       */
-
-      mmcsd_sendcmdpoll(priv, SD_CMD55, (uint32_t)priv->rca << 16);
-      ret = mmcsd_recv_r1(priv, SD_CMD55);
-      if (ret != OK)
+        uint32_t ext_csd[128];
+        const uint8_t *ext_csd_tbl = (const uint8_t*)&ext_csd;
+        ret = mmcsd_get_ext_csd(priv, ext_csd);
+        if (ret != OK)
         {
-          ferr("ERROR: RECVR1 for CMD55 of ACMD42: %d\n", ret);
-          return ret;
+            return ret;
         }
 
-      /* Then send ACMD42 with the argument to disconnect the CD/DAT3
-       * pull-up
-       *
-       * TODO: May want to disable, then re-enable around data transfers
-       * to support card detection"
-       */
-
-      mmcsd_sendcmdpoll(priv, SD_ACMD42, MMCSD_ACMD42_CD_DISCONNECT);
-      ret = mmcsd_recv_r1(priv, SD_ACMD42);
-      if (ret != OK)
+        support_4bit = (priv->caps & SDIO_CAPS_4BIT) != 0;
+        bool support_8bit = (priv->caps & SDIO_CAPS_8BIT) != 0;
+        uint8_t ext_csd_timing;
+        uint8_t ext_csd_buswidth;
+        enum sdio_clock_e timing;
+        bool need_tuning = false;
+        bool need_switch_hs_timing = false;
+        uint32_t cmd_arg;
+        if (((priv->caps & SDIO_CAPS_MMC_ENH_DQS) != 0) && ((ext_csd_tbl[184] & 1) != 0))
         {
-          fwarn("WARNING: SD card does not support ACMD42: %d\n", ret);
-          return ret;
+            ext_csd_timing = EXT_CSD_HS_TIMING_HS400;
+            ext_csd_buswidth = EXT_CSD_BUS_WIDTH_8BIT_DDR_ENH_STROBE;
+            timing = CLOCK_MMC_HS400_ENH_DQS;
+            need_switch_hs_timing = true;
+        }
+        else if (((priv->caps & SDIO_CAPS_MMC_HS400) != 0) && ((ext_csd_tbl[196] & 0x40) != 0))
+        {
+            ext_csd_timing = EXT_CSD_HS_TIMING_HS400;
+            ext_csd_buswidth = EXT_CSD_BUS_WIDTH_8BIT_DDR;
+            need_tuning = true;
+            timing = CLOCK_MMC_HS400;
+            need_switch_hs_timing = true;
+        }
+        else if (((priv->caps & SDIO_CAPS_MMC_HS200) != 0) && ((ext_csd_tbl[196] & 0x10) != 0))
+        {
+            need_tuning = true;
+            ext_csd_timing = EXT_CSD_HS_TIMING_HS200;
+            ext_csd_buswidth = support_8bit ? EXT_CSD_BUS_WIDTH_8BIT : EXT_CSD_BUS_WIDTH_4BIT;
+            timing = CLOCK_MMC_HS200;
+        }
+        else if (((priv->caps & SDIO_CAPS_MMC_HS_DDR) != 0) && ((ext_csd_tbl[196] & 0x4) != 0))
+        {
+            ext_csd_timing = EXT_CSD_HS_TIMING_HIGHSPEED;
+            ext_csd_buswidth = support_8bit ? EXT_CSD_BUS_WIDTH_8BIT_DDR : EXT_CSD_BUS_WDITH_4BIT_DDR;
+            timing = CLOCK_MMC_HS_DDR;
+        }
+        else
+        {
+            ext_csd_timing = EXT_CSD_HS_TIMING_HIGHSPEED;
+            ext_csd_buswidth = support_8bit ? EXT_CSD_BUS_WIDTH_8BIT : EXT_CSD_BUS_WIDTH_4BIT;
+            timing = CLOCK_MMC_TRANSFER;
         }
 
-      /* Now send ACMD6 to select wide, 4-bit bus operation, beginning
-       * with CMD55, APP_CMD:
-       */
-
-      mmcsd_sendcmdpoll(priv, SD_CMD55, (uint32_t)priv->rca << 16);
-      ret = mmcsd_recv_r1(priv, SD_CMD55);
-      if (ret != OK)
+        bool has_configured = false;
+        /* Set HS_TIMING */
+        if (need_tuning)
         {
-          ferr("ERROR: RECVR1 for CMD55 of ACMD6: %d\n", ret);
-          return ret;
+            /* Set bus width */
+            uint8_t tmp_ext_buswidth = support_8bit ? EXT_CSD_BUS_WIDTH_8BIT : EXT_CSD_BUS_WIDTH_4BIT;
+            cmd_arg = 0x03b70000 | (((uint32_t)tmp_ext_buswidth) << 8);
+            mmcsd_sendcmdpoll(priv, MMCSD_CMD6, cmd_arg);
+            ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+            if (ret != OK)
+            {
+                ferr("ERROR: mmcsd_recv_r1 for CMD6 failed: %d\n", ret);
+                return ret;
+            }
+            SDIO_WIDEBUS(priv->dev, tmp_ext_buswidth);
+            /* Set HS_TIMING */
+            cmd_arg = 0x03b90000 | (((uint32_t)EXT_CSD_HS_TIMING_HS200) << 8);
+            mmcsd_sendcmdpoll(priv, MMCSD_CMD6, cmd_arg);
+            ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+            if (ret != OK)
+            {
+                ferr("ERROR: mmcsd_recv_r1 for CMD6 failed: %d\n", ret);
+                return ret;
+            }
+            ret = SDIO_TIMING(priv->dev, CLOCK_MMC_HS200);
+            if (ret != OK)
+            {
+                return ret;
+            }
+
+            if (timing == CLOCK_MMC_HS200)
+            {
+                has_configured = true;
+            }
         }
 
-      /* Then send ACMD6 */
-
-      mmcsd_sendcmdpoll(priv, SD_ACMD6, MMCSD_ACMD6_BUSWIDTH_4);
-      ret = mmcsd_recv_r1(priv, SD_ACMD6);
-      if (ret != OK)
+        if (need_switch_hs_timing)
         {
-          return ret;
+            cmd_arg = 0x03b90000 | (((uint32_t)EXT_CSD_HS_TIMING_HIGHSPEED) << 8);
+            mmcsd_sendcmdpoll(priv, MMCSD_CMD6, cmd_arg);
+            ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+            if (ret != OK)
+            {
+                ferr("ERROR: mmcsd_recv_r1 for CMD6 failed: %d\n", ret);
+                return ret;
+            }
+            ret = SDIO_TIMING(priv->dev, CLOCK_MMC_TRANSFER);
+            if (ret != OK)
+            {
+                return ret;
+            }
         }
 
-      /* Configure the SDIO peripheral */
+        if (!has_configured)
+        {
+            if ((timing == CLOCK_MMC_HS400) || (timing == CLOCK_MMC_HS400_ENH_DQS))
+            {
+                cmd_arg = 0x03b70000 | (((uint32_t)ext_csd_buswidth) << 8);
+                mmcsd_sendcmdpoll(priv, MMCSD_CMD6, cmd_arg);
+                ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+                if (ret != OK)
+                {
+                    ferr("ERROR: mmcsd_recv_r1 for CMD6 failed: %d\n", ret);
+                    return ret;
+                }
+                SDIO_WIDEBUS(priv->dev, ext_csd_buswidth);
+                /* Set HS_TIMING */
+                cmd_arg = 0x03b90000 | (((uint32_t)ext_csd_timing) << 8);
+                mmcsd_sendcmdpoll(priv, MMCSD_CMD6, cmd_arg);
+                ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+                if (ret != OK)
+                {
+                    ferr("ERROR: mmcsd_recv_r1 for CMD6 failed: %d\n", ret);
+                    return ret;
+                }
+                ret = SDIO_TIMING(priv->dev, timing);
+                if (ret != OK)
+                {
+                    return ret;
+                }
+            }
+            else
+            {
+                /* Set HS_TIMING */
+                cmd_arg = 0x03b90000 | (((uint32_t)ext_csd_timing) << 8);
+                mmcsd_sendcmdpoll(priv, MMCSD_CMD6, cmd_arg);
+                ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+                if (ret != OK)
+                {
+                    ferr("ERROR: mmcsd_recv_r1 for CMD6 failed: %d\n", ret);
+                    return ret;
+                }
+                ret = SDIO_TIMING(priv->dev, timing);
+                if (ret != OK)
+                {
+                    return ret;
+                }
+                /* Set BUS_WIDTH */
+                cmd_arg = 0x03b70000 | (((uint32_t)ext_csd_buswidth) << 8);
+                mmcsd_sendcmdpoll(priv, MMCSD_CMD6, cmd_arg);
+                ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+                if (ret != OK)
+                {
+                    ferr("ERROR: mmcsd_recv_r1 for CMD6 failed: %d\n", ret);
+                    return ret;
+                }
+                SDIO_WIDEBUS(priv->dev, ext_csd_buswidth);
+            }
+        }
+    }
+    else if (IS_SD(priv->type))
+    {
+        /* Check if the SD card supports wide bus operation (as reported in the
+         * SCR or in the SDIO driver capabililities)
+         */
+        if ((priv->buswidth & MMCSD_SCR_BUSWIDTH_4BIT) != 0 &&
+            (priv->caps & SDIO_CAPS_1BIT_ONLY) == 0)
+        {
+            support_4bit = true;
+            /* Disconnect any CD/DAT3 pull up using ACMD42.  ACMD42 is optional and
+             * need not be supported by all SD calls.
+             *
+             * First end CMD55 APP_CMD with argument as card's RCA.
+             */
 
-      finfo("Wide bus operation selected\n");
-      SDIO_WIDEBUS(priv->dev, true);
-      priv->widebus = true;
+            mmcsd_sendcmdpoll(priv, SD_CMD55, (uint32_t)priv->rca << 16);
+            ret = mmcsd_recv_r1(priv, SD_CMD55);
+            if (ret != OK)
+            {
+                ferr("ERROR: RECVR1 for CMD55 of ACMD42: %d\n", ret);
+                return ret;
+            }
 
-      SDIO_CLOCK(priv->dev, CLOCK_SD_TRANSFER_4BIT);
-      nxsig_usleep(MMCSD_CLK_DELAY);
-      return OK;
+            /* Then send ACMD42 with the argument to disconnect the CD/DAT3
+             * pull-up
+             *
+             * TODO: May want to disable, then re-enable around data transfers
+             * to support card detection"
+             */
+
+            mmcsd_sendcmdpoll(priv, SD_ACMD42, MMCSD_ACMD42_CD_DISCONNECT);
+            ret = mmcsd_recv_r1(priv, SD_ACMD42);
+            if (ret != OK)
+            {
+                fwarn("WARNING: SD card does not support ACMD42: %d\n", ret);
+                return ret;
+            }
+
+            /* Configure the SDIO peripheral */
+            if (support_4bit)
+            {
+                /* Now send ACMD6 to select wide, 4-bit bus operation, beginning
+                * with CMD55, APP_CMD:
+                */
+                mmcsd_sendcmdpoll(priv, SD_CMD55, (uint32_t)priv->rca << 16);
+                ret = mmcsd_recv_r1(priv, SD_CMD55);
+                if (ret != OK)
+                {
+                    ferr("ERROR: RECVR1 for CMD55 of ACMD6: %d\n", ret);
+                    return ret;
+                }
+
+                /* Then send ACMD6 */
+                mmcsd_sendcmdpoll(priv, SD_ACMD6, MMCSD_ACMD6_BUSWIDTH_4);
+                ret = mmcsd_recv_r1(priv, SD_ACMD6);
+                if (ret != OK)
+                {
+                    return ret;
+                }
+
+                finfo("Wide bus operation selected\n");
+                SDIO_WIDEBUS(priv->dev, true);
+                priv->widebus = true;
+            }
+
+            uint32_t access_mode;
+            enum sdio_clock_e timing;
+            if (((priv->caps & SDIO_CAPS_SD_SDR104) != 0) && (priv->is_1v8_signaling != 0))
+            {
+                access_mode = MMCSD_CMD6_SPEED_SDR104;
+                timing = CLOCK_SD_SDR104;
+                finfo("will switch to sdr104 mode\n");
+            }
+            else if (((priv->caps & SDIO_CAPS_SD_SDR50) != 0) && (priv->is_1v8_signaling != 0))
+            {
+                access_mode = MMCSD_CMD6_SPEED_SDR50;
+                timing = CLOCK_SD_SDR50;
+                finfo("will switch to sdr50 mode\n");
+            }
+            else
+            {
+                access_mode = MMCSD_CMD6_SPEED_HIGHSPEED;
+                timing = CLOCK_SD_TRANSFER_4BIT;
+                finfo("will switch to high-speed/sdr25 mode\n");
+            }
+
+            /* Send CMD6: set access mode */
+            mmcsd_sendcmdpoll(priv, MMCSD_CMD6, MMCSD_MODE_SET_FUNC | access_mode);
+            ret = mmcsd_recv_r1(priv, MMCSD_CMD6);
+            if (ret != OK)
+            {
+                ferr("Error: failed to switch to the above mode via CMD6\n");
+                return ret;
+            }
+
+            ret = SDIO_TIMING(priv->dev, timing);
+            if (ret != OK)
+            {
+                ferr("Error: failed to switch to the above mode via SD Host\n");
+            }
+        }
     }
 
-  /* Wide bus operation not supported */
+    nxsig_usleep(MMCSD_CLK_DELAY);
 
-  fwarn("WARNING: Card does not support wide-bus operation\n");
-  return -ENOSYS;
+    return OK;
 }
 
-/****************************************************************************
- * Name: mmcsd_mmcinitialize
- *
- * Description:
- *   We believe that there is an MMC card in the slot.  Attempt to initialize
- *   and configure the MMC card.  This is called only from mmcsd_probe().
- *
- ****************************************************************************/
+    /****************************************************************************
+     * Name: mmcsd_mmcinitialize
+     *
+     * Description:
+     *   We believe that there is an MMC card in the slot.  Attempt to initialize
+     *   and configure the MMC card.  This is called only from mmcsd_probe().
+     *
+     ****************************************************************************/
 
 #ifdef CONFIG_MMCSD_MMCSUPPORT
 static int mmcsd_mmcinitialize(FAR struct mmcsd_state_s *priv)
@@ -2629,11 +2993,10 @@ static int mmcsd_mmcinitialize(FAR struct mmcsd_state_s *priv)
 
   mmcsd_decode_csd(priv, csd);
 
-  /* Select high speed MMC clocking (which may depend on the DSR setting) */
+  priv->support_cmd23 = true; /* Always assumes that the eMMC supports CMD23 */
 
-  SDIO_CLOCK(priv->dev, CLOCK_MMC_TRANSFER);
-  nxsig_usleep(MMCSD_CLK_DELAY);
-  return OK;
+  ret = mmcsd_widebus(priv);
+  return ret;
 }
 
 /****************************************************************************
@@ -2899,7 +3262,6 @@ static int mmcsd_sdinitialize(FAR struct mmcsd_state_s *priv)
    * that configuration register contains the indication whether or not
    * this card supports wide bus operation.
    */
-
   ret = mmcsd_get_scr(priv, scr);
   if (ret != OK)
     {
@@ -2928,6 +3290,7 @@ static int mmcsd_sdinitialize(FAR struct mmcsd_state_s *priv)
   return OK;
 }
 
+
 /****************************************************************************
  * Name: mmcsd_cardidentify
  *
@@ -2937,337 +3300,362 @@ static int mmcsd_sdinitialize(FAR struct mmcsd_state_s *priv)
  *
  ****************************************************************************/
 
-static int mmcsd_cardidentify(FAR struct mmcsd_state_s *priv)
+static int  mmcsd_cardidentify(FAR struct mmcsd_state_s *priv)
 {
-  uint32_t response;
-  uint32_t sdcapacity = MMCSD_ACMD41_STDCAPACITY;
+    uint32_t response;
+    uint32_t sdcapacity = MMCSD_ACMD41_STDCAPACITY;
 #ifdef CONFIG_MMCSD_MMCSUPPORT
-  uint32_t mmccapacity = MMCSD_R3_HIGHCAPACITY;
+    uint32_t mmccapacity = MMCSD_R3_HIGHCAPACITY;
 #endif
-  clock_t start;
-  clock_t elapsed;
-  int ret;
+    clock_t start;
+    clock_t elapsed;
+    int ret;
 
-  /* Assume failure to identify the card */
+    /* Assume failure to identify the card */
 
-  priv->type = MMCSD_CARDTYPE_UNKNOWN;
+    priv->type = MMCSD_CARDTYPE_UNKNOWN;
 
-  /* Check if there is a card present in the slot.  This is normally a
-   * matter is of GPIO sensing.
-   */
+    /* Check if there is a card present in the slot.  This is normally a
+     * matter is of GPIO sensing.
+     */
 
-  if (!SDIO_PRESENT(priv->dev))
+    if (!SDIO_PRESENT(priv->dev))
     {
-      finfo("No card present\n");
-      return -ENODEV;
+        finfo("No card present\n");
+        return -ENODEV;
     }
 
-  /* Set ID mode clocking (<400KHz) */
+    /* Set ID mode clocking (<400KHz) */
 
-  SDIO_CLOCK(priv->dev, CLOCK_IDMODE);
+    SDIO_CLOCK(priv->dev, CLOCK_IDMODE);
 
-  /* After power up at least 74 clock cycles are required prior to starting
-   * bus communication
-   */
+    /* After power up at least 74 clock cycles are required prior to starting
+     * bus communication
+     */
 
-  up_udelay(MMCSD_POWERUP_DELAY);
+    up_udelay(MMCSD_POWERUP_DELAY);
 
-  /* Then send CMD0 just once is standard procedure */
+    /* Then send CMD0 just once is standard procedure */
 
-  mmcsd_sendcmdpoll(priv, MMCSD_CMD0, 0);
-  nxsig_usleep(MMCSD_IDLE_DELAY);
+    mmcsd_sendcmdpoll(priv, MMCSD_CMD0, 0);
+    nxsig_usleep(MMCSD_IDLE_DELAY);
 
 #ifdef CONFIG_MMCSD_MMCSUPPORT
-  /* Send CMD1 which is supported only by MMC.  if there is valid response
-   * then the card is definitely of MMC type
-   */
+    /* Send CMD1 which is supported only by MMC.  if there is valid response
+     * then the card is definitely of MMC type
+     */
 
-  mmcsd_sendcmdpoll(priv, MMC_CMD1, MMCSD_VDD_33_34 | mmccapacity);
-  ret = SDIO_RECVR3(priv->dev, MMC_CMD1, &response);
+    mmcsd_sendcmdpoll(priv, MMC_CMD1, 0xc0ff8080);
+    ret = SDIO_RECVR3(priv->dev, MMC_CMD1, &response);
 
-  /* Was the operating range set successfully */
+    /* Was the operating range set successfully */
 
-  if (ret != OK)
+    if (ret != OK)
     {
-      ferr("ERROR: CMD1 RECVR3: %d\n", ret);
+        ferr("ERROR: CMD1 RECVR3: %d\n", ret);
     }
-  else
+    else
     {
-      /* CMD1 succeeded... this must be an MMC card */
+        /* CMD1 succeeded... this must be an MMC card */
 
-      finfo("MMC card detected\n");
-      priv->type = MMCSD_CARDTYPE_MMC;
+        finfo("MMC card detected\n");
+        priv->type = MMCSD_CARDTYPE_MMC;
 
-      /* Now, check if this is a MMC card/chip that supports block
-       * addressing
-       */
+        /* Now, check if this is a MMC card/chip that supports block
+         * addressing
+         */
 
-      if ((response & MMCSD_R3_HIGHCAPACITY) != 0)
+        if ((response & MMCSD_R3_HIGHCAPACITY) != 0)
         {
-          finfo("MMC card/chip with block addressing\n");
-          mmccapacity = MMCSD_R3_HIGHCAPACITY;
-          priv->type |= MMCSD_CARDTYPE_BLOCK;
+            finfo("MMC card/chip with block addressing\n");
+            mmccapacity = MMCSD_R3_HIGHCAPACITY;
+            priv->type |= MMCSD_CARDTYPE_BLOCK;
         }
-      else
+        else
         {
-          mmccapacity = MMCSD_R3_STDCAPACITY;
+            mmccapacity = MMCSD_R3_STDCAPACITY;
         }
 
-      /* Check if the card is busy.  Very confusing, BUSY is set LOW
-       * if the card has not finished its initialization, so it really
-       * means NOT busy.
-       */
+        /* Check if the card is busy.  Very confusing, BUSY is set LOW
+         * if the card has not finished its initialization, so it really
+         * means NOT busy.
+         */
 
-      if ((response & MMCSD_CARD_BUSY) != 0)
+        if ((response & MMCSD_CARD_BUSY) != 0)
         {
-          /* NO.. We really should check the current state to see if the
-           * MMC successfully made it to the IDLE state, but at least for
-           * now, we will simply assume that that is the case.
-           *
-           * Then break out of the look with an MMC card identified
-           */
+            /* NO.. We really should check the current state to see if the
+             * MMC successfully made it to the IDLE state, but at least for
+             * now, we will simply assume that that is the case.
+             *
+             * Then break out of the look with an MMC card identified
+             */
 
-          finfo("MMC card/chip ready!\n");
-          return OK;
+            finfo("MMC card/chip ready!\n");
+            return OK;
         }
     }
 
-  if (!IS_MMC(priv->type))
+    if (!IS_MMC(priv->type))
 #endif
     {
-      /* Check for SDHC Version 2.x.  Send CMD8 to verify SD card interface
-       * operating condition. CMD 8 is reserved on SD version 1.0 and MMC.
-       *
-       * CMD8 Argument:
-       *    [31:12]: Reserved (shall be set to '0')
-       *    [11:8]: Supply Voltage (VHS) 0x1 (Range: 2.7-3.6 V)
-       *    [7:0]: Check Pattern (recommended 0xaa)
-       * CMD8 Response: R7
-       */
+        /* Check for SDHC Version 2.x.  Send CMD8 to verify SD card interface
+         * operating condition. CMD 8 is reserved on SD version 1.0 and MMC.
+         *
+         * CMD8 Argument:
+         *    [31:12]: Reserved (shall be set to '0')
+         *    [11:8]: Supply Voltage (VHS) 0x1 (Range: 2.7-3.6 V)
+         *    [7:0]: Check Pattern (recommended 0xaa)
+         * CMD8 Response: R7
+         */
 
-      ret = mmcsd_sendcmdpoll(priv, SD_CMD8,
-                              MMCSD_CMD8CHECKPATTERN | MMCSD_CMD8VOLTAGE_27);
-      if (ret == OK)
+        ret = mmcsd_sendcmdpoll(priv, SD_CMD8,
+                                MMCSD_CMD8CHECKPATTERN | MMCSD_CMD8VOLTAGE_27);
+        if (ret == OK)
         {
-          /* CMD8 was sent successfully... Get the R7 response */
+            /* CMD8 was sent successfully... Get the R7 response */
 
-          ret = SDIO_RECVR7(priv->dev, SD_CMD8, &response);
+            ret = SDIO_RECVR7(priv->dev, SD_CMD8, &response);
         }
 
-      /* Were both the command sent and response received correctly? */
+        /* Were both the command sent and response received correctly? */
 
-      if (ret == OK)
+        if (ret == OK)
         {
-          /* CMD8 succeeded this is probably a SDHC card. Verify the
-           * operating voltage and that the check pattern was correctly
-           * echoed
-           */
+            /* CMD8 succeeded this is probably a SDHC card. Verify the
+             * operating voltage and that the check pattern was correctly
+             * echoed
+             */
 
-          if (((response & MMCSD_R7VOLTAGE_MASK) == MMCSD_R7VOLTAGE_27) &&
-              ((response & MMCSD_R7ECHO_MASK) ==  MMCSD_R7CHECKPATTERN))
+            if (((response & MMCSD_R7VOLTAGE_MASK) == MMCSD_R7VOLTAGE_27) &&
+                ((response & MMCSD_R7ECHO_MASK) == MMCSD_R7CHECKPATTERN))
             {
-              finfo("SD V2.x card\n");
-              priv->type = MMCSD_CARDTYPE_SDV2;
-              sdcapacity = MMCSD_ACMD41_HIGHCAPACITY;
+                finfo("SD V2.x card\n");
+                priv->type = MMCSD_CARDTYPE_SDV2;
+                sdcapacity = MMCSD_ACMD41_HIGHCAPACITY;
             }
-          else
+            else
             {
-              ferr("ERROR: R7: %08" PRIx32 "\n", response);
-              return -EIO;
+                ferr("ERROR: R7: %08" PRIx32 "\n", response);
+                return -EIO;
             }
         }
     }
 
-  /* At this point, type is either UNKNOWN or SDV2.  Try sending
-   * CMD55 and (maybe) ACMD41 for up to 1 second or until the card
-   * exits the IDLE state.  CMD55 is supported by SD V1.x and SD V2.x,
-   * but not MMC
-   */
+    /* At this point, type is either UNKNOWN or SDV2.  Try sending
+     * CMD55 and (maybe) ACMD41 for up to 1 second or until the card
+     * exits the IDLE state.  CMD55 is supported by SD V1.x and SD V2.x,
+     * but not MMC
+     */
 
-  start   = clock_systime_ticks();
-  elapsed = 0;
-  do
+    start = clock_systime_ticks();
+    elapsed = 0;
+    uint32_t ocr = 0;
+    sdio_capset_t caps = SDIO_CAPABILITIES(priv->dev);
+    bool is_1v8_supported = ((caps & SDIO_CAPS_1V8) != 0);
+    bool need_switch_uhs_voltage = false;
+    do
     {
-      /* We may have already determined that his card is an MMC card from
-       * an earlier pass through this loop.  In that case, we should
-       * skip the SD-specific commands.
-       */
+        /* We may have already determined that his card is an MMC card from
+         * an earlier pass through this loop.  In that case, we should
+         * skip the SD-specific commands.
+         */
 #ifdef CONFIG_MMCSD_MMCSUPPORT
-      if (!IS_MMC(priv->type))
+        if (!IS_MMC(priv->type))
 #endif
         {
-          /* Send CMD55 with argument = 0 */
+            /* Send CMD55 with argument = 0 */
 
-          mmcsd_sendcmdpoll(priv, SD_CMD55, 0);
-          ret = mmcsd_recv_r1(priv, SD_CMD55);
-          if (ret != OK)
+            mmcsd_sendcmdpoll(priv, SD_CMD55, 0);
+            ret = mmcsd_recv_r1(priv, SD_CMD55);
+            if (ret != OK)
             {
-              /* I am a little confused.. I think both SD and MMC cards
-               * support CMD55 (but maybe only SD cards support CMD55).
-               * We'll make the the MMC vs. SD decision based on CMD1 and
-               * ACMD41.
-               */
+                /* I am a little confused.. I think both SD and MMC cards
+                 * support CMD55 (but maybe only SD cards support CMD55).
+                 * We'll make the the MMC vs. SD decision based on CMD1 and
+                 * ACMD41.
+                 */
 
-              ferr("ERROR: mmcsd_recv_r1(CMD55) failed: %d\n", ret);
+                ferr("ERROR: mmcsd_recv_r1(CMD55) failed: %d\n", ret);
             }
-          else
+            else
             {
-              /* Send ACMD41 */
+                /* Send ACMD41 */
 
-              mmcsd_sendcmdpoll(priv, SD_ACMD41,
-                                MMCSD_ACMD41_VOLTAGEWINDOW_33_32 |
-                                sdcapacity);
-              ret = SDIO_RECVR3(priv->dev, SD_ACMD41, &response);
-              if (ret != OK)
+                mmcsd_sendcmdpoll(priv, SD_ACMD41, ocr);
+                ret = SDIO_RECVR3(priv->dev, SD_ACMD41, &response);
+                if (ret != OK)
                 {
-                  /* If the error is a timeout, then it is probably an MMC
-                   * card, but we will make the decision based on CMD1
-                   * below.
-                   */
+                    /* If the error is a timeout, then it is probably an MMC
+                     * card, but we will make the decision based on CMD1
+                     * below.
+                     */
 
-                  ferr("ERROR: ACMD41 RECVR3: %d\n", ret);
+                    ferr("ERROR: ACMD41 RECVR3: %d\n", ret);
                 }
-              else
+                else
                 {
-                  /* ACMD41 succeeded.  ACMD41 is supported by SD V1.x and
-                   * SD V2.x, but not MMC.  If we did not previously
-                   * determine that this is an SD V2.x (via CMD8), then this
-                   * must be SD V1.x
-                   */
+                    /* ACMD41 succeeded.  ACMD41 is supported by SD V1.x and
+                     * SD V2.x, but not MMC.  If we did not previously
+                     * determine that this is an SD V2.x (via CMD8), then this
+                     * must be SD V1.x
+                     */
 
-                  finfo("R3: %08" PRIx32 "\n", response);
-                  if (priv->type == MMCSD_CARDTYPE_UNKNOWN)
+                    finfo("R3: %08" PRIx32 "\n", response);
+                    if (priv->type == MMCSD_CARDTYPE_UNKNOWN)
                     {
-                      finfo("SD V1.x card\n");
-                      priv->type = MMCSD_CARDTYPE_SDV1;
+                        finfo("SD V1.x card\n");
+                        priv->type = MMCSD_CARDTYPE_SDV1;
                     }
 
-                  /* Check if the card is busy.  Very confusing, BUSY is set
-                   * LOW if the card has not finished its initialization,
-                   * so it really means NOT busy.
-                   */
+                    /* Check if the card is busy.  Very confusing, BUSY is set
+                     * LOW if the card has not finished its initialization,
+                     * so it really means NOT busy.
+                     */
 
-                  if ((response & MMCSD_CARD_BUSY) != 0)
+                    if ((response & MMCSD_CARD_BUSY) != 0)
                     {
-                      /* No.. We really should check the current state to
-                       * see if the SD card successfully made it to the IDLE
-                       * state, but at least for now, we will simply assume
-                       * that that is the case.
-                       *
-                       * Now, check if this is a SD V2.x card that supports
-                       * block addressing
-                       */
+                        /* No.. We really should check the current state to
+                         * see if the SD card successfully made it to the IDLE
+                         * state, but at least for now, we will simply assume
+                         * that that is the case.
+                         *
+                         * Now, check if this is a SD V2.x card that supports
+                         * block addressing
+                         */
 
-                      if ((response & MMCSD_R3_HIGHCAPACITY) != 0)
+                        if ((response & MMCSD_R3_HIGHCAPACITY) != 0)
                         {
-                          finfo("SD V2.x card with block addressing\n");
-                          DEBUGASSERT(priv->type == MMCSD_CARDTYPE_SDV2);
-                          priv->type |= MMCSD_CARDTYPE_BLOCK;
+                            finfo("SD V2.x card with block addressing\n");
+                            DEBUGASSERT(priv->type == MMCSD_CARDTYPE_SDV2);
+                            priv->type |= MMCSD_CARDTYPE_BLOCK;
                         }
+                        if ((response & MMCSD_R3_S18A) != 0)
+                        {
+                            need_switch_uhs_voltage = true;
+                        }
+                        /* And break out of the loop with an card identified */
 
-                      /* And break out of the loop with an card identified */
-
-                      break;
+                        break;
+                    }
+                    else
+                    {
+                        ocr = response | (sdcapacity ) | (is_1v8_supported ? MMCSD_R3_S18A : 0);
                     }
                 }
             }
         }
 
-      /* If we get here then either (1) CMD55 failed, (2) CMD41 failed, or
-       * (3) and SD or MMC card has been identified, but it is not yet in
-       * the IDLE state.  If SD card has not been identified, then we might
-       * be looking at an MMC card.  We can send the CMD1 to find out for
-       * sure.  CMD1 is supported by MMC cards, but not by SD cards.
-       */
+        /* If we get here then either (1) CMD55 failed, (2) CMD41 failed, or
+         * (3) and SD or MMC card has been identified, but it is not yet in
+         * the IDLE state.  If SD card has not been identified, then we might
+         * be looking at an MMC card.  We can send the CMD1 to find out for
+         * sure.  CMD1 is supported by MMC cards, but not by SD cards.
+         */
 
 #ifdef CONFIG_MMCSD_MMCSUPPORT
-      if (IS_MMC(priv->type))
+        if (IS_MMC(priv->type))
         {
-          /* Send the MMC CMD1 to specify the operating voltage. CMD1 causes
-           * transition to ready state/ card-identification mode.  NOTE: If
-           * the card does not support this voltage range, it will go the
-           * inactive state.
-           *
-           * NOTE: An MMC card will only respond once to CMD1 (unless it is
-           * busy).  This is part of the logic used to determine how  many
-           * MMC cards are connected (This implementation supports only a
-           * single MMC card).  So we cannot re-send CMD1 without first
-           * placing the card back into stand-by state (if the card is busy,
-           * it will automatically go back to the standby state).
-           */
+            /* Send the MMC CMD1 to specify the operating voltage. CMD1 causes
+             * transition to ready state/ card-identification mode.  NOTE: If
+             * the card does not support this voltage range, it will go the
+             * inactive state.
+             *
+             * NOTE: An MMC card will only respond once to CMD1 (unless it is
+             * busy).  This is part of the logic used to determine how  many
+             * MMC cards are connected (This implementation supports only a
+             * single MMC card).  So we cannot re-send CMD1 without first
+             * placing the card back into stand-by state (if the card is busy,
+             * it will automatically go back to the standby state).
+             */
 
-          mmcsd_sendcmdpoll(priv, MMC_CMD1, MMCSD_VDD_33_34 | mmccapacity);
-          ret = SDIO_RECVR3(priv->dev, MMC_CMD1, &response);
+            mmcsd_sendcmdpoll(priv, MMC_CMD1, 0xc0ff8080);
+            ret = SDIO_RECVR3(priv->dev, MMC_CMD1, &response);
 
-          /* Was the operating range set successfully */
+            /* Was the operating range set successfully */
 
-          if (ret != OK)
+            if (ret != OK)
             {
-              ferr("ERROR: CMD1 RECVR3: %d\n", ret);
+                ferr("ERROR: CMD1 RECVR3: %d\n", ret);
             }
-          else
+            else
             {
-              /* CMD1 succeeded... this must be an MMC card */
+                /* CMD1 succeeded... this must be an MMC card */
+                priv->type = MMCSD_CARDTYPE_MMC;
 
-              priv->type = MMCSD_CARDTYPE_MMC;
+                /* Now, check if this is a MMC card/chip that supports block
+                 * addressing
+                 */
 
-              /* Now, check if this is a MMC card/chip that supports block
-               * addressing
-               */
-
-              if ((response & MMCSD_R3_HIGHCAPACITY) != 0)
+                if ((response & MMCSD_R3_HIGHCAPACITY) != 0)
                 {
-                  mmccapacity = MMCSD_R3_HIGHCAPACITY;
-                  priv->type |= MMCSD_CARDTYPE_BLOCK;
+                    mmccapacity = MMCSD_R3_HIGHCAPACITY;
+                    priv->type |= MMCSD_CARDTYPE_BLOCK;
                 }
-              else
+                else
                 {
-                  mmccapacity = MMCSD_R3_STDCAPACITY;
+                    mmccapacity = MMCSD_R3_STDCAPACITY;
                 }
 
-              /* Check if the card is busy.  Very confusing, BUSY is set LOW
-               * if the card has not finished its initialization, so it
-               * really means NOT busy.
-               */
+                /* Check if the card is busy.  Very confusing, BUSY is set LOW
+                 * if the card has not finished its initialization, so it
+                 * really means NOT busy.
+                 */
 
-              if ((response & MMCSD_CARD_BUSY) != 0)
+                if ((response & MMCSD_CARD_BUSY) != 0)
                 {
-                  /* NO.. We really should check the current state to see if
-                   * the MMC successfully made it to the IDLE state, but at
-                   * least for now we will simply assume that that is the
-                   * case.
-                   *
-                   * Then break out of the look with an MMC card identified
-                   */
+                    /* NO.. We really should check the current state to see if
+                     * the MMC successfully made it to the IDLE state, but at
+                     * least for now we will simply assume that that is the
+                     * case.
+                     *
+                     * Then break out of the look with an MMC card identified
+                     */
 
-                  finfo("MMC card/chip ready!\n");
-                  break;
+                    finfo("MMC card/chip ready!\n");
+                    break;
                 }
             }
         }
 #endif
 
-      /* Check the elapsed time.  We won't keep trying this forever! */
+        /* Check the elapsed time.  We won't keep trying this forever! */
 
-      elapsed = clock_systime_ticks() - start;
-    }
-  while (elapsed < TICK_PER_SEC); /* On successful reception while 'breaks', see above. */
+        elapsed = clock_systime_ticks() - start;
+    } while (elapsed < TICK_PER_SEC); /* On successful reception while 'breaks', see above. */
 
-  /* We get here when the above loop completes, either (1) we could not
-   * communicate properly with the card due to errors (and the loop times
-   * out), or (2) it is an MMC or SD card that has successfully transitioned
-   * to the IDLE state (well, at least, it provided its OCR saying that it
-   * it is no longer busy).
-   */
+    /* We get here when the above loop completes, either (1) we could not
+     * communicate properly with the card due to errors (and the loop times
+     * out), or (2) it is an MMC or SD card that has successfully transitioned
+     * to the IDLE state (well, at least, it provided its OCR saying that it
+     * it is no longer busy).
+     */
 
-  if (elapsed >= TICK_PER_SEC || priv->type == MMCSD_CARDTYPE_UNKNOWN)
+    if (elapsed >= TICK_PER_SEC || priv->type == MMCSD_CARDTYPE_UNKNOWN)
     {
-      priv->type = MMCSD_CARDTYPE_UNKNOWN;
-      ferr("ERROR: Failed to identify card\n");
-      return -EIO;
+        priv->type = MMCSD_CARDTYPE_UNKNOWN;
+        ferr("ERROR: Failed to identify card\n");
+        return -EIO;
     }
 
-  return OK;
+    if (need_switch_uhs_voltage)
+    {
+        /* send CMD11 command */
+        mmcsd_sendcmdpoll(priv, SD_CMD11, 0);
+        ret = SDIO_RECVR1(priv->dev, SD_CMD11, &response);
+        if (ret != OK)
+        {
+            return ret;
+        }
+        /* Perform UHS Voltage switch in board/plaftform level */
+        ret = SDIO_SWITCH_UHS_VOLTAGE(priv->dev);
+        if (ret != OK)
+        {
+            return OK;
+        }
+        priv->is_1v8_signaling = 1;
+    }
+
+    return ret;
 }
 
 /****************************************************************************

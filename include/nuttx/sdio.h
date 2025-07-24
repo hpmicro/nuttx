@@ -420,6 +420,10 @@
 #define SDIO_FN6_BR_BASE (6 << SDIO_FBR_SHIFT) /* Func 6 registers base    */
 #define SDIO_FN7_BR_BASE (7 << SDIO_FBR_SHIFT) /* Func 7 registers base    */
 
+
+#define SDIO_POWERUP(dev) ((dev)->powerup(dev))
+
+
 /****************************************************************************
  * Name: SDIO_LOCK
  *
@@ -478,6 +482,15 @@
 #define SDIO_CAPS_4BIT            0x08 /* Bit 3=1: Supports 4 bit operation */
 #define SDIO_CAPS_8BIT            0x10 /* Bit 4=1: Supports 8 bit operation */
 #define SDIO_CAPS_4BIT_ONLY       0x20 /* Bit 5=1: Supports 4-bit only operation */
+#define SDIO_CAPS_3V3             0x40
+#define SDIO_CAPS_1V8             0x80
+#define SDIO_CAPS_SD_SDR50        0x100
+#define SDIO_CAPS_SD_SDR104       0x200
+#define SDIO_CAPS_SD_DDR50        0x400
+#define SDIO_CAPS_MMC_HS200       0x800
+#define SDIO_CAPS_MMC_HS400       0x1000
+#define SDIO_CAPS_MMC_ENH_DQS     0x2000
+#define SDIO_CAPS_MMC_HS_DDR      0x4000
 
 /****************************************************************************
  * Name: SDIO_STATUS
@@ -503,6 +516,10 @@
 #define SDIO_PRESENT(dev)       ((SDIO_STATUS(dev) & SDIO_STATUS_PRESENT) != 0)
 #define SDIO_WRPROTECTED(dev)   ((SDIO_STATUS(dev) & SDIO_STATUS_WRPROTECTED) != 0)
 
+#define SDIO_SWITCH_UHS_VOLTAGE(dev)   ((dev->switch_uhs_voltage != NULL) ? (dev)->switch_uhs_voltage(dev) : ERROR)
+
+#define SDIO_TUNING(dev, cmd) ((dev->tuning != NULL) ? (dev)->tuning(dev, cmd) : ERROR)
+
 /****************************************************************************
  * Name: SDIO_WIDEBUS
  *
@@ -520,7 +537,9 @@
  *
  ****************************************************************************/
 
-#define SDIO_WIDEBUS(dev,wide) ((dev)->widebus(dev,wide))
+#define SDIO_WIDEBUS(dev,wide)      ((dev)->widebus(dev,wide))
+
+#define SDIO_TIMING(dev,timing_mode)    ((dev)->timing(dev,timing_mode))
 
 /****************************************************************************
  * Name: SDIO_CLOCK
@@ -926,7 +945,14 @@ enum sdio_clock_e
   CLOCK_IDMODE,            /* Initial ID mode clocking (<400KHz) */
   CLOCK_MMC_TRANSFER,      /* MMC normal operation clocking */
   CLOCK_SD_TRANSFER_1BIT,  /* SD normal operation clocking (narrow 1-bit mode) */
-  CLOCK_SD_TRANSFER_4BIT   /* SD normal operation clocking (wide 4-bit mode) */
+  CLOCK_SD_TRANSFER_4BIT,  /* SD normal operation clocking (wide 4-bit mode) */
+  CLOCK_SD_SDR50,
+  CLOCK_SD_SDR104,
+  CLOCK_SD_DDR50,
+  CLOCK_MMC_HS200,
+  CLOCK_MMC_HS400,
+  CLOCK_MMC_HS400_ENH_DQS,
+  CLOCK_MMC_HS_DDR,
 };
 
 /* Event set.  A uint8_t is big enough to hold a set of 8-events.  If more
@@ -940,13 +966,13 @@ typedef uint8_t sdio_eventset_t;
  * uint16_t.
  */
 
-typedef uint8_t sdio_capset_t;
+typedef uint32_t sdio_capset_t;
 
 /* Status set.  A uint8_t is big enough to hold a set of 8 status bits.
  * If more are needed, change this to a uint16_t.
  */
 
-typedef uint8_t sdio_statset_t;
+typedef uint32_t sdio_statset_t;
 
 /* This structure defines the interface between the NuttX SDIO driver and
  * the chip- or board-specific SDIO interface.  This interface is only used
@@ -972,9 +998,10 @@ struct sdio_dev_s
   void  (*reset)(FAR struct sdio_dev_s *dev);
   sdio_capset_t (*capabilities)(FAR struct sdio_dev_s *dev);
   sdio_statset_t (*status)(FAR struct sdio_dev_s *dev);
-  void  (*widebus)(FAR struct sdio_dev_s *dev, bool enable);
+  void  (*widebus)(FAR struct sdio_dev_s *dev, uint8_t buswidth);
   void  (*clock)(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate);
   int   (*attach)(FAR struct sdio_dev_s *dev);
+  int   (*timing)(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate);
 
   /* Command/Status/Data Transfer */
 
@@ -1027,6 +1054,9 @@ struct sdio_dev_s
           FAR const uint8_t *buffer, size_t buflen);
 #endif /* CONFIG_SDIO_DMA */
   void  (*gotextcsd)(FAR struct sdio_dev_s *dev, FAR const uint8_t *buffer);
+
+  int (*switch_uhs_voltage)(FAR struct sdio_dev_s *dev);
+  int (*tuning)(FAR struct sdio_dev_s *dev, uint8_t tuning_cmd);
 };
 
 /****************************************************************************
