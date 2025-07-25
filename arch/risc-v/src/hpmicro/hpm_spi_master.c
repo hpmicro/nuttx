@@ -283,7 +283,7 @@ static struct hpm_spidev_s g_spi0dev =
   },
   .spibase                 = HPM_SPI0,
   .spiclock                = clock_spi0,
-  .spiirq                  = IRQn_SPI0,
+  .spiirq                  = HPM_IRQn_SPI0,
 #ifdef CONFIG_HPM_SPI0_DMA
   .spi_context             = &spi0_context,
 #endif
@@ -361,7 +361,7 @@ static struct hpm_spidev_s g_spi1dev =
   },
   .spibase                 = HPM_SPI1,
   .spiclock                = clock_spi1,
-  .spiirq                  = IRQn_SPI1,
+  .spiirq                  = HPM_IRQn_SPI1,
 #if defined(CONFIG_HPM_SPI1_DMA)
   .spi_context             = &spi1_context,
 #endif
@@ -439,7 +439,7 @@ static struct hpm_spidev_s g_spi2dev =
   },
   .spibase                 = HPM_SPI2,
   .spiclock                = clock_spi2,
-  .spiirq                  = IRQn_SPI2,
+  .spiirq                  = HPM_IRQn_SPI2,
 #if defined(CONFIG_HPM_SPI2_DMA)
   .spi_context             = &spi2_context,
 #endif
@@ -479,7 +479,7 @@ static const struct spi_ops_s g_sp3iops =
   .registercallback        = 0,                   /* not implemented */
 };
 
-#ifdef CONFIG_HPM_SPI2_DMA
+#ifdef CONFIG_HPM_SPI3_DMA
 /* dma descriptors need align 8 bytes */
 ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi3_dma_linked_descriptor[HPM_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
 ATTR_PLACE_AT_NONCACHEABLE uint32_t spi3_transctrl[HPM_MAX_SPI_DMA_COUNT];
@@ -517,7 +517,7 @@ static struct hpm_spidev_s g_spi3dev =
   },
   .spibase                 = HPM_SPI3,
   .spiclock                = clock_spi3,
-  .spiirq                  = IRQn_SPI3,
+  .spiirq                  = HPM_IRQn_SPI3,
 #if defined(CONFIG_HPM_SPI3_DMA)
   .spi_context             = &spi3_context,
 #endif
@@ -757,8 +757,8 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
       timing_config.master_config.clk_src_freq_in_hz = clock_get_frequency(priv->spiclock);
       timing_config.master_config.sclk_freq_in_hz = frequency;
       spi_master_timing_init((SPI_Type *)priv->spibase, &timing_config);
-
-      printf("Frequency %" PRId32 "->%" PRId32 "\n", frequency, actual);
+      actual = (timing_config.master_config.clk_src_freq_in_hz >> 1) / (SPI_TIMING_SCLK_DIV_GET(priv->spibase->TIMING) + 1);
+      spiinfo("Frequency %" PRId32 "->%" PRId32 "\n", frequency, actual);
       priv->frequency = frequency;
       priv->actual    = actual;
     }
@@ -813,50 +813,36 @@ static int spi_setdelay(struct spi_dev_s *dev, uint32_t startdelay,
 static void spi_setmode(struct spi_dev_s *dev, enum spi_mode_e mode)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
-  spi_format_config_t format_config = {0};
 
   spiinfo("mode=%" PRIx32 "\n", (uint32_t) mode);
 
-  /* Has the mode changed? */
-  uint32_t transfmt = priv->spibase->TRANSFMT;
   if (mode != priv->mode)
     {
-      /* set SPI format config for master */
-      format_config.common_config.data_len_in_bits  = SPI_TRANSFMT_DATALEN_GET(transfmt);
-      format_config.common_config.data_merge        = false;
-      format_config.common_config.lsb               = SPI_TRANSFMT_LSB_GET(transfmt);
-      format_config.common_config.mode              = SPI_TRANSFMT_SLVMODE_SET(transfmt);
-      format_config.common_config.mosi_bidir        = SPI_TRANSFMT_MOSIBIDIR_GET(transfmt);
-      format_config.master_config.addr_len_in_bytes = SPI_TRANSFMT_ADDRLEN_GET(transfmt);
       switch (mode)
         {
         case SPIDEV_MODE0: /* CPOL=0; CPHA=0 */
-          format_config.common_config.cpol = spi_sclk_low_idle;
-          format_config.common_config.cpha = spi_sclk_sampling_odd_clk_edges;
+          spi_set_clock_polarity(priv->spibase, spi_sclk_low_idle);
+          spi_set_clock_phase(priv->spibase, spi_sclk_sampling_odd_clk_edges);
           break;
 
         case SPIDEV_MODE1: /* CPOL=0; CPHA=1 */
-          format_config.common_config.cpol = spi_sclk_low_idle;
-          format_config.common_config.cpha = spi_sclk_sampling_even_clk_edges;
+          spi_set_clock_polarity(priv->spibase, spi_sclk_low_idle);
+          spi_set_clock_phase(priv->spibase, spi_sclk_sampling_even_clk_edges);
           break;
 
         case SPIDEV_MODE2: /* CPOL=1; CPHA=0 */
-          format_config.common_config.cpol = spi_sclk_high_idle;
-          format_config.common_config.cpha = spi_sclk_sampling_odd_clk_edges;
+          spi_set_clock_polarity(priv->spibase, spi_sclk_high_idle);
+          spi_set_clock_phase(priv->spibase, spi_sclk_sampling_odd_clk_edges);
           break;
 
         case SPIDEV_MODE3: /* CPOL=1; CPHA=1 */
-          format_config.common_config.cpol = spi_sclk_high_idle;
-          format_config.common_config.cpha = spi_sclk_sampling_even_clk_edges;
+          spi_set_clock_polarity(priv->spibase, spi_sclk_high_idle);
+          spi_set_clock_phase(priv->spibase, spi_sclk_sampling_even_clk_edges);
           break;
 
         default:
           return;
         }
-
-      /* Change SPI mode */
-
-      spi_format_init((SPI_Type *)priv->spibase, &format_config);
 
       /* Save the mode so that subsequent re-configurations will be faster */
 
@@ -883,31 +869,17 @@ static void spi_setbits(struct spi_dev_s *dev, int nbits)
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
 
-  spi_format_config_t format_config = {0};
-
   spiinfo("nbits=%d\n", nbits);
 
-  /* Has the number of bits changed? */
-  uint32_t transfmt = priv->spibase->TRANSFMT;
   if (nbits != priv->nbits)
     {
-      /* set SPI format config for master */
-      format_config.common_config.data_merge        = false;
-      format_config.common_config.lsb               = SPI_TRANSFMT_LSB_GET(transfmt);
-      format_config.common_config.mode              = SPI_TRANSFMT_SLVMODE_SET(transfmt);
-      format_config.common_config.mosi_bidir        = SPI_TRANSFMT_MOSIBIDIR_GET(transfmt);
-      format_config.master_config.addr_len_in_bytes = SPI_TRANSFMT_ADDRLEN_GET(transfmt);
-      format_config.common_config.cpha              = SPI_TRANSFMT_CPHA_GET(transfmt);
-      format_config.common_config.cpol              = SPI_TRANSFMT_CPOL_GET(transfmt);
 
       if (nbits < 4 || nbits > 32)
         {
           return;
         }
 
-      format_config.common_config.data_len_in_bits  = nbits;
-
-      spi_format_init((SPI_Type *)priv->spibase, &format_config);
+      spi_set_data_bits(priv->spibase, nbits);
 
       /* Save the selection so that subsequent re-configurations will be
        * faster.
@@ -977,30 +949,20 @@ static uint32_t spi_send(struct spi_dev_s *dev, uint32_t wd)
   spi_master_get_default_control_config(&control_config);
   control_config.master_config.cmd_enable = false;  /* cmd phase control for master */
   control_config.master_config.addr_enable = false; /* address phase control for master */
+  control_config.common_config.trans_mode = spi_trans_write_read_together;
 
-  if (priv->config == FULL_DUPLEX)
-    {
-      control_config.common_config.trans_mode = spi_trans_write_read_together;
-    }
-  else if(priv->config == SIMPLEX_RX)
-    {
-      control_config.common_config.trans_mode = spi_trans_read_only;
-    }
-  else if(priv->config == SIMPLEX_TX)
-    {
-      control_config.common_config.trans_mode = spi_trans_write_only;
-    }
-  else
-    {
-      control_config.common_config.trans_mode = spi_trans_write_only;
-    }
-  // printf("spi_send %d\n", control_config.common_config.trans_mode);
   stat = hpm_spi_transfer((SPI_Type *)priv->spibase,
                 &control_config,
                 NULL, NULL,
                 (uint8_t *)&wd, 1, (uint8_t *)&regval, 1);
-  UNUSED(regval);
-  return stat;
+
+  spiinfo("wd=%#x rd=%#x\n", wd, regval);
+
+  if (stat != status_success)
+    {
+      spierr("ERROR: hpm_spi_transfer failure: %d\n", stat);
+    }
+  return regval;
 }
 
 /****************************************************************************
@@ -1034,9 +996,11 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
   size_t dummy_len = 0;
   uint8_t *tx_buffer = (uint8_t *)txbuffer;
   uint8_t *rx_buffer = (uint8_t *)rxbuffer;
+  uint8_t data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase);
+  hpm_stat_t stat;
   DEBUGASSERT(priv && priv->spibase);
 
-  spiinfo("txbuffer=%p rxbuffer=%p nwords=%d\n", tx_buffer, rx_buffer, nwords);
+  spiinfo("txbuffer=%p rxbuffer=%p nwords=%d data_width=%d\n", tx_buffer, rx_buffer, nwords, data_width);
 
   /* set SPI control config for master */
 
@@ -1060,25 +1024,19 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
     {
       return;
     }
-  // printf("spi_exchange_nodma: %d %d \n",len,spi_get_data_length_in_bytes(priv->spibase));
+
   while(len > 0)
     {
       dummy_len = (len > SPI_SOC_TRANSFER_COUNT_MAX) ? SPI_SOC_TRANSFER_COUNT_MAX : len;
-      if(!tx_buffer)
-        {
-          hpm_spi_transfer(priv->spibase, &control_config, NULL, NULL, NULL, 0, (uint8_t *)&rx_buffer[inc_len], dummy_len);
-        }
-      else if(!rx_buffer)
-        {
-          hpm_spi_transfer(priv->spibase, &control_config, NULL, NULL, (uint8_t *)&tx_buffer[inc_len], dummy_len, NULL, 0);
-        }
-      else if(tx_buffer && rx_buffer)
-        {
-          hpm_spi_transfer(priv->spibase,
+      stat = hpm_spi_transfer(priv->spibase,
             &control_config,
             NULL, NULL,
-            (uint8_t *)&tx_buffer[inc_len], dummy_len,(uint8_t *)&rx_buffer[inc_len], dummy_len);
+            (uint8_t *)&tx_buffer[inc_len * data_width], dummy_len,(uint8_t *)&rx_buffer[inc_len * data_width], dummy_len);
+      if (stat != status_success)
+        {
+          spierr("ERROR: hpm_spi_transfer failure: %d\n", stat);
         }
+
       len      -= dummy_len;
       inc_len  += dummy_len;
     }
@@ -1123,6 +1081,7 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
   size_t len = 0 ;
   size_t inc_len = 0;
   size_t dummy_len = 0;
+  nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
   len = nwords;
   if ((priv->dma_rxresource.base == NULL) || (priv->dma_txresource.base == NULL))
     {
@@ -1131,8 +1090,6 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
     }
   else
     {
-    nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
-    len = nwords;
         /* set SPI control config for master */
     spi_master_get_default_control_config(&control_config);
     control_config.master_config.cmd_enable     = false;
@@ -1173,30 +1130,29 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
           {
             return;
           }
-          priv->spi_context->cmd              = cmd;
-          priv->spi_context->addr             = addr;
-          priv->spi_context->data_len_in_byte = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase);
 
-          priv->spi_context->tx_buff          = &((uint8_t *)txbuffer)[inc_len];
-          priv->spi_context->tx_count         = priv->spi_context->tx_size / priv->spi_context->data_len_in_byte;
+        priv->spi_context->cmd              = cmd;
+        priv->spi_context->addr             = addr;
+        priv->spi_context->data_len_in_byte = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase);
 
-          priv->spi_context->rx_buff          = &((uint8_t *)&rxbuffer)[inc_len];
-          priv->spi_context->rx_count         = priv->spi_context->rx_size / priv->spi_context->data_len_in_byte;
+        priv->spi_context->tx_buff          = &((uint8_t *)txbuffer)[inc_len];
+        priv->spi_context->tx_count         = priv->spi_context->tx_size / priv->spi_context->data_len_in_byte;
 
-          priv->spi_context->dma_context.data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) - 1;
+        priv->spi_context->rx_buff          = &((uint8_t *)&rxbuffer)[inc_len];
+        priv->spi_context->rx_count         = priv->spi_context->rx_size / priv->spi_context->data_len_in_byte;
 
-          stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
-          if (stat != status_success)
-            {
-              return;
-            }
-          spi_dmarxwait(priv);
-          spi_dmatxwait(priv);
-          len      -= dummy_len;
-          inc_len  += dummy_len;
+        priv->spi_context->dma_context.data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) - 1;
+
+        stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
+        if (stat != status_success)
+          {
+            return;
+          }
+        spi_dmarxwait(priv);
+        spi_dmatxwait(priv);
+        len      -= dummy_len;
+        inc_len  += dummy_len;
       }
-      /* change config status */
-      priv->config = FULL_DUPLEX;
     }
 #else
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
@@ -1324,48 +1280,6 @@ static void spi_recvblock(struct spi_dev_s *dev,
 static int spi_pm_prepare(struct pm_callback_s *cb, int domain,
                           enum pm_state_e pmstate)
 {
-  struct hpm_spidev_s *priv =
-      (struct hpm_spidev_s *)((char *)cb -
-                                    offsetof(struct hpm_spidev_s, pm_cb));
-  int sval;
-
-  /* Logic to prepare for a reduced power state goes here. */
-
-  switch (pmstate)
-    {
-    case PM_NORMAL:
-    case PM_IDLE:
-      break;
-
-    case PM_STANDBY:
-    case PM_SLEEP:
-
-      /* Check if exclusive lock for SPI bus is held. */
-
-      if (nxsem_get_value(&priv->exclsem, &sval) < 0)
-        {
-          DEBUGPANIC();
-          return -EINVAL;
-        }
-
-      if (sval <= 0)
-        {
-          /* Exclusive lock is held, do not allow entry to deeper PM
-           * states.
-           */
-
-          return -EBUSY;
-        }
-
-      break;
-
-    default:
-
-      /* Should not get here */
-
-      break;
-    }
-
   return OK;
 }
 #endif
@@ -1387,12 +1301,20 @@ static int spi_pm_prepare(struct pm_callback_s *cb, int domain,
 
 static void spi_bus_initialize(struct hpm_spidev_s *priv)
 {
-  spi_setmode((struct spi_dev_s *)priv, SPIDEV_MODE0);
-  spi_setbits((struct spi_dev_s *)priv, 8);
+  spi_format_config_t format_config;
+
+  board_init_spi_clock(priv->spibase);
 
   /* Select a default frequency of approx. 400KHz */
-
   spi_setfrequency((struct spi_dev_s *)priv, 400000);
+
+  /* set SPI format config for master */
+  spi_master_get_default_format_config(&format_config);
+  format_config.common_config.data_len_in_bits = 8;
+  spi_format_init(priv->spibase, &format_config);
+  priv->nbits = 8;
+  priv->mode = SPIDEV_MODE3;
+
 #ifdef CONFIG_HPM_SPI_DMA
   priv->dma_rxresource.base = NULL;
   priv->dma_txresource.base = NULL;
