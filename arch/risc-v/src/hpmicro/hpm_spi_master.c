@@ -80,8 +80,13 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-#define  HPM_MAX_SPI_COUNT      4
-#define  HPM_MAX_SPI_DMA_COUNT  129   /* <= 4K for descriptor*/
+#if defined(SPI_SOC_TRANSFER_COUNT_MAX) && (SPI_SOC_TRANSFER_COUNT_MAX == 512)
+#define  HPM_MAX_SPI_DMA_COUNT  1
+#define  HPM_SPI_DMA_MAX_TRANS_SIZE (HPM_MAX_SPI_DMA_COUNT * SPI_SOC_TRANSFER_COUNT_MAX)
+#else
+#define  HPM_MAX_SPI_DMA_COUNT  1
+#define  HPM_SPI_DMA_MAX_TRANS_SIZE 0xFFFFFFFF
+#endif
 
 #if defined (CONFIG_HPM_SPI_DRV) && defined (CONFIG_SPI_DRIVER)
 
@@ -97,6 +102,49 @@
 
 #if defined(CONFIG_HPM_SPI_INTERRUPTS) && defined(CONFIG_HPM_SPI_DMA)
 #  error "Cannot enable both interrupt mode and DMA mode for SPI"
+#endif
+
+/* SPI DMA BUFFER */
+
+#ifdef CONFIG_HPM_SPI_DMA
+
+/* If built with CONFIG_ARCH_DCACHE Buffers need to be aligned and
+ * multiples of HPM_L1C_CACHELINE_SIZE
+ */
+
+#  if defined(CONFIG_ARCH_DCACHE)
+#    define SPIDMA_BUFFER_MASK   (HPM_L1C_CACHELINE_SIZE - 1)
+#    define SPIDMA_SIZE(b) (((b) + SPIDMA_BUFFER_MASK) & ~SPIDMA_BUFFER_MASK)
+#    define SPIDMA_BUF_ALIGN   aligned_data(HPM_L1C_CACHELINE_SIZE)
+#  else
+#    define SPIDMA_SIZE(b)  (b)
+#    define SPIDMA_BUF_ALIGN
+#  endif
+
+#  if defined(CONFIG_HPM_SPI0_DMA_BUFFER) && \
+            CONFIG_HPM_SPI0_DMA_BUFFER > 0
+#    define SPI0_DMABUFSIZE_ADJUSTED SPIDMA_SIZE(CONFIG_HPM_SPI0_DMA_BUFFER)
+#    define SPI0_DMABUFSIZE_ALGN SPIDMA_BUF_ALIGN
+#  endif
+
+#  if defined(CONFIG_HPM_SPI1_DMA_BUFFER) && \
+            CONFIG_HPM_SPI1_DMA_BUFFER > 0
+#    define SPI1_DMABUFSIZE_ADJUSTED SPIDMA_SIZE(CONFIG_HPM_SPI1_DMA_BUFFER)
+#    define SPI1_DMABUFSIZE_ALGN SPIDMA_BUF_ALIGN
+#  endif
+
+#  if defined(CONFIG_HPM_SPI2_DMA_BUFFER) && \
+            CONFIG_HPM_SPI2_DMA_BUFFER > 0
+#    define SPI2_DMABUFSIZE_ADJUSTED SPIDMA_SIZE(CONFIG_HPM_SPI2_DMA_BUFFER)
+#    define SPI2_DMABUFSIZE_ALGN SPIDMA_BUF_ALIGN
+#  endif
+
+#  if defined(CONFIG_HPM_SPI3_DMA_BUFFER) && \
+            CONFIG_HPM_SPI3_DMA_BUFFER > 0
+#    define SPI3_DMABUFSIZE_ADJUSTED SPIDMA_SIZE(CONFIG_HPM_SPI3_DMA_BUFFER)
+#    define SPI3_DMABUFSIZE_ALGN SPIDMA_BUF_ALIGN
+#  endif
+
 #endif
 
 
@@ -120,12 +168,16 @@ struct hpm_spidev_s
   uint8_t          spiirq;       /* SPI IRQ number */
   sem_t            spiirqsem;    /* SPI IRQ SEM*/
 #ifdef CONFIG_HPM_SPI_DMA
-#ifdef CONFIG_SPI_TRIGGER
+#  ifdef CONFIG_SPI_TRIGGER
   bool             defertrig;    /* Flag indicating that trigger should be deferred */
   bool             trigarmed;    /* Flag indicating that the trigger is armed */
-#endif
+#  endif
+  spi_context_t    *spi_context; /* spi dma context*/
   dma_resource_t   dma_txresource; /* DMA channel RX resource */
   dma_resource_t   dma_rxresource; /* DMA channel TX resource */
+  uint8_t          *rxbuf;       /* The RX DMA buffer */
+  uint8_t          *txbuf;       /* The TX DMA buffer */
+  size_t           buflen;       /* The DMA buffer length */
   sem_t            rxsem;        /* Wait for RX DMA to complete */
   sem_t            txsem;        /* Wait for TX DMA to complete */
 #endif
@@ -139,9 +191,6 @@ struct hpm_spidev_s
   struct pm_callback_s pm_cb;    /* PM callbacks */
 #endif
   enum spi_config_e config;      /* full/half duplex, simplex transmit/read only */
-#ifdef CONFIG_HPM_SPI_DMA
-  spi_context_t    *spi_context; /* spi dma context*/
-#endif
 };
 
 /****************************************************************************
@@ -259,11 +308,11 @@ spi_context_t spi0_context = {
     .rx_size               = 0,
     .rx_count              = 0,
     .data_len_in_byte      = 1,
-    .per_trans_max = SPI_SOC_TRANSFER_COUNT_MAX,
+    .per_trans_max         = SPI_SOC_TRANSFER_COUNT_MAX,
     .dma_context = {
             .dma_ptr       = 0,
-            .rx_dma_ch     = 0,
-            .tx_dma_ch     = 0,
+            .rx_dma_ch     = 0xFF,
+            .tx_dma_ch     = 0xFF,
             .dmamux_ptr    = HPM_DMAMUX,
             .rx_req        = HPM_DMA_SRC_SPI0_RX,
             .tx_req        = HPM_DMA_SRC_SPI0_TX,
@@ -273,6 +322,11 @@ spi_context_t spi0_context = {
     .dma_linked_descriptor = spi0_dma_linked_descriptor,
     .spi_transctrl         = spi0_transctrl,
 };
+#endif
+
+#if defined(SPI0_DMABUFSIZE_ADJUSTED)
+static uint8_t g_spi0_txbuf[SPI0_DMABUFSIZE_ADJUSTED] SPI0_DMABUFSIZE_ALGN;
+static uint8_t g_spi0_rxbuf[SPI0_DMABUFSIZE_ADJUSTED] SPI0_DMABUFSIZE_ALGN;
 #endif
 
 static struct hpm_spidev_s g_spi0dev =
@@ -286,6 +340,11 @@ static struct hpm_spidev_s g_spi0dev =
   .spiirq                  = HPM_IRQn_SPI0,
 #ifdef CONFIG_HPM_SPI0_DMA
   .spi_context             = &spi0_context,
+#  if defined(SPI0_DMABUFSIZE_ADJUSTED)
+  .rxbuf                   = g_spi0_rxbuf,
+  .txbuf                   = g_spi0_txbuf,
+  .buflen                  = SPI0_DMABUFSIZE_ADJUSTED,
+#  endif
 #endif
 #ifdef CONFIG_PM
   .pm_cb.prepare           = spi_pm_prepare,
@@ -340,8 +399,8 @@ spi_context_t spi1_context = {
     .per_trans_max         = SPI_SOC_TRANSFER_COUNT_MAX,
     .dma_context = {
             .dma_ptr       = 0,
-            .rx_dma_ch     = 0,
-            .tx_dma_ch     = 0,
+            .rx_dma_ch     = 0xFF,
+            .tx_dma_ch     = 0xFF,
             .dmamux_ptr    = HPM_DMAMUX,
             .rx_req        = HPM_DMA_SRC_SPI1_RX,
             .tx_req        = HPM_DMA_SRC_SPI1_TX,
@@ -351,6 +410,11 @@ spi_context_t spi1_context = {
     .dma_linked_descriptor = spi1_dma_linked_descriptor,
     .spi_transctrl         = spi1_transctrl,
 };
+#endif
+
+#if defined(SPI1_DMABUFSIZE_ADJUSTED)
+static uint8_t g_spi1_txbuf[SPI1_DMABUFSIZE_ADJUSTED] SPI1_DMABUFSIZE_ALGN;
+static uint8_t g_spi1_rxbuf[SPI1_DMABUFSIZE_ADJUSTED] SPI1_DMABUFSIZE_ALGN;
 #endif
 
 static struct hpm_spidev_s g_spi1dev =
@@ -364,6 +428,11 @@ static struct hpm_spidev_s g_spi1dev =
   .spiirq                  = HPM_IRQn_SPI1,
 #if defined(CONFIG_HPM_SPI1_DMA)
   .spi_context             = &spi1_context,
+#  if defined(SPI1_DMABUFSIZE_ADJUSTED)
+  .rxbuf                   = g_spi1_rxbuf,
+  .txbuf                   = g_spi1_txbuf,
+  .buflen                  = SPI1_DMABUFSIZE_ADJUSTED,
+#  endif
 #endif
 #ifdef CONFIG_PM
   .pm_cb.prepare           = spi_pm_prepare,
@@ -418,8 +487,8 @@ spi_context_t spi2_context = {
     .per_trans_max         = SPI_SOC_TRANSFER_COUNT_MAX,
     .dma_context = {
             .dma_ptr       = 0,
-            .rx_dma_ch     = 0,
-            .tx_dma_ch     = 0,
+            .rx_dma_ch     = 0xFF,
+            .tx_dma_ch     = 0xFF,
             .dmamux_ptr    = HPM_DMAMUX,
             .rx_req        = HPM_DMA_SRC_SPI2_RX,
             .tx_req        = HPM_DMA_SRC_SPI2_TX,
@@ -429,6 +498,11 @@ spi_context_t spi2_context = {
     .dma_linked_descriptor = spi2_dma_linked_descriptor,
     .spi_transctrl         = spi2_transctrl,
 };
+#endif
+
+#if defined(SPI2_DMABUFSIZE_ADJUSTED)
+static uint8_t g_spi2_txbuf[SPI2_DMABUFSIZE_ADJUSTED] SPI2_DMABUFSIZE_ALGN;
+static uint8_t g_spi2_rxbuf[SPI2_DMABUFSIZE_ADJUSTED] SPI2_DMABUFSIZE_ALGN;
 #endif
 
 static struct hpm_spidev_s g_spi2dev =
@@ -442,6 +516,11 @@ static struct hpm_spidev_s g_spi2dev =
   .spiirq                  = HPM_IRQn_SPI2,
 #if defined(CONFIG_HPM_SPI2_DMA)
   .spi_context             = &spi2_context,
+#  if defined(SPI2_DMABUFSIZE_ADJUSTED)
+  .rxbuf                   = g_spi2_rxbuf,
+  .txbuf                   = g_spi2_txbuf,
+  .buflen                  = SPI2_DMABUFSIZE_ADJUSTED,
+#  endif
 #endif
 #ifdef CONFIG_PM
   .pm_cb.prepare           = spi_pm_prepare,
@@ -496,8 +575,8 @@ spi_context_t spi3_context = {
     .per_trans_max         = SPI_SOC_TRANSFER_COUNT_MAX,
     .dma_context = {
             .dma_ptr       = 0,
-            .rx_dma_ch     = 0,
-            .tx_dma_ch     = 0,
+            .rx_dma_ch     = 0xFF,
+            .tx_dma_ch     = 0xFF,
             .dmamux_ptr    = HPM_DMAMUX,
             .rx_req        = HPM_DMA_SRC_SPI3_RX,
             .tx_req        = HPM_DMA_SRC_SPI3_TX,
@@ -507,6 +586,11 @@ spi_context_t spi3_context = {
     .dma_linked_descriptor = spi3_dma_linked_descriptor,
     .spi_transctrl         = spi3_transctrl,
 };
+#endif
+
+#if defined(SPI3_DMABUFSIZE_ADJUSTED)
+static uint8_t g_spi3_txbuf[SPI3_DMABUFSIZE_ADJUSTED] SPI3_DMABUFSIZE_ALGN;
+static uint8_t g_spi3_rxbuf[SPI3_DMABUFSIZE_ADJUSTED] SPI3_DMABUFSIZE_ALGN;
 #endif
 
 static struct hpm_spidev_s g_spi3dev =
@@ -520,6 +604,11 @@ static struct hpm_spidev_s g_spi3dev =
   .spiirq                  = HPM_IRQn_SPI3,
 #if defined(CONFIG_HPM_SPI3_DMA)
   .spi_context             = &spi3_context,
+#  if defined(SPI3_DMABUFSIZE_ADJUSTED)
+  .rxbuf                   = g_spi3_rxbuf,
+  .txbuf                   = g_spi3_txbuf,
+  .buflen                  = SPI3_DMABUFSIZE_ADJUSTED,
+#  endif
 #endif
 #ifdef CONFIG_PM
   .pm_cb.prepare           = spi_pm_prepare,
@@ -1000,10 +1089,7 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
   hpm_stat_t stat;
   DEBUGASSERT(priv && priv->spibase);
 
-  spiinfo("txbuffer=%p rxbuffer=%p nwords=%d data_width=%d\n", tx_buffer, rx_buffer, nwords, data_width);
-
   /* set SPI control config for master */
-
   spi_master_get_default_control_config(&control_config);
   control_config.master_config.cmd_enable = false;  /* cmd phase control for master */
   control_config.master_config.addr_enable = false; /* address phase control for master */
@@ -1072,17 +1158,23 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
 {
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
   DEBUGASSERT(priv != NULL);
+  uint8_t data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase);
+
+  spiinfo("txbuffer=%p rxbuffer=%p nwords=%d data_width=%d\n", txbuffer, rxbuffer, nwords, data_width);
 
 #ifdef CONFIG_HPM_SPI_DMA
   spi_control_config_t control_config = {0};
   uint8_t cmd = 0x1a;
   uint32_t addr = 0x10;
   hpm_stat_t stat;
-  size_t len = 0 ;
+  size_t len = nwords;
   size_t inc_len = 0;
   size_t dummy_len = 0;
-  nwords = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) * nwords;
-  len = nwords;
+  size_t nbytes = nwords * data_width;
+  void * orig_rxbuffer = rxbuffer;
+  uint8_t *tx_buffer;
+  uint8_t *rx_buffer;
+
   if ((priv->dma_rxresource.base == NULL) || (priv->dma_txresource.base == NULL))
     {
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
@@ -1090,7 +1182,60 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
     }
   else
     {
-        /* set SPI control config for master */
+
+    if (nbytes > priv->buflen)
+      {
+        /* Buffer is too big for internal DMA buffer so fall back. */
+
+        spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
+        return;
+      }
+
+    /* If this bus uses the driver's DMA aligned buffers (priv->txbuf != NULL)
+     * we will incur 2 copies. However the copy cost is much less the non
+     * DMA transfer time. So the only extent calculated is buffer
+     * plus the transfer size. The sizes can be less than a cache line size,
+     * and not aligned and are typically greater then 4 bytes, which is
+     * about the break even point for the DMA IO overhead.
+     */
+
+    if (priv->txbuf)
+      {
+        /* First copy: If provided, copy caller's buffer to the internal DMA
+         * txbuf
+         */
+
+        if (txbuffer)
+          {
+            if ((((uint32_t)txbuffer & SPIDMA_BUFFER_MASK) != 0) && ((nbytes & SPIDMA_BUFFER_MASK) != 0))
+              {
+                memcpy(priv->txbuf, txbuffer, nbytes);
+
+                /* Adjust pointers to internal DMA buffers */
+
+                txbuffer  = priv->txbuf;
+              }
+          }
+      }
+
+    /* orig_rxbuffer holds the callers return buffer */
+    if (priv->rxbuf)
+      {
+        if (rxbuffer)
+          {
+            if ((((uint32_t)rxbuffer & SPIDMA_BUFFER_MASK) != 0) && ((nbytes & SPIDMA_BUFFER_MASK) != 0))
+              {
+                /* Adjust pointers to internal DMA buffers */
+
+                rxbuffer  = priv->rxbuf;
+              }
+          }
+      }
+
+    tx_buffer = (uint8_t *)txbuffer;
+    rx_buffer = (uint8_t *)rxbuffer;
+
+    /* set SPI control config for master */
     spi_master_get_default_control_config(&control_config);
     control_config.master_config.cmd_enable     = false;
     control_config.master_config.addr_enable    = false;
@@ -1100,20 +1245,20 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
 
     while(len > 0)
       {
-        dummy_len = (len > SPI_SOC_TRANSFER_COUNT_MAX) ? SPI_SOC_TRANSFER_COUNT_MAX : len;
+        dummy_len = (len > HPM_SPI_DMA_MAX_TRANS_SIZE) ? HPM_SPI_DMA_MAX_TRANS_SIZE : len;
         if(!txbuffer)
           {
             control_config.common_config.trans_mode = spi_trans_read_only;
             control_config.common_config.rx_dma_enable  = true;
             priv->spi_context->tx_size                  = 0;
-            priv->spi_context->rx_size                  = dummy_len;
+            priv->spi_context->rx_size                  = dummy_len * data_width;   /* Unit: byte */
             priv->config = SIMPLEX_RX;
           }
         else if(!rxbuffer)
           {
             control_config.common_config.trans_mode     = spi_trans_write_only;
             control_config.common_config.tx_dma_enable  = true;
-            priv->spi_context->tx_size                  = dummy_len;
+            priv->spi_context->tx_size                  = dummy_len * data_width;   /* Unit: byte */
             priv->spi_context->rx_size                  = 0;
             priv->config = SIMPLEX_TX;
           }
@@ -1122,8 +1267,8 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
             control_config.common_config.trans_mode = spi_trans_write_read_together;
             control_config.common_config.tx_dma_enable  = true;
             control_config.common_config.rx_dma_enable  = true;
-            priv->spi_context->tx_size                  = dummy_len;
-            priv->spi_context->rx_size                  = dummy_len;
+            priv->spi_context->tx_size                  = dummy_len * data_width;   /* Unit: byte */
+            priv->spi_context->rx_size                  = dummy_len * data_width;   /* Unit: byte */
             priv->config = FULL_DUPLEX;
           }
         else
@@ -1133,15 +1278,15 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
 
         priv->spi_context->cmd              = cmd;
         priv->spi_context->addr             = addr;
-        priv->spi_context->data_len_in_byte = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase);
+        priv->spi_context->data_len_in_byte = data_width;
 
-        priv->spi_context->tx_buff          = &((uint8_t *)txbuffer)[inc_len];
-        priv->spi_context->tx_count         = priv->spi_context->tx_size / priv->spi_context->data_len_in_byte;
+        priv->spi_context->tx_buff          = (uint8_t *)&tx_buffer[inc_len * data_width];
+        priv->spi_context->tx_count         = dummy_len;
 
-        priv->spi_context->rx_buff          = &((uint8_t *)&rxbuffer)[inc_len];
-        priv->spi_context->rx_count         = priv->spi_context->rx_size / priv->spi_context->data_len_in_byte;
+        priv->spi_context->rx_buff          = (uint8_t *)&rx_buffer[inc_len * data_width];
+        priv->spi_context->rx_count         = dummy_len;
 
-        priv->spi_context->dma_context.data_width = spi_get_data_length_in_bytes((SPI_Type *)priv->spibase) - 1;
+        priv->spi_context->dma_context.data_width = data_width - 1;
 
         stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
         if (stat != status_success)
@@ -1153,6 +1298,13 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
         len      -= dummy_len;
         inc_len  += dummy_len;
       }
+
+      /* Second copy: Copy the DMA internal buffer to caller's buffer */
+
+      if (orig_rxbuffer && priv->rxbuf && (rxbuffer != orig_rxbuffer))
+        {
+          memcpy(orig_rxbuffer, priv->rxbuf, nbytes);
+        }
     }
 #else
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
@@ -1318,27 +1470,33 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
 #ifdef CONFIG_HPM_SPI_DMA
   priv->dma_rxresource.base = NULL;
   priv->dma_txresource.base = NULL;
-  if (dma_mgr_request_resource(&priv->dma_rxresource) == status_success)
-  {
-    dma_mgr_install_chn_tc_callback(&priv->dma_rxresource, spi_rx_dma_channel_tc_callback, (void *)priv);
-    dma_mgr_enable_chn_irq(&priv->dma_rxresource, DMA_MGR_INTERRUPT_MASK_TC);
-    priv->spi_context->dma_context.dma_ptr      = priv->dma_rxresource.base;
-    priv->spi_context->dma_context.rx_dma_ch    = priv->dma_rxresource.channel;
-    priv->spi_context->dma_context.rx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_rxresource.base, priv->dma_rxresource.channel);
-    dma_mgr_enable_chn_irq(&priv->dma_rxresource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
-    dma_mgr_enable_channel(&priv->dma_rxresource);
-  }
+  if (priv->spi_context->dma_context.rx_dma_ch == 0xFF)
+    {
+      if (dma_mgr_request_resource(&priv->dma_rxresource) == status_success)
+        {
+          dma_mgr_install_chn_tc_callback(&priv->dma_rxresource, spi_rx_dma_channel_tc_callback, (void *)priv);
+          dma_mgr_enable_chn_irq(&priv->dma_rxresource, DMA_MGR_INTERRUPT_MASK_TC);
+          priv->spi_context->dma_context.dma_ptr      = priv->dma_rxresource.base;
+          priv->spi_context->dma_context.rx_dma_ch    = priv->dma_rxresource.channel;
+          priv->spi_context->dma_context.rx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_rxresource.base, priv->dma_rxresource.channel);
+          dma_mgr_enable_chn_irq(&priv->dma_rxresource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
+          dma_mgr_enable_channel(&priv->dma_rxresource);
+        }
+    }
 
-  if (dma_mgr_request_resource(&priv->dma_txresource) == status_success)
-  {
-    dma_mgr_install_chn_tc_callback(&priv->dma_txresource, spi_tx_dma_channel_tc_callback, (void *)priv);
-    dma_mgr_enable_chn_irq(&priv->dma_txresource, DMA_MGR_INTERRUPT_MASK_TC);
-    priv->spi_context->dma_context.dma_ptr      = priv->dma_txresource.base;
-    priv->spi_context->dma_context.tx_dma_ch    = priv->dma_txresource.channel;
-     priv->spi_context->dma_context.tx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_txresource.base, priv->dma_txresource.channel);
-    dma_mgr_enable_chn_irq(&priv->dma_txresource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
-    dma_mgr_enable_channel(&priv->dma_txresource);
-  }
+  if (priv->spi_context->dma_context.tx_dma_ch == 0xFF)
+    {
+      if (dma_mgr_request_resource(&priv->dma_txresource) == status_success)
+        {
+          dma_mgr_install_chn_tc_callback(&priv->dma_txresource, spi_tx_dma_channel_tc_callback, (void *)priv);
+          dma_mgr_enable_chn_irq(&priv->dma_txresource, DMA_MGR_INTERRUPT_MASK_TC);
+          priv->spi_context->dma_context.dma_ptr      = priv->dma_txresource.base;
+          priv->spi_context->dma_context.tx_dma_ch    = priv->dma_txresource.channel;
+          priv->spi_context->dma_context.tx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_txresource.base, priv->dma_txresource.channel);
+          dma_mgr_enable_chn_irq(&priv->dma_txresource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
+          dma_mgr_enable_channel(&priv->dma_txresource);
+        }
+    }
 #endif
 
 #ifdef CONFIG_PM

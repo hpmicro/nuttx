@@ -522,6 +522,11 @@ config HPM_SPI0_DMA
 	select HPM_COMPONENTS_SPI
 	select HPM_SPI_DMA
 
+config HPM_SPI0_DMA_BUFFER
+	int "SPI0_DMA_BUFFER_SIZE"
+	default 512
+	depends on HPM_SPI0_DMA
+
 #####################################################################
 #  SPI1 Configuration
 #####################################################################
@@ -537,6 +542,11 @@ config HPM_SPI1_DMA
 	select HPM_DMA
 	select HPM_COMPONENTS_SPI
 	select HPM_SPI_DMA
+
+config HPM_SPI1_DMA_BUFFER
+	int "SPI1_DMA_BUFFER_SIZE"
+	default 512
+	depends on HPM_SPI1_DMA
 
 #####################################################################
 #  SPI2 Configuration
@@ -554,6 +564,11 @@ config HPM_SPI2_DMA
 	select HPM_COMPONENTS_SPI
 	select HPM_SPI_DMA
 
+config HPM_SPI2_DMA_BUFFER
+	int "SPI2_DMA_BUFFER_SIZE"
+	default 512
+	depends on HPM_SPI2_DMA
+
 #####################################################################
 #  SPI3 Configuration
 #####################################################################
@@ -569,6 +584,11 @@ config HPM_SPI3_DMA
 	select HPM_DMA
 	select HPM_COMPONENTS_SPI
 	select HPM_SPI_DMA
+
+config HPM_SPI3_DMA_BUFFER
+	int "SPI3_DMA_BUFFER_SIZE"
+	default 512
+	depends on HPM_SPI3_DMA
 
 #####################################################################
 #  CAN0 Configuration
