@@ -956,11 +956,11 @@ static uint32_t spi_send(struct spi_dev_s *dev, uint32_t wd)
                 NULL, NULL,
                 (uint8_t *)&wd, 1, (uint8_t *)&regval, 1);
 
-  spiinfo("wd=%#x rd=%#x\n", wd, regval);
+  spiinfo("wd=%#x rd=%#x\n", (unsigned int)wd, (unsigned int)regval);
 
   if (stat != status_success)
     {
-      spierr("ERROR: hpm_spi_transfer failure: %d\n", stat);
+      spierr("ERROR: hpm_spi_transfer failure: %d\n", (unsigned int)stat);
     }
   return regval;
 }
@@ -1034,7 +1034,7 @@ static void spi_exchange_nodma(struct spi_dev_s *dev,
             (uint8_t *)&tx_buffer[inc_len * data_width], dummy_len,(uint8_t *)&rx_buffer[inc_len * data_width], dummy_len);
       if (stat != status_success)
         {
-          spierr("ERROR: hpm_spi_transfer failure: %d\n", stat);
+          spierr("ERROR: hpm_spi_transfer failure: %d\n", (unsigned int)stat);
         }
 
       len      -= dummy_len;
