@@ -76,35 +76,37 @@ static dma_mgr_context_t s_dma_mngr_ctx;
  *  Codes
  *
  *****************************************************************************************************************/
-void dma_mgr_isr_handler(DMA_Type *ptr, uint32_t instance)
+ATTR_RAMFUNC void dma_mgr_isr_handler(DMA_Type *ptr, uint32_t instance)
 {
     uint32_t int_disable_mask;
     uint32_t chn_int_stat;
     dma_chn_context_t *chn_ctx;
 
     for (uint8_t channel = 0; channel < DMA_SOC_CHANNEL_NUM; channel++) {
-        int_disable_mask = dma_check_channel_interrupt_mask(ptr, channel);
-        chn_int_stat = dma_check_transfer_status(ptr, channel);
         chn_ctx = &HPM_DMA_MGR->channels[instance][channel];
+        if (chn_ctx->is_allocated) {
+            int_disable_mask = dma_check_channel_interrupt_mask(ptr, channel);
+            chn_int_stat = dma_check_transfer_status(ptr, channel);
 
-        if (((int_disable_mask & DMA_MGR_INTERRUPT_MASK_TC) == 0) && ((chn_int_stat & DMA_MGR_CHANNEL_STATUS_TC) != 0)) {
-            if (chn_ctx->tc_cb != NULL) {
-                chn_ctx->tc_cb(ptr, channel, chn_ctx->tc_cb_data_ptr);
+            if (((int_disable_mask & DMA_MGR_INTERRUPT_MASK_TC) == 0) && ((chn_int_stat & DMA_MGR_CHANNEL_STATUS_TC) != 0)) {
+                if (chn_ctx->tc_cb != NULL) {
+                    chn_ctx->tc_cb(ptr, channel, chn_ctx->tc_cb_data_ptr);
+                }
             }
-        }
-        if (((int_disable_mask & DMA_MGR_INTERRUPT_MASK_HALF_TC) == 0) && ((chn_int_stat & DMA_MGR_CHANNEL_STATUS_HALF_TC) != 0)) {
-            if (chn_ctx->half_tc_cb != NULL) {
-                chn_ctx->half_tc_cb(ptr, channel, chn_ctx->half_tc_cb_data_ptr);
+            if (((int_disable_mask & DMA_MGR_INTERRUPT_MASK_HALF_TC) == 0) && ((chn_int_stat & DMA_MGR_CHANNEL_STATUS_HALF_TC) != 0)) {
+                if (chn_ctx->half_tc_cb != NULL) {
+                    chn_ctx->half_tc_cb(ptr, channel, chn_ctx->half_tc_cb_data_ptr);
+                }
             }
-        }
-        if (((int_disable_mask & DMA_MGR_INTERRUPT_MASK_ERROR) == 0) && ((chn_int_stat & DMA_MGR_CHANNEL_STATUS_ERROR) != 0)) {
-            if (chn_ctx->error_cb != NULL) {
-                chn_ctx->error_cb(ptr, channel, chn_ctx->error_cb_data_ptr);
+            if (((int_disable_mask & DMA_MGR_INTERRUPT_MASK_ERROR) == 0) && ((chn_int_stat & DMA_MGR_CHANNEL_STATUS_ERROR) != 0)) {
+                if (chn_ctx->error_cb != NULL) {
+                    chn_ctx->error_cb(ptr, channel, chn_ctx->error_cb_data_ptr);
+                }
             }
-        }
-        if (((int_disable_mask & DMA_MGR_INTERRUPT_MASK_ABORT) == 0) && ((chn_int_stat & DMA_MGR_CHANNEL_STATUS_ABORT) != 0)) {
-            if (chn_ctx->abort_cb != NULL) {
-                chn_ctx->abort_cb(ptr, channel, chn_ctx->abort_cb_data_ptr);
+            if (((int_disable_mask & DMA_MGR_INTERRUPT_MASK_ABORT) == 0) && ((chn_int_stat & DMA_MGR_CHANNEL_STATUS_ABORT) != 0)) {
+                if (chn_ctx->abort_cb != NULL) {
+                    chn_ctx->abort_cb(ptr, channel, chn_ctx->abort_cb_data_ptr);
+                }
             }
         }
     }
