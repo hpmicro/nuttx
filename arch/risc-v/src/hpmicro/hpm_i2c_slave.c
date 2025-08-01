@@ -56,10 +56,10 @@
  * Private Types
  ****************************************************************************/
 
-typedef struct 
+typedef struct
 {
   struct i2c_slave_s     dev;          /* Generic I2C device */
-  I2C_Type               *ptr; 
+  I2C_Type               *ptr;
   clock_name_t           i2c_clock;    /* i2c clock */
   i2c_config_t           i2c_config;   /* i2c config */
   uint16_t               irqid;        /* IRQ for this device */
@@ -206,7 +206,7 @@ static int hpm_i2c_slave_init(hpm_i2c_slave_t *dev)
   hpm_stat_t stat;
   freq = board_init_i2c_clock(priv->ptr);
   stat = i2c_init_slave(dev->ptr, freq, &dev->i2c_config, dev->slave_address);
-  if (stat != status_success) 
+  if (stat != status_success)
     {
         return -1;
     }
@@ -230,25 +230,25 @@ static int hpm_i2c_slave_interrupt(int irq, void *context, void *arg)
   uint8_t dir = (uint8_t)I2C_CTRL_DIR_GET(priv->ptr->CTRL);
   /* address hit */
 
-  if (status & I2C_EVENT_ADDRESS_HIT) 
+  if (status & I2C_EVENT_ADDRESS_HIT)
     {
       if (I2C_DIR_SLAVE_READ == dir)
         {
             i2c_enable_irq(priv->ptr, I2C_EVENT_FIFO_FULL);
-        } 
-      else 
+        }
+      else
         {
             i2c_enable_irq(priv->ptr, I2C_EVENT_FIFO_EMPTY);
         }
         i2c_disable_irq(priv->ptr, I2C_EVENT_ADDRESS_HIT);
         i2c_clear_status(priv->ptr, I2C_EVENT_ADDRESS_HIT);
     }
-  
+
   /* receive */
-  
-  if (status & I2C_EVENT_FIFO_FULL) 
+
+  if (status & I2C_EVENT_FIFO_FULL)
     {
-        while (!i2c_fifo_is_empty(priv->ptr)) 
+        while (!i2c_fifo_is_empty(priv->ptr))
           {
             if (priv->rx_buf_ptr < priv->rx_buf_end)
               {
@@ -261,7 +261,7 @@ static int hpm_i2c_slave_interrupt(int irq, void *context, void *arg)
                   {
                     priv->callback(priv, priv->rx_buf_ptr - priv->rx_buffer);
                     priv->rx_buf_ptr = priv->rx_buffer;
-                  }               
+                  }
               }
           }
         i2c_clear_status(priv->ptr, I2C_EVENT_FIFO_FULL);
@@ -269,11 +269,11 @@ static int hpm_i2c_slave_interrupt(int irq, void *context, void *arg)
 
     /* transmit */
 
-    if ((status & I2C_EVENT_FIFO_EMPTY) && (_irq & I2C_EVENT_FIFO_EMPTY)) 
+    if ((status & I2C_EVENT_FIFO_EMPTY) && (_irq & I2C_EVENT_FIFO_EMPTY))
       {
         i2c_clear_status(priv->ptr, I2C_EVENT_FIFO_EMPTY);
         status = i2c_get_status(priv->ptr);
-        while (!i2c_fifo_is_full(priv->ptr)) 
+        while (!i2c_fifo_is_full(priv->ptr))
           {
             if (priv->tx_buf_ptr < priv->tx_buf_end)
               {
@@ -283,18 +283,18 @@ static int hpm_i2c_slave_interrupt(int irq, void *context, void *arg)
               {
                 i2c_disable_irq(priv->ptr, I2C_EVENT_FIFO_EMPTY);
                 break;
-              }      
+              }
           }
         i2c_clear_status(priv->ptr, I2C_EVENT_FIFO_FULL);
       }
-    
+
     /* complete */
 
     if (status & I2C_EVENT_TRANSACTION_COMPLETE)
       {
         if (I2C_DIR_SLAVE_READ == dir)
           {
-            while (!i2c_fifo_is_empty(priv->ptr)) 
+            while (!i2c_fifo_is_empty(priv->ptr))
               {
                 if (priv->rx_buf_ptr < priv->rx_buf_end)
                   {
@@ -311,10 +311,10 @@ static int hpm_i2c_slave_interrupt(int irq, void *context, void *arg)
                 priv->callback(priv, priv->rx_buf_ptr - priv->rx_buffer);
                 priv->rx_buf_ptr = priv->rx_buffer;
               }
-          }         
+          }
         i2c_disable_irq(priv->ptr, I2C_EVENT_TRANSACTION_COMPLETE);
         i2c_clear_status(priv->ptr, I2C_EVENT_TRANSACTION_COMPLETE);
-      }     
+      }
 }
 #endif
 
@@ -329,13 +329,13 @@ static int hpm_i2c_slave_interrupt(int irq, void *context, void *arg)
 static void hpm_i2c_rtxint(struct i2c_slave_s  *dev, bool enable)
 {
   hpm_i2c_slave_t *priv = (hpm_i2c_slave_t *) dev;
-  if (enable) 
+  if (enable)
     {
-      i2c_enable_irq(priv->ptr, I2C_EVENT_ADDRESS_HIT | I2C_EVENT_TRANSACTION_COMPLETE); 
+      i2c_enable_irq(priv->ptr, I2C_EVENT_ADDRESS_HIT | I2C_EVENT_TRANSACTION_COMPLETE);
     }
   else
     {
-      i2c_disable_irq(priv->ptr, I2C_EVENT_ADDRESS_HIT | I2C_EVENT_TRANSACTION_COMPLETE); 
+      i2c_disable_irq(priv->ptr, I2C_EVENT_ADDRESS_HIT | I2C_EVENT_TRANSACTION_COMPLETE);
     }
 }
 
@@ -353,7 +353,7 @@ static void hpm_enable_i2c_slave(struct i2c_slave_s *dev, bool enable)
   irqstate_t flags;
 
   flags = enter_critical_section();
-  priv->ptr->SETUP |= I2C_SETUP_IICEN_SET(enable); 
+  priv->ptr->SETUP |= I2C_SETUP_IICEN_SET(enable);
   leave_critical_section(flags);
 }
 
@@ -377,7 +377,7 @@ static int hpm_set_own_address(struct i2c_slave_s  *dev,
 
   hpm_enable_i2c_slave(dev, false);
 
-  if (nbits == 10) 
+  if (nbits == 10)
     {
       priv->ptr->SETUP = I2C_SETUP_ADDRESSING_SET(true);
     }
@@ -385,7 +385,7 @@ static int hpm_set_own_address(struct i2c_slave_s  *dev,
     {
       priv->ptr->SETUP = I2C_SETUP_ADDRESSING_SET(false);
     }
-  
+
   priv->ptr->ADDR = I2C_ADDR_ADDR_SET(address);
 
   hpm_enable_i2c_slave(dev, true);
@@ -509,7 +509,7 @@ struct i2c_slave_s * hpm_i2c_slave_initialize
                             i2c_slave_callback_t *callback)
 {
   hpm_i2c_slave_t *priv;
- 
+
 #ifdef CONFIG_HPM_I2C0_SLAVE
   if (port == 0)
     {
@@ -542,12 +542,12 @@ struct i2c_slave_s * hpm_i2c_slave_initialize
       i2cerr("I2C Only support 0,1,2,3\n");
       return NULL;
     }
-  
-  if (hpm_i2cbus_pins_initialize(port) < 0)
+
+  if (hpm_i2cbus_pins_init(port) < 0)
     {
       return NULL;
     }
-  
+
   if(hpm_i2c_slave_init(priv) < 0)
     return NULL;
 

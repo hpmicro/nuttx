@@ -45,7 +45,7 @@ extern "C"
 #ifdef CONFIG_HPM_I2C_DRV
 
 /****************************************************************************
- * Name: hpm_i2cbus_pins_initialize
+ * Name: hpm_i2cbus_pins_init
  *
  * Description:
  *   Initialize the selected I2C port. And initializ the pins,include SCL and SDA
@@ -59,7 +59,7 @@ extern "C"
  *
  ****************************************************************************/
 
-int  hpm_i2cbus_pins_initialize(int port);
+int  hpm_i2cbus_pins_init(int port);
 
 #endif
 
@@ -130,7 +130,7 @@ struct i2c_slave_s * hpm_i2c_slave_initialize
                             size_t                rx_buffer_len,
                             i2c_slave_callback_t *callback);
 
-#endif 
+#endif
 
 #undef EXTERN
 #if defined(__cplusplus)

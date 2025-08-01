@@ -79,7 +79,7 @@ struct hpm_i2cdev_s
 
   int                 rx_data_count;
   int                 tx_data_count;
-  int                 rw_size;                  
+  int                 rw_size;
 
   int                 error;      /* Error status of each transfers */
   int                 msg_count;
@@ -230,7 +230,7 @@ static void hpm_i2c_txinit(struct hpm_i2cdev_s *priv, bool enable)
   else
     {
       (i2c_disable_irq(priv->base, I2C_EVENT_TRANSACTION_COMPLETE | I2C_EVENT_FIFO_EMPTY));
-    }                      
+    }
 }
 
 /****************************************************************************
@@ -250,7 +250,7 @@ static void hpm_i2c_rxinit(struct hpm_i2cdev_s *priv, bool enable)
   else
     {
       (i2c_disable_irq(priv->base, I2C_EVENT_TRANSACTION_COMPLETE | I2C_EVENT_FIFO_FULL));
-    } 
+    }
 }
 
 /****************************************************************************
@@ -274,7 +274,7 @@ static int hpm_i2c_interrupt(int irq, void *context, void *arg)
     {
       i2c_clear_status(priv->base, I2C_EVENT_FIFO_EMPTY);
       status = i2c_get_status(priv->base);
-      while (!i2c_fifo_is_full(priv->base)) 
+      while (!i2c_fifo_is_full(priv->base))
       {
         priv->base->DATA = I2C_DATA_DATA_SET(priv->msgs->buffer[priv->rw_size++]);
       }
@@ -284,34 +284,34 @@ static int hpm_i2c_interrupt(int irq, void *context, void *arg)
           i2c_disable_irq(priv->base, I2C_EVENT_FIFO_EMPTY);
         }
     }
-  
 
-  if ((status & I2C_EVENT_FIFO_FULL) && (_irq & I2C_EVENT_FIFO_FULL)) 
+
+  if ((status & I2C_EVENT_FIFO_FULL) && (_irq & I2C_EVENT_FIFO_FULL))
     {
-      while (!i2c_fifo_is_empty(priv->base)) 
+      while (!i2c_fifo_is_empty(priv->base))
         {
-          priv->msgs->buffer[priv->rw_size++] = (uint8_t)I2C_DATA_DATA_GET(priv->base->DATA); 
+          priv->msgs->buffer[priv->rw_size++] = (uint8_t)I2C_DATA_DATA_GET(priv->base->DATA);
         }
       i2c_clear_status(priv->base, I2C_EVENT_FIFO_FULL);
 
-      if (priv->rw_size == priv->rx_data_count) 
+      if (priv->rw_size == priv->rx_data_count)
         {
           i2c_disable_irq(priv->base, I2C_EVENT_FIFO_FULL);
         }
     }
-  
+
    /* complete */
 
-  if (status & I2C_EVENT_TRANSACTION_COMPLETE) 
+  if (status & I2C_EVENT_TRANSACTION_COMPLETE)
     {
-        if (I2C_DIR_MASTER_READ == dir) 
+        if (I2C_DIR_MASTER_READ == dir)
           {
-            while (!i2c_fifo_is_empty(priv->base)) 
+            while (!i2c_fifo_is_empty(priv->base))
               {
                 priv->msgs->buffer[priv->rw_size++] = (uint8_t)I2C_DATA_DATA_GET(priv->base->DATA);
               }
             hpm_i2c_rxinit(priv, false);
-          } 
+          }
         else
           {
             hpm_i2c_txinit(priv, false);
@@ -340,7 +340,7 @@ static int hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_
   uint32_t base_freq;
   hpm_stat_t stat;
 
-  if (i2c_freq <= 100000) 
+  if (i2c_freq <= 100000)
     {
       tmp_freq = 100000;
       priv->i2c_config.i2c_mode = i2c_mode_normal;
@@ -350,12 +350,12 @@ static int hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_
       tmp_freq = 400000;
       priv->i2c_config.i2c_mode = i2c_mode_fast;
     }
-  else 
+  else
     {
       tmp_freq = 1000000;
       priv->i2c_config.i2c_mode = i2c_mode_fast_plus;
     }
-  
+
   base_freq = board_init_i2c_clock(priv->base);
   if (priv->frequency != tmp_freq)
     {
@@ -368,8 +368,8 @@ static int hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_
           return -1;
         }
     }
-  
-  return OK; 
+
+  return OK;
 }
 
 /****************************************************************************
@@ -406,7 +406,7 @@ static int hpm_i2c_transfer(struct i2c_master_s *dev,
     {
       is_ten_addr = true;
     }
-  
+
   hpm_i2c_init(priv, msgs[0].frequency, is_ten_addr);
 
   if (count == 1)
@@ -446,7 +446,7 @@ static int hpm_i2c_transfer(struct i2c_master_s *dev,
               sta = i2c_master_write(priv->base, msgs[1].addr, msgs[1].buffer, msgs[1].length);
             }
         }
-      
+
     }
   (sta == status_success) ? (ret = 0) : (ret = -1);
   i2c_givesem(&priv->mutex);
@@ -545,7 +545,7 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
       return NULL;
     }
 
-  if (hpm_i2cbus_pins_initialize(priv->port) < 0)
+  if (hpm_i2cbus_pins_init(priv->port) < 0)
     {
       leave_critical_section(flags);
       return NULL;

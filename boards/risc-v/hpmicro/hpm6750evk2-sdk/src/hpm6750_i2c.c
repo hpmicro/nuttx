@@ -67,7 +67,7 @@ struct i2c_master_s * g_i2c0_dev;
  *
  ****************************************************************************/
 
-int hpm_i2cbus_pins_initialize(int port)
+int hpm_i2cbus_pins_init(int port)
 {
 
 #if (defined(CONFIG_HPM_I2C0_MASTER) || defined(CONFIG_HPM_I2C0_SLAVE))
@@ -81,7 +81,7 @@ int hpm_i2cbus_pins_initialize(int port)
       canerr("ERROR: hpm6750evk2 i2c pins Unsupported port %d\n", port);
       return -1;
     }
-  
+
   return 0;
 }
 
