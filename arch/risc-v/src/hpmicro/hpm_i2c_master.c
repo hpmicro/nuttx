@@ -524,7 +524,7 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
   else
 #endif
 #ifdef CONFIG_HPM_I2C2_MASTER
-  if (port == 1)
+  if (port == 2)
     {
       priv          = &g_i2c2dev;
       priv->dev.ops = &hpm_i2c_ops;
@@ -532,7 +532,7 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
   else
 #endif
 #ifdef CONFIG_HPM_I2C3_MASTER
-  if (port == 1)
+  if (port == 3)
     {
       priv          = &g_i2c3dev;
       priv->dev.ops = &hpm_i2c_ops;
