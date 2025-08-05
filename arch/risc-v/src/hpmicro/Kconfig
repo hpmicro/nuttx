@@ -213,6 +213,10 @@ config HPM_COMPONENTS_SPI
 	bool
 	default n
 
+config HPM_COMPONENTS_I2C
+	bool
+	default n
+
 #####################################################################
 #  HPMICRO Peripheral Selection
 #####################################################################
@@ -247,6 +251,18 @@ config HPM_I2C0
 	select HPM_I2C_DRV
 	select I2C
 	default n
+
+config HPM_I2C0_DMA
+	bool "I2C0_DMA"
+	default n
+	select HPM_DMA
+	select HPM_COMPONENTS_I2C
+	select HPM_I2C_DMA
+
+config HPM_I2C0_DMA_BUFFER
+	int "I2C0_DMA_BUFFER_SIZE"
+	default 512
+	depends on HPM_I2C0_DMA
 
 choice
 	depends on HPM_I2C0
@@ -311,6 +327,18 @@ config HPM_I2C1
 	select I2C
 	default n
 
+config HPM_I2C1_DMA
+	bool "I2C1_DMA"
+	default n
+	select HPM_DMA
+	select HPM_COMPONENTS_I2C
+	select HPM_I2C_DMA
+
+config HPM_I2C1_DMA_BUFFER
+	int "I2C1_DMA_BUFFER_SIZE"
+	default 512
+	depends on HPM_I2C1_DMA
+
 choice
 	depends on HPM_I2C1
 	prompt "I2C1 driver"
@@ -374,6 +402,18 @@ config HPM_I2C2
 	select I2C
 	default n
 
+config HPM_I2C2_DMA
+	bool "I2C2_DMA"
+	default n
+	select HPM_DMA
+	select HPM_COMPONENTS_I2C
+	select HPM_I2C_DMA
+
+config HPM_I2C2_DMA_BUFFER
+	int "I2C2_DMA_BUFFER_SIZE"
+	default 512
+	depends on HPM_I2C2_DMA
+
 choice
 	depends on HPM_I2C2
 	prompt "I2C2 driver"
@@ -436,6 +476,18 @@ config HPM_I2C3
 	select HPM_I2C_DRV
 	select I2C
 	default n
+
+config HPM_I2C3_DMA
+	bool "I2C3_DMA"
+	default n
+	select HPM_DMA
+	select HPM_COMPONENTS_I2C
+	select HPM_I2C_DMA
+
+config HPM_I2C3_DMA_BUFFER
+	int "I2C3_DMA_BUFFER_SIZE"
+	default 512
+	depends on HPM_I2C3_DMA
 
 choice
 	depends on HPM_I2C3
@@ -503,6 +555,10 @@ config HPM_DMA
 	default n
 
 config HPM_SPI_DMA
+	bool
+	default n
+
+config HPM_I2C_DMA
 	bool
 	default n
 
