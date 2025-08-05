@@ -506,9 +506,18 @@ uint32_t board_init_uart_clock(UART_Type *ptr)
 
 uint32_t board_init_spi_clock(SPI_Type *ptr)
 {
-    if (ptr == HPM_SPI2) {
+    if (ptr == HPM_SPI0) {
+        clock_add_to_group(clock_spi0, 0);
+        return clock_get_frequency(clock_spi0);
+    } else if (ptr == HPM_SPI1) {
+        clock_add_to_group(clock_spi1, 0);
+        return clock_get_frequency(clock_spi1);
+    } else if (ptr == HPM_SPI2) {
         clock_add_to_group(clock_spi2, 0);
         return clock_get_frequency(clock_spi2);
+    } else if (ptr == HPM_SPI3) {
+        clock_add_to_group(clock_spi3, 0);
+        return clock_get_frequency(clock_spi3);
     } else {
         return 0;
     }
