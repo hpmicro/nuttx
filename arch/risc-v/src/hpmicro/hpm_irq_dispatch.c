@@ -40,9 +40,6 @@
 
 #define RV_IRQ_MASK 27
 
-int g_irq;
-int g_vector;
-
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -54,9 +51,6 @@ int g_vector;
 ATTR_RAMFUNC void *riscv_dispatch_irq(uintptr_t vector, uintptr_t *regs)
 {
   int irq = (vector >> RV_IRQ_MASK) | (vector & 0xf);
-
-  g_vector = vector;
-  g_irq = irq;
 
   /* Firstly, check if the irq is machine external interrupt */
 
