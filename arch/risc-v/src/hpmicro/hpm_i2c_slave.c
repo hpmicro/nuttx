@@ -41,7 +41,7 @@
 
 #include "chip.h"
 #include "riscv_internal.h"
-#include "hpm_i2c.h"
+#include "hpm_i2c_slave.h"
 #include "hpm_i2c_drv.h"
 #include "hpm_i2c_regs.h"
 #include "hpm_clock_drv.h"

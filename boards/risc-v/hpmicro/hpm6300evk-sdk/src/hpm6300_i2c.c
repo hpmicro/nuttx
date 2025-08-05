@@ -33,7 +33,7 @@
 #include "board.h"
 #include "chip.h"
 #include "hpm.h"
-#include "hpm_i2c.h"
+#include "hpm_i2c_master.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -81,7 +81,7 @@ int hpm6300_i2cbus_pins_initialize(int port)
       canerr("ERROR: hpm6300evk i2c pins Unsupported port %d\n", port);
       return -1;
     }
-  
+
   return 0;
 }
 

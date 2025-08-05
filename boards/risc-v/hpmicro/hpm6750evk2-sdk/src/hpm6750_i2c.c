@@ -33,7 +33,7 @@
 #include "board.h"
 #include "chip.h"
 #include "hpm.h"
-#include "hpm_i2c.h"
+#include "hpm_i2c_master.h"
 
 /****************************************************************************
  * Pre-processor Definitions

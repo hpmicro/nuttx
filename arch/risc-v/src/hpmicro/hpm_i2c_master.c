@@ -43,12 +43,15 @@
 #include "riscv_internal.h"
 
 #include "board.h"
-#include "hpm_i2c.h"
+#include "hpm_i2c_master.h"
 #include "hpm_i2c_drv.h"
 #include "hpm_i2c_regs.h"
 #include "hpm_clock_drv.h"
-#include "hpm_dma.h"
-#include "i2c/hpm_i2c.h"
+
+#ifdef CONFIG_HPM_I2C_DMA
+# include "hpm_dma.h"
+# include "hpm_i2c.h"
+#endif
 
 #ifdef CONFIG_HPM_I2C_MASTER
 
