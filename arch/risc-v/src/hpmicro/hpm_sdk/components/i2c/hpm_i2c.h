@@ -19,7 +19,7 @@
 #include "hpm_l1c_drv.h"
 
 #ifndef USE_I2C_DMA_MGR
-#define USE_I2C_DMA_MGR      (1U)
+#define USE_I2C_DMA_MGR      (0U)
 #endif
 
 #if USE_I2C_DMA_MGR
