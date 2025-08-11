@@ -704,7 +704,7 @@ static int hpm_sdmmc_tuning(FAR struct sdio_dev_s *dev, uint8_t tuning_cmd)
 
     if (!IS_HPM_BITMASK_SET(base->AC_HOST_CTRL, SDXC_AC_HOST_CTRL_SAMPLE_CLK_SEL_MASK)) {
         /*FIXME*/
-        ret = ERROR;
+        ret = -ERROR;
     }
 
     return ret;
@@ -1283,13 +1283,13 @@ static void hpm_sdmmc_waitenable(FAR struct sdio_dev_s *dev, sdio_eventset_t eve
     hpm_sdmmc_config_wait_ints(priv, 0, 0, 0);
 
 #if defined(CONFIG_MMCSD_SDIOWAIT_WRCOMPLETE)
-    if (eventset & SDIOWAIT_WRCOMPLETE) != 0)
+    if ((eventset & SDIOWAIT_WRCOMPLETE) != 0)
+    {
+        if ((sdxc_get_data3_0_level(priv->base) & (1UL << 0)) != 0)
         {
-            if ((sdxc_get_data3_0_level(priv->base) & (1UL << 0)) != 0)
-            {
-                event &= ~(SDIOWAIT_TIMEOUT | SDIOWAIT_WRCOMPLETE);
-            }
+            eventset &= ~(SDIOWAIT_TIMEOUT | SDIOWAIT_WRCOMPLETE);
         }
+    }
     else
 #endif
     {
@@ -1553,10 +1553,10 @@ static int hpm_sdmmc_dmarecvsetup(FAR struct sdio_dev_s *dev, FAR uint8_t *buffe
         {
             return -ENOMEM;
         }
-        recv_buf = HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)new_buf);
-        priv->buffer = new_buf;
+        recv_buf = (uint8_t*)HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)new_buf);
+        priv->buffer = (uint32_t*)new_buf;
         priv->need_free_buf = true;
-        priv->dst_buf = buffer;
+        priv->dst_buf = (uint32_t*)buffer;
         priv->xfer_size = buflen;
     }
 
@@ -1596,7 +1596,7 @@ static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t 
 {
     struct hpm_sdmmc_dev_s *priv = (struct hpm_sdmmc_dev_s *)dev;
     DEBUGASSERT((priv != NULL) && (buffer != NULL) && (buflen > 0));
-    uint8_t *send_buf = buffer;
+    uint8_t *send_buf = (uint8_t*)buffer;
     priv->need_free_buf = false;
     if ((uint32_t)buffer % 4 != 0)
     {
@@ -1605,9 +1605,9 @@ static int hpm_sdmmc_dmasendsetup(FAR struct sdio_dev_s *dev, FAR const uint8_t 
         {
             return -ENOMEM;
         }
-        send_buf = HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)new_buf);
+        send_buf = (uint8_t*)HPM_L1C_CACHELINE_ALIGN_UP((uint32_t)new_buf);
         memcpy(send_buf, buffer, buflen);
-        priv->buffer = new_buf;
+        priv->buffer = (uint32_t*)new_buf;
         priv->need_free_buf = true;
     }
 
