@@ -1475,12 +1475,9 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
       if (dma_mgr_request_resource(&priv->dma_rxresource) == status_success)
         {
           dma_mgr_install_chn_tc_callback(&priv->dma_rxresource, spi_rx_dma_channel_tc_callback, (void *)priv);
-          dma_mgr_enable_chn_irq(&priv->dma_rxresource, DMA_MGR_INTERRUPT_MASK_TC);
           priv->spi_context->dma_context.dma_ptr      = priv->dma_rxresource.base;
           priv->spi_context->dma_context.rx_dma_ch    = priv->dma_rxresource.channel;
           priv->spi_context->dma_context.rx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_rxresource.base, priv->dma_rxresource.channel);
-          dma_mgr_enable_chn_irq(&priv->dma_rxresource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
-          dma_mgr_enable_channel(&priv->dma_rxresource);
         }
     }
 
@@ -1489,12 +1486,9 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
       if (dma_mgr_request_resource(&priv->dma_txresource) == status_success)
         {
           dma_mgr_install_chn_tc_callback(&priv->dma_txresource, spi_tx_dma_channel_tc_callback, (void *)priv);
-          dma_mgr_enable_chn_irq(&priv->dma_txresource, DMA_MGR_INTERRUPT_MASK_TC);
           priv->spi_context->dma_context.dma_ptr      = priv->dma_txresource.base;
           priv->spi_context->dma_context.tx_dma_ch    = priv->dma_txresource.channel;
           priv->spi_context->dma_context.tx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_txresource.base, priv->dma_txresource.channel);
-          dma_mgr_enable_chn_irq(&priv->dma_txresource, DMA_INTERRUPT_MASK_TERMINAL_COUNT);
-          dma_mgr_enable_channel(&priv->dma_txresource);
         }
     }
 #endif
