@@ -255,13 +255,16 @@ static dma_chn_context_t *dma_mgr_search_chn_context(const dma_resource_t *resou
 hpm_stat_t dma_mgr_release_resource(const dma_resource_t *resource)
 {
     hpm_stat_t status;
-
+    uint32_t dmamux_ch;
     dma_chn_context_t *chn_ctx = dma_mgr_search_chn_context(resource);
 
     if (chn_ctx == NULL) {
         status = status_invalid_argument;
     } else {
         uint32_t level = dma_mgr_enter_critical();
+        dma_mgr_disable_channel(resource);
+        dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(resource->base, resource->channel);
+        dmamux_config(HPM_DMAMUX, dmamux_ch, 0, 0);
         chn_ctx->is_allocated = false;
         chn_ctx->tc_cb_data_ptr = NULL;
         chn_ctx->half_tc_cb_data_ptr = NULL;
