@@ -730,8 +730,10 @@ hpm_stat_t hpm_i2c_dma_mgr_install_callback(hpm_i2c_context_t *context, hpm_i2c_
         dma_mgr_enable_chn_irq(resource, DMA_MGR_INTERRUPT_MASK_TC);
         dma_mgr_enable_dma_irq_with_priority(resource, 1);
         obj->dma_complete = complete;
+        return status_success;
+    } else {
+        return status_fail;
     }
-    return status_success;
 }
 
 hpm_stat_t hpm_i2c_slave_read_nonblocking(hpm_i2c_context_t *context, uint8_t *buf, uint32_t size)
@@ -882,7 +884,6 @@ hpm_stat_t hpm_i2c_master_addr_read_nonblocking(hpm_i2c_context_t *context, cons
     return stat;
 }
 
-
 hpm_stat_t hpm_i2c_master_write_nonblocking(hpm_i2c_context_t *context, uint16_t device_address,
                             uint8_t *buf, uint32_t size)
 {
@@ -899,8 +900,7 @@ hpm_stat_t hpm_i2c_master_write_nonblocking(hpm_i2c_context_t *context, uint16_t
     /* W1C, clear CMPL bit to avoid blocking the transmission */
     i2c_clear_status(ptr, I2C_STATUS_CMPL_MASK);
     i2c_clear_fifo(ptr);
-    hpm_i2c_master_phase_config(ptr, device_address, I2C_WR, size, false);
-
+    hpm_i2c_master_phase_config(ptr, device_address, I2C_WR | I2C_NO_STOP, 0, false);
     i2c_master_issue_data_transmission(ptr);
 
    /* Before starting to transmit data, judge addrhit to ensure that the slave address exists on the bus. */
@@ -913,9 +913,54 @@ hpm_stat_t hpm_i2c_master_write_nonblocking(hpm_i2c_context_t *context, uint16_t
         }
     }
     i2c_clear_status(ptr, I2C_STATUS_ADDRHIT_MASK);
-    i2c_dma_enable(ptr);
+    i2c_clear_status(ptr, I2C_STATUS_CMPL_MASK);
+    i2c_clear_fifo(ptr);
+
     buf_addr = core_local_mem_to_sys_address(HPM_CORE0, (uint32_t)buf);
     hpm_i2c_write_trigger_dma(obj, buf_addr, size);
+    hpm_i2c_master_phase_config(ptr, device_address, I2C_NO_START | I2C_NO_ADDRESS, size, true);
+    i2c_master_issue_data_transmission(ptr);
+
+    return stat;
+}
+
+hpm_stat_t hpm_i2c_master_write_nonblocking_nostop(hpm_i2c_context_t *context, uint16_t device_address,
+                            uint8_t *buf, uint32_t size)
+{
+    hpm_stat_t stat = status_success;
+    uint32_t buf_addr;
+    I2C_Type *ptr = context->base;
+    uint32_t ticks_per_us = clock_get_core_clock_ticks_per_us();
+    uint64_t expected_ticks = 0;
+    hpm_i2c_cfg_t *obj = hpm_i2c_get_cfg_obj(ptr);
+    if ((size > I2C_SOC_TRANSFER_COUNT_MAX) || (obj == NULL)) {
+        return status_invalid_argument;
+    }
+
+    /* W1C, clear CMPL bit to avoid blocking the transmission */
+    i2c_clear_status(ptr, I2C_STATUS_CMPL_MASK);
+    i2c_clear_fifo(ptr);
+    hpm_i2c_master_phase_config(ptr, device_address, I2C_WR | I2C_NO_STOP, 0, false);
+    i2c_master_issue_data_transmission(ptr);
+
+   /* Before starting to transmit data, judge addrhit to ensure that the slave address exists on the bus. */
+   /* i2c speed min is 100Kbps, and mem address max is 4 byte, 10us * (4 * 8) = 320us,  so 500us is enough */
+    expected_ticks = hpm_csr_get_core_cycle() + (uint64_t)ticks_per_us * 500UL; /* 500Us */
+    while (!(i2c_get_status(ptr) & I2C_STATUS_ADDRHIT_MASK)) {
+        if (hpm_csr_get_core_cycle() > expected_ticks) {
+            hpm_i2c_release_bus(ptr);
+            return status_i2c_no_addr_hit;
+        }
+    }
+    i2c_clear_status(ptr, I2C_STATUS_ADDRHIT_MASK);
+    i2c_clear_status(ptr, I2C_STATUS_CMPL_MASK);
+    i2c_clear_fifo(ptr);
+
+    buf_addr = core_local_mem_to_sys_address(HPM_CORE0, (uint32_t)buf);
+    hpm_i2c_write_trigger_dma(obj, buf_addr, size);
+    hpm_i2c_master_phase_config(ptr, device_address, I2C_NO_START | I2C_NO_ADDRESS | I2C_NO_STOP, size, true);
+    i2c_master_issue_data_transmission(ptr);
+
     return stat;
 }
 
@@ -935,7 +980,7 @@ hpm_stat_t hpm_i2c_master_read_nonblocking(hpm_i2c_context_t *context, const uin
     /* W1C, clear CMPL bit to avoid blocking the transmission */
     i2c_clear_status(ptr, I2C_STATUS_CMPL_MASK);
     i2c_clear_fifo(ptr);
-    hpm_i2c_master_phase_config(ptr, device_address, I2C_RD, size, false);
+    hpm_i2c_master_phase_config(ptr, device_address, I2C_RD | I2C_NO_STOP, 0, false);
     i2c_master_issue_data_transmission(ptr);
 
    /* Before starting to transmit data, judge addrhit to ensure that the slave address exists on the bus. */
@@ -948,11 +993,16 @@ hpm_stat_t hpm_i2c_master_read_nonblocking(hpm_i2c_context_t *context, const uin
         }
     }
     i2c_clear_status(ptr, I2C_STATUS_ADDRHIT_MASK);
-    i2c_dma_enable(ptr);
+    i2c_clear_status(ptr, I2C_STATUS_CMPL_MASK);
+    i2c_clear_fifo(ptr);
+
     buf_addr = core_local_mem_to_sys_address(HPM_CORE0, (uint32_t)buf);
     hpm_i2c_read_trigger_dma(obj, buf_addr, size);
+    hpm_i2c_master_phase_config(ptr, device_address, I2C_NO_START | I2C_NO_ADDRESS, size, true);
+    i2c_master_issue_data_transmission(ptr);
     return stat;
 }
+
 dma_resource_t *hpm_i2c_get_dma_mgr_resource(hpm_i2c_context_t *context)
 {
     hpm_i2c_cfg_t *obj = hpm_i2c_get_cfg_obj(context->base);
