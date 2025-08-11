@@ -76,6 +76,7 @@ struct hpm_i2cdev_s
   int8_t              port;       /* Port number */
   uint32_t            base_freq;  /* branch frequency */
 
+  int                 refs;       /* Reference count */
   sem_t               mutex;      /* Only one thread can access at a time */
   sem_t               wait;       /* Place to wait for transfer completion */
   uint32_t            frequency;  /* Current I2C frequency */
@@ -121,6 +122,7 @@ static struct hpm_i2cdev_s g_i2c0dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C0_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C0_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C0,
+  .refs                           = 0,
 #ifdef CONFIG_HPM_I2C0_DMA
   .i2c_context                    = &g_i2c0_context,
   .txrxbuf                        = g_i2c0_buffer,
@@ -158,6 +160,7 @@ static struct hpm_i2cdev_s g_i2c1dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C1_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C1_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C1,
+  .refs                           = 0,
 #ifdef CONFIG_HPM_I2C1_DMA
   .i2c_context                    = &g_i2c1_context,
   .txrxbuf                        = g_i2c1_buffer,
@@ -194,6 +197,7 @@ static struct hpm_i2cdev_s g_i2c2dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C2_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C2_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C2,
+  .refs                           = 0,
 #ifdef CONFIG_HPM_I2C2_DMA
   .i2c_context                    = &g_i2c2_context,
   .txrxbuf                        = g_i2c2_buffer,
@@ -230,6 +234,7 @@ static struct hpm_i2cdev_s g_i2c3dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C3_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C3_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C3,
+  .refs                           = 0,
 #ifdef CONFIG_HPM_I2C3_DMA
   .i2c_context                    = &g_i2c3_context,
   .txrxbuf                        = g_i2c3_buffer,
@@ -249,11 +254,6 @@ static struct hpm_i2cdev_s g_i2c3dev =
 /****************************************************************************
  * Private Functions
  ****************************************************************************/
-#ifdef CONFIG_HPM_I2C_DMA
-static void        hpm_i2c_dma_channel_tc_callback(DMA_Type *ptr,
-                                              uint32_t channel,
-                                              void *user_data);
-#endif
 
 static int  hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_mode);
 static void hpm_i2c_txinit(struct hpm_i2cdev_s *priv, bool enable);
@@ -284,7 +284,7 @@ static inline int i2c_givesem(sem_t *sem)
 }
 
 #ifdef CONFIG_HPM_I2C_DMA
-static void hpm_i2c_dma_channel_tc_callback(DMA_Type *ptr,
+static void hpm_i2c_dma_tc_callback(DMA_Type *ptr,
                                               uint32_t channel,
                                               void *user_data)
 {
@@ -299,7 +299,6 @@ static void hpm_i2c_dma_channel_tc_callback(DMA_Type *ptr,
       status = i2c_get_status(priv->base);
   } while (!(status & I2C_STATUS_CMPL_MASK));
 
-  //printf("status = 0x%08x\n", status);
   i2c_clear_status(priv->base, status);
 
   nxsem_post(&priv->txrxsem);
@@ -771,6 +770,10 @@ static int hpm_i2c_reset(struct hpm_i2cdev_s *dev)
 
   /* Lock out other clients */
 
+  /* Our caller must own a ref */
+
+  DEBUGASSERT(priv->refs > 0);
+
   i2c_takesem(&priv->mutex);
 
   priv->frequency                      = 100000;
@@ -799,10 +802,7 @@ static int hpm_i2c_reset(struct hpm_i2cdev_s *dev)
 struct i2c_master_s *hpm_i2cbus_initialize(int port)
 {
   struct hpm_i2cdev_s *priv;
-
   irqstate_t flags;
-
-  flags = enter_critical_section();
 
 #ifdef CONFIG_HPM_I2C0_MASTER
   if (port == 0)
@@ -837,42 +837,47 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
   else
 #endif
     {
-      leave_critical_section(flags);
       i2cerr("I2C Only support 0,1,2,3\n");
       return NULL;
     }
 
-  if (hpm_i2cbus_pins_init(priv->port) < 0)
+  flags = enter_critical_section();
+
+  if ((volatile int)priv->refs++ == 0)
     {
-      leave_critical_section(flags);
-      return NULL;
+      if (hpm_i2cbus_pins_init(priv->port) < 0)
+        {
+          leave_critical_section(flags);
+          return NULL;
+        }
+      hpm_i2c_init(priv, priv->frequency, false);
+
+      nxsem_init(&priv->mutex, 0, 1);
+      nxsem_init(&priv->wait, 0, 0);
+      nxsem_set_protocol(&priv->wait, SEM_PRIO_NONE);
+
+    #ifdef CONFIG_HPM_I2C_DMA
+      nxsem_init(&priv->txrxsem, 0, 0);
+      nxsem_set_protocol(&priv->txrxsem, SEM_PRIO_NONE);
+
+      if(priv->dma_source == NULL && priv->i2c_context)
+      {
+        hpm_i2c_dma_mgr_install_callback(priv->i2c_context, NULL);
+        priv->dma_source = hpm_i2c_get_dma_mgr_resource(priv->i2c_context);
+        dma_mgr_install_chn_tc_callback(priv->dma_source, hpm_i2c_dma_tc_callback, (void *)priv);
+      }
+    #else
+      /* Attach Interrupt Handler */
+
+      irq_attach(priv->irqid, hpm_i2c_interrupt, priv);
+
+      /* Enable Interrupt Handler */
+
+      up_enable_irq(priv->irqid);
+    #endif
     }
-  hpm_i2c_init(priv, priv->frequency, false);
+
   leave_critical_section(flags);
-
-  nxsem_init(&priv->mutex, 0, 1);
-  nxsem_init(&priv->wait, 0, 0);
-  nxsem_set_protocol(&priv->wait, SEM_PRIO_NONE);
-
-#ifdef CONFIG_HPM_I2C_DMA
-  nxsem_init(&priv->txrxsem, 0, 0);
-  nxsem_set_protocol(&priv->txrxsem, SEM_PRIO_NONE);
-
-  if(priv->dma_source == NULL && priv->i2c_context)
-  {
-    hpm_i2c_dma_mgr_install_callback(priv->i2c_context, NULL);
-    priv->dma_source = hpm_i2c_get_dma_mgr_resource(priv->i2c_context);
-    dma_mgr_install_chn_tc_callback(priv->dma_source, hpm_i2c_dma_channel_tc_callback, (void *)priv);
-  }
-#endif
-  /* Attach Interrupt Handler */
-
-  irq_attach(priv->irqid, hpm_i2c_interrupt, priv);
-
-  /* Enable Interrupt Handler */
-
-  up_enable_irq(priv->irqid);
-
   return &priv->dev;
 }
 
@@ -887,6 +892,22 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
 int hpm_i2cbus_uninitialize(struct i2c_master_s *dev)
 {
   struct hpm_i2cdev_s *priv = (struct hpm_i2cdev_s *)dev;
+  irqstate_t flags;
+
+  if (priv->refs == 0)
+    {
+      return ERROR;
+    }
+
+  flags = enter_critical_section();
+
+  if (--priv->refs > 0)
+    {
+      leave_critical_section(flags);
+      return OK;
+    }
+
+  leave_critical_section(flags);
 
   up_disable_irq(priv->irqid);
   irq_detach(priv->irqid);
@@ -895,8 +916,6 @@ int hpm_i2cbus_uninitialize(struct i2c_master_s *dev)
   if(priv->i2c_context)
   {
     dma_mgr_release_resource(priv->dma_source);
-    dma_mgr_disable_chn_irq(priv->dma_source, DMA_MGR_INTERRUPT_MASK_TC);
-    dma_mgr_disable_dma_irq(priv->dma_source);
     priv->dma_source = NULL;
     nxsem_destroy(&priv->txrxsem);
   }
