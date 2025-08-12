@@ -256,14 +256,28 @@ static struct hpm_i2cdev_s g_i2c3dev =
  ****************************************************************************/
 
 static int  hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_mode);
+#ifndef CONFIG_HPM_I2C_DMA
 static void hpm_i2c_txinit(struct hpm_i2cdev_s *priv, bool enable);
 static void hpm_i2c_rxinit(struct hpm_i2cdev_s *priv, bool enable);
 static int  hpm_i2c_interrupt(int irq, void *context, void *arg);
+#endif
 static int  hpm_i2c_transfer(struct i2c_master_s *dev,
                                 struct i2c_msg_s *msgs, int count);
 #ifdef CONFIG_I2C_RESET
 static int hpm_i2c_reset(struct i2c_master_s *dev);
 #endif
+
+/****************************************************************************
+ * I2C device operations
+ ****************************************************************************/
+
+struct i2c_ops_s hpm_i2c_ops =
+{
+  .transfer = hpm_i2c_transfer,
+#ifdef CONFIG_I2C_RESET
+  .reset = hpm_i2c_reset,
+#endif
+};
 
 /****************************************************************************
  * Name: i2c_takesem
@@ -284,6 +298,7 @@ static inline int i2c_givesem(sem_t *sem)
 }
 
 #ifdef CONFIG_HPM_I2C_DMA
+
 static void hpm_i2c_dma_tc_callback(DMA_Type *ptr,
                                               uint32_t channel,
                                               void *user_data)
@@ -303,18 +318,8 @@ static void hpm_i2c_dma_tc_callback(DMA_Type *ptr,
 
   nxsem_post(&priv->txrxsem);
 }
-#endif
-/****************************************************************************
- * I2C device operations
- ****************************************************************************/
 
-struct i2c_ops_s hpm_i2c_ops =
-{
-  .transfer = hpm_i2c_transfer,
-#ifdef CONFIG_I2C_RESET
-  .reset = hpm_i2c_reset,
-#endif
-};
+#else
 
 /****************************************************************************
  * Name: hpm_i2c_txinit
@@ -332,7 +337,7 @@ static void hpm_i2c_txinit(struct hpm_i2cdev_s *priv, bool enable)
     }
   else
     {
-      (i2c_disable_irq(priv->base, I2C_EVENT_TRANSACTION_COMPLETE | I2C_EVENT_FIFO_EMPTY));
+      i2c_disable_irq(priv->base, I2C_EVENT_TRANSACTION_COMPLETE | I2C_EVENT_FIFO_EMPTY);
     }
 }
 
@@ -352,7 +357,7 @@ static void hpm_i2c_rxinit(struct hpm_i2cdev_s *priv, bool enable)
     }
   else
     {
-      (i2c_disable_irq(priv->base, I2C_EVENT_TRANSACTION_COMPLETE | I2C_EVENT_FIFO_FULL));
+      i2c_disable_irq(priv->base, I2C_EVENT_TRANSACTION_COMPLETE | I2C_EVENT_FIFO_FULL);
     }
 }
 
@@ -426,6 +431,8 @@ static int hpm_i2c_interrupt(int irq, void *context, void *arg)
     }
     return 0;
 }
+
+#endif
 
 /****************************************************************************
  * Name: hpm_i2c_init
@@ -579,15 +586,15 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
                 i2c_clear_status(priv->base, I2C_STATUS_CMPL_MASK);
                 while ((i2c_get_status(priv->base) & I2C_STATUS_BUSBUSY_MASK)) {
                 };
-              }
 
-              sta = hpm_i2c_master_read_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
-              if(sta == status_success)
-              {
-                nxsem_wait_uninterruptible(&priv->txrxsem);
-                while ((i2c_get_status(priv->base) & I2C_STATUS_BUSBUSY_MASK)) {
-                };
-                memcpy(msgs[1].buffer, priv->txrxbuf, msgs[1].length);
+                sta = hpm_i2c_master_read_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
+                if(sta == status_success)
+                {
+                  nxsem_wait_uninterruptible(&priv->txrxsem);
+                  while ((i2c_get_status(priv->base) & I2C_STATUS_BUSBUSY_MASK)) {
+                  };
+                  memcpy(msgs[1].buffer, priv->txrxbuf, msgs[1].length);
+                }
               }
             }
         }
@@ -623,19 +630,18 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
                 nxsem_wait_uninterruptible(&priv->txrxsem);
                 while ((i2c_get_status(priv->base) & I2C_STATUS_BUSBUSY_MASK)) {
                 };
-              }
 
-              memcpy(priv->txrxbuf, msgs[1].buffer, msgs[1].length);
-              sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
-              if(sta == status_success)
-              {
-                nxsem_wait_uninterruptible(&priv->txrxsem);
-                while ((i2c_get_status(priv->base) & I2C_STATUS_BUSBUSY_MASK)) {
-                };
+                memcpy(priv->txrxbuf, msgs[1].buffer, msgs[1].length);
+                sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
+                if(sta == status_success)
+                {
+                  nxsem_wait_uninterruptible(&priv->txrxsem);
+                  while ((i2c_get_status(priv->base) & I2C_STATUS_BUSBUSY_MASK)) {
+                  };
+                }
               }
             }
         }
-
     }
   (sta == status_success) ? (ret = 0) : (ret = -1);
   i2c_givesem(&priv->mutex);
@@ -701,7 +707,10 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
           else
             {
               sta = i2c_master_write(priv->base, msgs[0].addr, msgs[0].buffer, msgs[0].length);
-              sta = i2c_master_read(priv->base, msgs[1].addr, msgs[1].buffer, msgs[1].length);
+              if(sta == status_success)
+              {
+                sta = i2c_master_read(priv->base, msgs[1].addr, msgs[1].buffer, msgs[1].length);
+              }
             }
         }
       else
@@ -713,10 +722,12 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
           else
             {
               sta = i2c_master_write(priv->base, msgs[0].addr, msgs[0].buffer, msgs[0].length);
-              sta = i2c_master_write(priv->base, msgs[1].addr, msgs[1].buffer, msgs[1].length);
+              if(sta == status_success)
+              {
+                sta = i2c_master_write(priv->base, msgs[1].addr, msgs[1].buffer, msgs[1].length);
+              }
             }
         }
-
     }
   (sta == status_success) ? (ret = 0) : (ret = -1);
   i2c_givesem(&priv->mutex);
