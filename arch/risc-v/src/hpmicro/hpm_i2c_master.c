@@ -575,9 +575,6 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
               if(sta == status_success)
               {
                 nxsem_wait_uninterruptible(&priv->txrxsem);
-                while (!(i2c_get_status(priv->base) & I2C_STATUS_CMPL_MASK)) {
-                };
-                i2c_clear_status(priv->base, I2C_STATUS_CMPL_MASK);
 
                 sta = hpm_i2c_master_read_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
                 if(sta == status_success)
