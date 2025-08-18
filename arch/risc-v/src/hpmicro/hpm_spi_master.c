@@ -1207,7 +1207,7 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
 
         if (txbuffer)
           {
-            if ((((uint32_t)txbuffer & SPIDMA_BUFFER_MASK) != 0) && ((nbytes & SPIDMA_BUFFER_MASK) != 0))
+            if ((((uint32_t)txbuffer & SPIDMA_BUFFER_MASK) != 0) || ((nbytes & SPIDMA_BUFFER_MASK) != 0))
               {
                 memcpy(priv->txbuf, txbuffer, nbytes);
 
@@ -1223,7 +1223,7 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
       {
         if (rxbuffer)
           {
-            if ((((uint32_t)rxbuffer & SPIDMA_BUFFER_MASK) != 0) && ((nbytes & SPIDMA_BUFFER_MASK) != 0))
+            if ((((uint32_t)rxbuffer & SPIDMA_BUFFER_MASK) != 0) || ((nbytes & SPIDMA_BUFFER_MASK) != 0))
               {
                 /* Adjust pointers to internal DMA buffers */
 
@@ -1295,6 +1295,11 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
           }
         spi_dmarxwait(priv);
         spi_dmatxwait(priv);
+        stat = spi_wait_for_idle_status(priv->spibase);
+        if (stat != status_success)
+          {
+            spierr("ERROR: wait idle failure: %d\n", (unsigned int)stat);
+          }
         len      -= dummy_len;
         inc_len  += dummy_len;
       }
