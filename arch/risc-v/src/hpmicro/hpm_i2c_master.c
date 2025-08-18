@@ -723,8 +723,6 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
 static int hpm_i2c_transfer(struct i2c_master_s *dev,
                                struct i2c_msg_s *msgs, int count)
 {
-  struct hpm_i2cdev_s *priv = (struct hpm_i2cdev_s *)dev;
-
 #ifdef CONFIG_HPM_I2C_DMA
   if(priv->dma_source != NULL)
     {
