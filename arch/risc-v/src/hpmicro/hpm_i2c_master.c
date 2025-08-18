@@ -307,15 +307,6 @@ static void hpm_i2c_dma_tc_callback(DMA_Type *ptr,
   UNUSED(ptr);
   UNUSED(channel);
 
-  volatile uint32_t status;
-
-  /* wait for i2c transaction complete */
-  do {
-      status = i2c_get_status(priv->base);
-  } while (!(status & I2C_STATUS_CMPL_MASK));
-
-  i2c_clear_status(priv->base, status);
-
   nxsem_post(&priv->txrxsem);
 }
 
@@ -483,6 +474,20 @@ static int hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_
 }
 
 #ifdef CONFIG_HPM_I2C_DMA
+void hpm_i2c_wait_for_dma_complete(struct hpm_i2cdev_s *priv)
+{
+  volatile uint32_t status;
+
+  /* Wait for the DMA transfer to complete */
+  nxsem_wait_uninterruptible(&priv->txrxsem);
+
+  /* wait for i2c transaction complete */
+  do {
+      status = i2c_get_status(priv->base);
+  } while (!(status & I2C_STATUS_CMPL_MASK));
+
+  i2c_clear_status(priv->base, status);
+}
 /****************************************************************************
  * Name: hpm_i2c_transfer_dma
  *
@@ -521,7 +526,8 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
           sta = hpm_i2c_master_read_nonblocking(priv->i2c_context, msgs[0].addr, priv->txrxbuf, msgs[0].length);
           if(sta == status_success)
           {
-            nxsem_wait_uninterruptible(&priv->txrxsem);
+            hpm_i2c_wait_for_dma_complete(priv);
+
             memcpy(msgs[0].buffer, priv->txrxbuf, msgs[0].length);
           }
         }
@@ -531,7 +537,7 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
           sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[0].addr, priv->txrxbuf, msgs[0].length);
           if(sta == status_success)
           {
-            nxsem_wait_uninterruptible(&priv->txrxsem);
+            hpm_i2c_wait_for_dma_complete(priv);
           }
         }
     }
@@ -556,7 +562,7 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
               sta = hpm_i2c_master_addr_read_nonblocking(priv->i2c_context, msgs[0].addr, addr, msgs[0].length, priv->txrxbuf, msgs[1].length);
               if(sta == status_success)
               {
-                nxsem_wait_uninterruptible(&priv->txrxsem);
+                hpm_i2c_wait_for_dma_complete(priv);
                 memcpy(msgs[1].buffer, priv->txrxbuf, msgs[1].length);
               }
             }
@@ -566,12 +572,12 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
               sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[0].addr, msgs[0].buffer, msgs[0].length);
               if(sta == status_success)
               {
-                nxsem_wait_uninterruptible(&priv->txrxsem);
+                hpm_i2c_wait_for_dma_complete(priv);
 
                 sta = hpm_i2c_master_read_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
                 if(sta == status_success)
                 {
-                  nxsem_wait_uninterruptible(&priv->txrxsem);
+                  hpm_i2c_wait_for_dma_complete(priv);
                   memcpy(msgs[1].buffer, priv->txrxbuf, msgs[1].length);
                 }
               }
@@ -595,7 +601,7 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
               sta = hpm_i2c_master_addr_write_nonblocking(priv->i2c_context, msgs[0].addr, addr, msgs[0].length, priv->txrxbuf, msgs[1].length);
               if(sta == status_success)
               {
-                nxsem_wait_uninterruptible(&priv->txrxsem);
+                hpm_i2c_wait_for_dma_complete(priv);
               }
             }
           else
@@ -604,13 +610,13 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
               sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[0].addr, priv->txrxbuf, msgs[0].length);
               if(sta == status_success)
               {
-                nxsem_wait_uninterruptible(&priv->txrxsem);
+                hpm_i2c_wait_for_dma_complete(priv);
 
                 memcpy(priv->txrxbuf, msgs[1].buffer, msgs[1].length);
                 sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
                 if(sta == status_success)
                 {
-                  nxsem_wait_uninterruptible(&priv->txrxsem);
+                  hpm_i2c_wait_for_dma_complete(priv);
                 }
               }
             }
