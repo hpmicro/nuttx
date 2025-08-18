@@ -76,7 +76,7 @@ struct hpm_i2cdev_s
   int8_t              port;       /* Port number */
   uint32_t            base_freq;  /* branch frequency */
 
-  int                 refs;       /* Reference count */
+  bool                initialized;  /* Has SPI interface been initialized */
   sem_t               mutex;      /* Only one thread can access at a time */
   sem_t               wait;       /* Place to wait for transfer completion */
   uint32_t            frequency;  /* Current I2C frequency */
@@ -122,7 +122,7 @@ static struct hpm_i2cdev_s g_i2c0dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C0_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C0_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C0,
-  .refs                           = 0,
+  .initialized                    = false,
 #ifdef CONFIG_HPM_I2C0_DMA
   .i2c_context                    = &g_i2c0_context,
   .txrxbuf                        = g_i2c0_buffer,
@@ -160,7 +160,7 @@ static struct hpm_i2cdev_s g_i2c1dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C1_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C1_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C1,
-  .refs                           = 0,
+  .initialized                    = false,
 #ifdef CONFIG_HPM_I2C1_DMA
   .i2c_context                    = &g_i2c1_context,
   .txrxbuf                        = g_i2c1_buffer,
@@ -197,7 +197,7 @@ static struct hpm_i2cdev_s g_i2c2dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C2_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C2_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C2,
-  .refs                           = 0,
+  .initialized                    = false,
 #ifdef CONFIG_HPM_I2C2_DMA
   .i2c_context                    = &g_i2c2_context,
   .txrxbuf                        = g_i2c2_buffer,
@@ -234,7 +234,7 @@ static struct hpm_i2cdev_s g_i2c3dev =
   .i2c_config.i2c_mode            = CONFIG_HPM_I2C3_MASTER_MODE,
   .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C3_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C3,
-  .refs                           = 0,
+  .initialized                    = false,
 #ifdef CONFIG_HPM_I2C3_DMA
   .i2c_context                    = &g_i2c3_context,
   .txrxbuf                        = g_i2c3_buffer,
@@ -496,7 +496,6 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
 {
   struct hpm_i2cdev_s *priv = (struct hpm_i2cdev_s *)dev;
   int ret = 0;
-  int semval = 0;
   hpm_stat_t sta;
   bool is_ten_addr = false;
 
@@ -505,13 +504,6 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
   /* Get exclusive access to the I2C bus */
 
   i2c_takesem(&priv->mutex);
-
-    /* Check wait semaphore value. If the value is not 0, the transfer can not
-   * be performed normally.
-   */
-
-  ret = nxsem_get_value(&priv->wait, &semval);
-  DEBUGASSERT(ret == OK && semval == 0);
 
   if (msgs[0].flags & I2C_M_TEN)
     {
@@ -762,10 +754,6 @@ static int hpm_i2c_reset(struct hpm_i2cdev_s *dev)
 
   /* Lock out other clients */
 
-  /* Our caller must own a ref */
-
-  DEBUGASSERT(priv->refs > 0);
-
   i2c_takesem(&priv->mutex);
 
   priv->frequency                      = 100000;
@@ -835,7 +823,7 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
 
   flags = enter_critical_section();
 
-  if ((volatile int)priv->refs++ == 0)
+  if (!priv->initialized)
     {
       if (hpm_i2cbus_pins_init(priv->port) < 0)
         {
@@ -867,6 +855,7 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
 
       up_enable_irq(priv->irqid);
     #endif
+      priv->initialized = true;
     }
 
   leave_critical_section(flags);
@@ -883,38 +872,6 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
 
 int hpm_i2cbus_uninitialize(struct i2c_master_s *dev)
 {
-  struct hpm_i2cdev_s *priv = (struct hpm_i2cdev_s *)dev;
-  irqstate_t flags;
-
-  if (priv->refs == 0)
-    {
-      return ERROR;
-    }
-
-  flags = enter_critical_section();
-
-  if (--priv->refs > 0)
-    {
-      leave_critical_section(flags);
-      return OK;
-    }
-
-  leave_critical_section(flags);
-
-  up_disable_irq(priv->irqid);
-  irq_detach(priv->irqid);
-
-#ifdef CONFIG_HPM_I2C_DMA
-  if(priv->i2c_context)
-  {
-    dma_mgr_release_resource(priv->dma_source);
-    priv->dma_source = NULL;
-    nxsem_destroy(&priv->txrxsem);
-  }
-#endif
-  nxsem_destroy(&priv->mutex);
-  nxsem_destroy(&priv->wait);
-
   return OK;
 }
 
