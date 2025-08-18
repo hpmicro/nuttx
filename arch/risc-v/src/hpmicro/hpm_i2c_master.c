@@ -724,6 +724,7 @@ static int hpm_i2c_transfer(struct i2c_master_s *dev,
                                struct i2c_msg_s *msgs, int count)
 {
 #ifdef CONFIG_HPM_I2C_DMA
+  struct hpm_i2cdev_s *priv = (struct hpm_i2cdev_s *)dev;
   if(priv->dma_source != NULL)
     {
       return hpm_i2c_transfer_dma(dev, msgs, count);
