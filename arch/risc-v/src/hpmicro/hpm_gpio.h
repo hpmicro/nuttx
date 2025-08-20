@@ -37,15 +37,6 @@
 #include "chip.h"
 #include "nuttx/ioexpander/gpio.h"
 
-/****************************************************************************
- * Pre-Processor Declarations
- ****************************************************************************/
-#define  GPIO_INPUT_MODE       (0UL)
-#define  GPIO_OUTPUT_MODE      (1UL)
-
-/****************************************************************************
- * Public Data
- ****************************************************************************/
 
 #ifndef __ASSEMBLY__
 
@@ -70,31 +61,28 @@ typedef uint32_t gpio_pin_t;
  * Public Function Prototypes
  ****************************************************************************/
 
-#if 1
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
 
-#define GPIO_SMT               (1 << 31)                   /* Bit31: 1=使能输入施密特触发器 */
+#define  GPIO_INPUT_MODE       (0UL)
+#define  GPIO_OUTPUT_MODE      (1UL)
 
-/* 输出类型选择:开漏或推挽
- *
- */
-#define GPIO_LOOPBACK                (1 << 30)                   /* Bit30: 1=使能回环 */
+
+/****************************************************************************
+ * ADD for PX4
+ ****************************************************************************/
 
 /* GPIO 控制器选择:
- * GPIO0、GPIO1、FGPIO、FGPIO1、PGPIO、BGPIO
- *
- */
-
-#define GPIO_CONTROLLER_SHIFT        (29)      /* Bits 31-29: GPIO 控制器选择 */
+* GPIO0、GPIO1、FGPIO、PGPIO、BGPIO
+*/
+#define GPIO_CONTROLLER_SHIFT     (29)      /* Bits 31-29: GPIO 控制器选择 */
 #define GPIO_CONTROLLER_MASK      (7 << GPIO_CONTROLLER_SHIFT)
 #  define GPIO0            (0 << GPIO_CONTROLLER_SHIFT) /* GPIO0 通过控制器 */
 #  define GPIO1            (1 << GPIO_CONTROLLER_SHIFT) /* GPIO1 通过控制器 */
-#  define FGPIO0           (2 << GPIO_CONTROLLER_SHIFT) /* FGPIO0 快速控制器 */
-#  define FGPIO1           (3 << GPIO_CONTROLLER_SHIFT) /* FGPIO1 快速控制器 */
-#  define PGPIO            (4 << GPIO_CONTROLLER_SHIFT) /* 电源管理域 GPIO 控制器 */
-#  define BGPIO            (5 << GPIO_CONTROLLER_SHIFT) /* 和电池备份域 GPIO 控制器 (BGPIO) */
+#  define FGPIO            (2 << GPIO_CONTROLLER_SHIFT) /* FGPIO 快速控制器 */
+#  define PGPIO            (3 << GPIO_CONTROLLER_SHIFT) /* 电源管理域 GPIO 控制器 */
+#  define BGPIO            (4 << GPIO_CONTROLLER_SHIFT) /* 和电池备份域 GPIO 控制器 (BGPIO) */
 
 /* 模式选择：
  */
@@ -104,22 +92,11 @@ typedef uint32_t gpio_pin_t;
 #  define GPIO_INPUT           (0 << GPIO_MODE_SHIFT) /* GPIO input */
 #  define GPIO_OUTPUT          (1 << GPIO_MODE_SHIFT) /* GPIO output */
 #  define GPIO_ALT             (2 << GPIO_MODE_SHIFT) /* Peripheral */
-#  define GPIO_ANALOG          (3 << GPIO_MODE_SHIFT) /* Interrupt input */
-
-
-/* 输入或输出上下拉:
-*/
-#define GPIO_PUPD_SHIFT         (25)                       /* Bits 26-25: Pull-up/pull down */
-#define GPIO_PUPD_MASK          (3 << GPIO_PUPD_SHIFT)
-#  define GPIO_FLOAT            (0 << GPIO_PUPD_SHIFT)     /* No pull-up, pull-down */
-#  define GPIO_PULLUP           (1 << GPIO_PUPD_SHIFT)     /* Pull-up */
-#  define GPIO_PULLDOWN         (2 << GPIO_PUPD_SHIFT)     /* Pull-down */
-
+#  define GPIO_ANALOG          (3 << GPIO_MODE_SHIFT) /* Analog */
 
 /* 复用功能:
  */
-
-#define GPIO_AF_SHIFT         (20)      /* Bits 24-20: Peripheral alternate function */
+#define GPIO_AF_SHIFT         (22)      /* Bits 26-22: Peripheral alternate function */
 #define GPIO_AF_MASK          (0x1f << GPIO_AF_SHIFT)
 #  define GPIO_AF0            (0 << GPIO_AF_SHIFT)  /* Alternate function 0 */
 #  define GPIO_AF1            (1 << GPIO_AF_SHIFT)  /* Alternate function 1 */
@@ -154,15 +131,42 @@ typedef uint32_t gpio_pin_t;
 #  define GPIO_AF30           (30 << GPIO_AF_SHIFT) /* Alternate function 30 */
 #  define GPIO_AF31           (31 << GPIO_AF_SHIFT) /* Alternate function 31 */
 
-/* 引脚供电电压选择, 此位只对高速引脚可用
- *
+/* Schmidt Trrgger Enable
  */
-#define GPIO_1V8               (1 << 16)                   /* Bit16: 1=3.3V */
+#define GPIO_SMT               (1 << 21)                   /* Bit21: 1=使能输入施密特触发器 */
+
+/* Loopback Enable
+ */
+#define GPIO_LOOPBACK          (1 << 20)                   /* Bit20: 1=使能回环 */
+
+
+#if defined(CONFIG_ARCH_CHIP_HPM6750_SDK) || defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
+/* 引脚供电电压选择, 此位只对高速引脚可用
+ */
+#define GPIO_1V8               (1 << 16)                  /* Bit16: 1=3.3V */
 #define GPIO_3V3               (0)                        /* Bit16: 0=1.8V */
 
-#if defined(CONFIG_ARCH_CHIP_HPM5361_SDK) || defined(CONFIG_ARCH_CHIP_HPM5301_SDK)
+/* 驱动强度
+*/
+#define GPIO_DS_SHIFT             (13)                     /* Bits 15-13: GPIO Driver Strenght selection */
+#define GPIO_DS_MASK              (7 << GPIO_DS_SHIFT)
+#  define GPIO_DS_4mA             (0 << GPIO_DS_SHIFT)     /* 2 MHz Low speed output */
+#  define GPIO_DS_8mA             (1 << GPIO_DS_SHIFT)     /* 25 MHz Medium speed output */
+#  define GPIO_DS_12mA            (3 << GPIO_DS_SHIFT)     /* 100 MHz High speed output */
+#  define GPIO_DS_3V3_85P61       (0 << GPIO_DS_SHIFT)
+#  define GPIO_DS_3V3_61P2        (1 << GPIO_DS_SHIFT)
+#  define GPIO_DS_3V3_42P88       (2 << GPIO_DS_SHIFT)
+#  define GPIO_DS_3V3_35P76       (3 << GPIO_DS_SHIFT)
+#  define GPIO_DS_3V3_30P67       (7 << GPIO_DS_SHIFT)
+#  define GPIO_DS_1V8_84P07       (0 << GPIO_DS_SHIFT)
+#  define GPIO_DS_1V8_60P14       (1 << GPIO_DS_SHIFT)
+#  define GPIO_DS_1V8_42P15       (2 << GPIO_DS_SHIFT)
+#  define GPIO_DS_1V8_35P19       (3 << GPIO_DS_SHIFT)
+#  define GPIO_DS_1V8_30P20       (7 << GPIO_DS_SHIFT)
 
-#define GPIO_SPEED_SHIFT       (14)                       /* Bits 15-14: GPIO frequency selection */
+#else
+
+#define GPIO_SPEED_SHIFT       (16)                       /* Bits 17-16: GPIO frequency selection */
 #define GPIO_SPEED_MASK        (3 << GPIO_SPEED_SHIFT)
 #  define GPIO_SPEED_50MHz     (0 << GPIO_SPEED_SHIFT)     /* 00: Slow frequency slew rate(50Mhz) */
 #  define GPIO_SPEED_100MHz    (1 << GPIO_SPEED_SHIFT)     /* 01: Medium frequency slew rate(100 Mhz) */
@@ -171,7 +175,7 @@ typedef uint32_t gpio_pin_t;
 
 /* 驱动强度
 */
-#define GPIO_DS_SHIFT          (11)                       /* Bits 13-11: GPIO frequency selection */
+#define GPIO_DS_SHIFT          (13)                       /* Bits 15-13: GPIO Driver Strenght selection */
 #define GPIO_DS_MASK           (7 << GPIO_DS_SHIFT)
 #  define GPIO_DS_1V8_260      (0 << GPIO_DS_SHIFT)     /* 2 MHz Low speed output */
 #  define GPIO_DS_1V8_130      (2 << GPIO_DS_SHIFT)     /* 100 MHz High speed output */
@@ -187,32 +191,22 @@ typedef uint32_t gpio_pin_t;
 #  define GPIO_DS_3V3_32       (5 << GPIO_DS_SHIFT)     /* 100 MHz High speed output */
 #  define GPIO_DS_3V3_26       (6 << GPIO_DS_SHIFT)     /* 100 MHz High speed output */
 #  define GPIO_DS_3V3_23       (7 << GPIO_DS_SHIFT)     /* 100 MHz High speed output */
-#else
 
-/* 驱动强度
-*/
-#define GPIO_DS_SHIFT             (11)                       /* Bits 13-11: GPIO frequency selection */
-#define GPIO_DS_MASK              (7 << GPIO_DS_SHIFT)
-#  define GPIO_DS_4mA             (0 << GPIO_DS_SHIFT)     /* 2 MHz Low speed output */
-#  define GPIO_DS_8mA             (1 << GPIO_DS_SHIFT)     /* 25 MHz Medium speed output */
-#  define GPIO_DS_12mA            (3 << GPIO_DS_SHIFT)     /* 100 MHz High speed output */
-#  define GPIO_DS_3V3_85P61       (0 << GPIO_DS_SHIFT)
-#  define GPIO_DS_3V3_61P2        (1 << GPIO_DS_SHIFT)
-#  define GPIO_DS_3V3_42P88       (2 << GPIO_DS_SHIFT)
-#  define GPIO_DS_3V3_35P76       (3 << GPIO_DS_SHIFT)
-#  define GPIO_DS_3V3_30P67       (7 << GPIO_DS_SHIFT)
-#  define GPIO_DS_1V8_84P07       (0 << GPIO_DS_SHIFT)
-#  define GPIO_DS_1V8_60P14        (1 << GPIO_DS_SHIFT)
-#  define GPIO_DS_1V8_42P15       (2 << GPIO_DS_SHIFT)
-#  define GPIO_DS_1V8_35P19       (3 << GPIO_DS_SHIFT)
-#  define GPIO_DS_1V8_30P20       (7 << GPIO_DS_SHIFT)
 #endif
+
+/* 输入或输出上下拉:
+*/
+#define GPIO_PUPD_SHIFT         (11)                       /* Bits 11-12: Pull-up/pull down */
+#define GPIO_PUPD_MASK          (3 << GPIO_PUPD_SHIFT)
+#  define GPIO_FLOAT            (0 << GPIO_PUPD_SHIFT)     /* No pull-up, pull-down */
+#  define GPIO_PULLUP           (1 << GPIO_PUPD_SHIFT)     /* Pull-up */
+#  define GPIO_PULLDOWN         (2 << GPIO_PUPD_SHIFT)     /* Pull-down */
 
 /* 输出类型选择:开漏或推挽
  *
  */
-#define GPIO_OPENDRAIN                (1 << 10)                   /* Bit10: 1=开漏输出 */
-#define GPIO_PUSHPULL                 (0)                        /* Bit10: 0=推挽输出 */
+#define GPIO_OPENDRAIN         (1 << 10)                  /* Bit10: 1=开漏输出 */
+#define GPIO_PUSHPULL          (0)                        /* Bit10: 0=推挽输出 */
 
 /* 初始值 (仅输出):
  *
@@ -223,13 +217,11 @@ typedef uint32_t gpio_pin_t;
 /* 外部中断选择 (仅输入):
  *
  */
-
 #define GPIO_EXTI              (1 << 9)   /* Bit 9: 配置作为外部中断 */
 
 
 /* GPIO端口号：
  */
-
 #define GPIO_PORT_SHIFT        (5)      /* Bits 8-5 */
 #define GPIO_PORT_MASK         (0x0f << GPIO_PORT_SHIFT)
 #  define GPIO_PORTA           (0 << GPIO_PORT_SHIFT) /* GPIOA */
@@ -246,7 +238,7 @@ typedef uint32_t gpio_pin_t;
 #  define GPIO_PORTI           GPIO_PORTZ /* 兼容ST命名规则 */
 
 /* GPIO引脚号：0-31
-*/
+ */
 #define GPIO_PIN_SHIFT         (0)      /* Bits 4-0:*/
 #define GPIO_PIN_MASK          (0x1F << GPIO_PIN_SHIFT)
 #  define GPIO_PIN0            (0 << GPIO_PIN_SHIFT)  /* Pin  0 */
@@ -408,7 +400,6 @@ int hpm_gpioirq_enable(int irq);
 int hpm_gpioirq_disable(int irq);
 #else
 #  define hpm_gpioirq_disable(irq)
-#endif
 #endif
 
 #undef EXTERN

@@ -38,7 +38,6 @@
 #include "hpm_gpiom_drv.h"
 #include "hpm_gpio.h"
 
-#define  HPM_GPIO_USE_MALLOC
 /****************************************************************************
  * Name: hpm_configgpio
  *
@@ -155,11 +154,8 @@ bool hpm_gpioread(GPIO_Type *ptr, gpio_pin_t pin, uint8_t mode)
 }
 
 
-
-#if 1
-
 /****************************************************************************
- * 静态数据
+ * ADD for PX4
  ****************************************************************************/
 struct gpio_callback_s
 {
@@ -174,6 +170,8 @@ struct gpio_callback_s
 /****************************************************************************
  * Private Data
  ****************************************************************************/
+
+#define  HPM_GPIO_USE_MALLOC
 
 /* Interrupt handlers attached to each EXTI */
 #if defined(HPM_GPIO_USE_MALLOC)
@@ -235,10 +233,6 @@ static struct gpio_callback_s g_gpioz_callbacks[32] = {0};
 #endif
 
 /****************************************************************************
- * 静态函数
- ****************************************************************************/
-
-/****************************************************************************
  * Name: hpm_gpio_interrupt
  *
  * Description:
@@ -287,15 +281,6 @@ static int hpm_gpio_interrupt(int irq, void *context, void *arg)
 }
 
 /****************************************************************************
- * 全局变量
- ****************************************************************************/
-
-
-/****************************************************************************
- * 公共函数
- ****************************************************************************/
-
-/****************************************************************************
  * Name: hpm_config_gpio
  *
  * Description:
@@ -315,7 +300,7 @@ static int hpm_gpio_interrupt(int irq, void *context, void *arg)
 int hpm_config_gpio(uint32_t cfgset)
 {
   GPIO_Type *ptr;
-  uint32_t pad_ctl= 0;
+  uint32_t pad_ctl;
   uint32_t fun_ctl= 0;
   bool output = false;
   irqstate_t flags;
@@ -338,14 +323,15 @@ int hpm_config_gpio(uint32_t cfgset)
       ptr = HPM_GPIO0;
       gpiom_set_pin_controller(HPM_GPIOM, port, pin, gpiom_soc_gpio0);
       break;
-#if defined(HPM_FGPIO) || defined(HPM_FGPIO0)
-    case FGPIO0:
-    #ifdef HPM_FGPIO
+#ifdef HPM_GPIO1
+    case GPIO1:
+      ptr = HPM_GPIO1;
+      gpiom_set_pin_controller(HPM_GPIOM, port, pin, gpiom_soc_gpio1);
+      break;
+#endif
+#ifdef HPM_FGPIO
+    case FGPIO:
       ptr = HPM_FGPIO;
-    #endif
-    #ifdef HPM_FGPIO0
-      ptr = HPM_FGPIO0;
-    #endif
       gpiom_set_pin_controller(HPM_GPIOM, port, pin, gpiom_core0_fast);
       break;
 #endif
@@ -357,18 +343,6 @@ int hpm_config_gpio(uint32_t cfgset)
 #ifdef HPM_BGPIO
     case BGPIO:
       ptr = HPM_BGPIO;
-      break;
-#endif
-#ifdef HPM_GPIO1
-    case GPIO1:
-      ptr = HPM_GPIO1;
-      gpiom_set_pin_controller(HPM_GPIOM, port, pin, gpiom_soc_gpio1);
-      break;
-#endif
-#ifdef HPM_FGPIO1
-    case FGPIO1:
-      ptr = HPM_FGPIO1;
-      gpiom_set_pin_controller(HPM_GPIOM, port, pin, gpiom_core1_fast);
       break;
 #endif
   }
@@ -465,10 +439,26 @@ int hpm_config_gpio(uint32_t cfgset)
       break;
   }
 
+  if(cfgset & GPIO_LOOPBACK){
+    fun_ctl |= IOC_PAD_FUNC_CTL_LOOP_BACK_SET(1);
+  }
+
   pad_ctl &= ~IOC_PAD_PAD_CTL_DS_MASK;
   pad_ctl |= IOC_PAD_PAD_CTL_DS_SET((cfgset & GPIO_DS_MASK) >> GPIO_DS_SHIFT);// 驱动强度
 
-#if defined(CONFIG_ARCH_CHIP_HPM5361_SDK) || defined(CONFIG_ARCH_CHIP_HPM5301_SDK)
+#if defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
+  if(cfgset & GPIO_1V8){
+    pad_ctl |= IOC_PAD_PAD_CTL_MS_SET(1);
+  }else{
+    pad_ctl &= ~IOC_PAD_PAD_CTL_MS_MASK;
+  }
+
+  if(cfgset & GPIO_SMT){
+    pad_ctl |= IOC_PAD_PAD_CTL_SMT_SET(1);
+  }else{
+    pad_ctl &= ~IOC_PAD_PAD_CTL_SMT_MASK;
+  }
+#else
   pad_ctl &= ~IOC_PAD_PAD_CTL_SPD_MASK;
   pad_ctl |= IOC_PAD_PAD_CTL_SPD_SET((cfgset & GPIO_SPEED_MASK) >> GPIO_SPEED_SHIFT);//速度
   if((cfgset & GPIO_SPEED_MASK) > GPIO_SPEED_50MHz){
@@ -476,24 +466,13 @@ int hpm_config_gpio(uint32_t cfgset)
   }else{
     pad_ctl &= ~IOC_PAD_PAD_CTL_SR_MASK;
   }
-#else
-  if(cfgset & GPIO_1V8){
-    pad_ctl |= IOC_PAD_PAD_CTL_MS_SET(1);
-  }else{
-    pad_ctl &= ~IOC_PAD_PAD_CTL_MS_MASK;
-  }
-#endif
 
   if(cfgset & GPIO_SMT){
-    pad_ctl |= IOC_PAD_PAD_CTL_SMT_SET(1);
+    pad_ctl |= IOC_PAD_PAD_CTL_HYS_SET(1);
   }else{
-    pad_ctl &= ~IOC_PAD_PAD_CTL_SMT_MASK;
+    pad_ctl &= ~IOC_PAD_PAD_CTL_HYS_MASK;
   }
-
-  if(cfgset & GPIO_LOOPBACK){
-    fun_ctl |= IOC_PAD_FUNC_CTL_LOOP_BACK_SET(1);
-  }
-
+#endif
 
  // GPIO控制器选择
   switch (cfgset & GPIO_CONTROLLER_MASK){
@@ -506,7 +485,7 @@ int hpm_config_gpio(uint32_t cfgset)
       HPM_IOC->PAD[pad_index].PAD_CTL = pad_ctl;
       // PIOC 和 BIOC 可以把电源管理域 IO（PY）和电池备份域 IO（PZ）中的一个或者多个 IO 映射到系统电源
       // 域。之后，这些 IO 就可以由 IOC 控制。
-#ifdef IOC_PAD_PZ00 // xiaoyonghui 修改
+#ifdef IOC_PAD_PZ00
       if (pad_index >= IOC_PAD_PZ00){
         HPM_BIOC->PAD[pad_index].FUNC_CTL = IOC_PAD_FUNC_CTL_ALT_SELECT_SET(3);
       }else
@@ -525,7 +504,7 @@ int hpm_config_gpio(uint32_t cfgset)
 #endif
 #ifdef HPM_BGPIO
     case BGPIO:
-#ifdef IOC_PAD_PZ00 // xiaoyonghui 修改
+#ifdef IOC_PAD_PZ00
       if (pad_index >= IOC_PAD_PZ00){
         HPM_BIOC->PAD[pad_index].FUNC_CTL = fun_ctl;
         HPM_BIOC->PAD[pad_index].PAD_CTL = pad_ctl;
@@ -533,9 +512,7 @@ int hpm_config_gpio(uint32_t cfgset)
 #endif
       break;
 #endif
-
   }
-
 
   if(output){
     gpio_set_pin_output(ptr, port, pin);
@@ -607,19 +584,9 @@ void hpm_gpio_write(uint32_t pinset, bool value)
       ptr = HPM_GPIO1;
       break;
 #endif
-#if defined(HPM_FGPIO) || defined(HPM_FGPIO0)
-    case FGPIO0:
-    #ifdef HPM_FGPIO
+#ifdef HPM_FGPIO
+    case FGPIO:
       ptr = HPM_FGPIO;
-    #endif
-    #ifdef HPM_FGPIO0
-      ptr = HPM_FGPIO0;
-    #endif
-      break;
-#endif
-#ifdef HPM_FGPIO1
-    case FGPIO1:
-      ptr = HPM_FGPIO1;// 待完善
       break;
 #endif
 #ifdef HPM_PGPIO
@@ -635,7 +602,6 @@ void hpm_gpio_write(uint32_t pinset, bool value)
   }
 
   gpio_write_pin(ptr, (pinset & GPIO_PORT_MASK) >> GPIO_PORT_SHIFT, (pinset & GPIO_PIN_MASK) >> GPIO_PIN_SHIFT, value);
-
 }
 
 /****************************************************************************
@@ -661,19 +627,9 @@ bool hpm_gpio_read(uint32_t pinset)
       ptr = HPM_GPIO1;
       break;
 #endif
-#if defined(HPM_FGPIO) || defined(HPM_FGPIO0)
-    case FGPIO0:
-    #ifdef HPM_FGPIO
+#ifdef HPM_FGPIO
+    case FGPIO:
       ptr = HPM_FGPIO;
-    #endif
-    #ifdef HPM_FGPIO0
-      ptr = HPM_FGPIO0;
-    #endif
-      break;
-#endif
-#ifdef HPM_FGPIO1
-    case FGPIO1:
-      ptr = HPM_FGPIO1;
       break;
 #endif
 #ifdef HPM_PGPIO
@@ -756,12 +712,8 @@ int hpm_gpio_setevent(uint32_t pinset, bool risingedge, bool fallingedge,
       ptr = HPM_GPIO1;
       break;
 #endif
-#if defined(HPM_FGPIO) || defined(HPM_FGPIO0)
-    case FGPIO0:
-      return -1; // 不支持中断
-#endif
-#ifdef HPM_FGPIO1
-    case FGPIO1:
+#ifdef HPM_FGPIO
+    case FGPIO:
       return -1; // 不支持中断
 #endif
 #ifdef HPM_PGPIO
@@ -1061,8 +1013,10 @@ int hpm_gpio_setevent(uint32_t pinset, bool risingedge, bool fallingedge,
   }
 
   leave_critical_section(flags);
+
 #else
-GPIO_Type *ptr;
+
+  GPIO_Type *ptr;
   irqstate_t flags;
   int      irq = -1;
   // xcpt_t   handler;
@@ -1087,12 +1041,8 @@ GPIO_Type *ptr;
       ptr = HPM_GPIO1;
       break;
 #endif
-#if defined(HPM_FGPIO) || defined(HPM_FGPIO0)
-    case FGPIO0:
-      return -1; // 不支持中断
-#endif
-#ifdef HPM_FGPIO1
-    case FGPIO1:
+#ifdef HPM_FGPIO
+    case FGPIO:
       return -1; // 不支持中断
 #endif
 #ifdef HPM_PGPIO
@@ -1389,5 +1339,3 @@ GPIO_Type *ptr;
 
 return OK;
 }
-
-#endif
