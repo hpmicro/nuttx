@@ -502,6 +502,7 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
   int ret = 0;
   hpm_stat_t sta;
   bool is_ten_addr = false;
+  uint32_t flags = 0;
 
   DEBUGASSERT(dev != NULL);
 
@@ -522,7 +523,7 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
 
       if (msgs[0].flags & I2C_M_READ)
         {
-          sta = hpm_i2c_master_read_nonblocking(priv->i2c_context, msgs[0].addr, priv->txrxbuf, msgs[0].length);
+          sta = hpm_i2c_master_seq_transfer_nonblocking(priv->i2c_context, msgs[0].addr, I2C_RD, priv->txrxbuf, msgs[0].length);
           if(sta == status_success)
           {
             hpm_i2c_wait_for_dma_complete(priv);
@@ -533,7 +534,7 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
       else
         {
           memcpy(priv->txrxbuf, msgs[0].buffer, msgs[0].length);
-          sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[0].addr, priv->txrxbuf, msgs[0].length);
+          sta = hpm_i2c_master_seq_transfer_nonblocking(priv->i2c_context, msgs[0].addr, I2C_WR, priv->txrxbuf, msgs[0].length);
           if(sta == status_success)
           {
             hpm_i2c_wait_for_dma_complete(priv);
@@ -542,83 +543,41 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
     }
   else if(count == 2)
     {
-      DEBUGASSERT(msgs[0].length <= priv->buflen || msgs[1].length <= priv->buflen);
+      DEBUGASSERT((msgs[0].length + msgs[1].length) <= priv->buflen);
 
       if (msgs[1].flags & I2C_M_READ)
         {
           if (msgs[0].length <= 2)
             {
-              uint32_t addr = 0;
-              if(msgs[0].length == 1)
-              {
-                addr = msgs[0].buffer[0];
-              }
-              else if(msgs[0].length == 2)
-              {
-                addr = msgs[0].buffer[0] | (msgs[0].buffer[1] << 8);
-              }
+              flags = I2C_WR | I2C_NO_STOP;
+            }
+            else
+            {
+              flags = I2C_WR;
+            }
+            memcpy(priv->txrxbuf, msgs[0].buffer, msgs[0].length);
+            sta = hpm_i2c_master_seq_transfer_nonblocking(priv->i2c_context, msgs[0].addr, flags, priv->txrxbuf, msgs[0].length);
+            if(sta == status_success)
+            {
+              hpm_i2c_wait_for_dma_complete(priv);
 
-              sta = hpm_i2c_master_addr_read_nonblocking(priv->i2c_context, msgs[0].addr, addr, msgs[0].length, priv->txrxbuf, msgs[1].length);
+              sta = hpm_i2c_master_seq_transfer_nonblocking(priv->i2c_context, msgs[1].addr, I2C_RD, priv->txrxbuf, msgs[1].length);
               if(sta == status_success)
               {
                 hpm_i2c_wait_for_dma_complete(priv);
                 memcpy(msgs[1].buffer, priv->txrxbuf, msgs[1].length);
               }
             }
-          else
-            {
-              memcpy(priv->txrxbuf, msgs[0].buffer, msgs[0].length);
-              sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[0].addr, msgs[0].buffer, msgs[0].length);
-              if(sta == status_success)
-              {
-                hpm_i2c_wait_for_dma_complete(priv);
-
-                sta = hpm_i2c_master_read_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
-                if(sta == status_success)
-                {
-                  hpm_i2c_wait_for_dma_complete(priv);
-                  memcpy(msgs[1].buffer, priv->txrxbuf, msgs[1].length);
-                }
-              }
-            }
         }
       else
         {
-          if (msgs[0].length <= 2)
-            {
-              uint32_t addr = 0;
-              if(msgs[0].length == 1)
-              {
-                addr = msgs[0].buffer[0];
-              }
-              else if(msgs[0].length == 2)
-              {
-                addr = msgs[0].buffer[0] | (msgs[0].buffer[1] << 8);
-              }
-
-              memcpy(priv->txrxbuf, msgs[1].buffer, msgs[1].length);
-              sta = hpm_i2c_master_addr_write_nonblocking(priv->i2c_context, msgs[0].addr, addr, msgs[0].length, priv->txrxbuf, msgs[1].length);
-              if(sta == status_success)
-              {
-                hpm_i2c_wait_for_dma_complete(priv);
-              }
-            }
-          else
-            {
-              memcpy(priv->txrxbuf, msgs[0].buffer, msgs[0].length);
-              sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[0].addr, priv->txrxbuf, msgs[0].length);
-              if(sta == status_success)
-              {
-                hpm_i2c_wait_for_dma_complete(priv);
-
-                memcpy(priv->txrxbuf, msgs[1].buffer, msgs[1].length);
-                sta = hpm_i2c_master_write_nonblocking(priv->i2c_context, msgs[1].addr, priv->txrxbuf, msgs[1].length);
-                if(sta == status_success)
-                {
-                  hpm_i2c_wait_for_dma_complete(priv);
-                }
-              }
-            }
+          memcpy(priv->txrxbuf, msgs[0].buffer, msgs[0].length);
+          memcpy(priv->txrxbuf + msgs[0].length, msgs[1].buffer, msgs[1].length);
+          sta = hpm_i2c_master_seq_transfer_nonblocking(priv->i2c_context, msgs[0].addr, I2C_WR, priv->txrxbuf, msgs[0].length + msgs[1].length);
+          if(sta == status_success)
+          {
+            hpm_i2c_wait_for_dma_complete(priv);
+          }
         }
     }
   (sta == status_success) ? (ret = 0) : (ret = -1);
@@ -843,9 +802,8 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
     #ifdef CONFIG_HPM_I2C_DMA
       if(priv->dma_source == NULL && priv->i2c_context)
       {
-        hpm_i2c_dma_mgr_install_callback(priv->i2c_context, NULL);
+        hpm_i2c_dma_mgr_install_custom_callback(priv->i2c_context, hpm_i2c_dma_tc_callback, (void *)priv);
         priv->dma_source = hpm_i2c_get_dma_mgr_resource(priv->i2c_context);
-        dma_mgr_install_chn_tc_callback(priv->dma_source, hpm_i2c_dma_tc_callback, (void *)priv);
       }
     #else
       /* Attach Interrupt Handler */
