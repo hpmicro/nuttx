@@ -68,7 +68,7 @@ static void dma_mgr_exit_critical(uint32_t level);
  *  Variables
  *
  *****************************************************************************************************************/
-static dma_mgr_context_t s_dma_mngr_ctx;
+ATTR_PLACE_AT_FAST_RAM_BSS static dma_mgr_context_t s_dma_mngr_ctx;
 #define HPM_DMA_MGR (&s_dma_mngr_ctx)
 
 /*****************************************************************************************************************
