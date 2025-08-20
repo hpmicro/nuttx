@@ -87,7 +87,6 @@ struct hpm_i2cdev_s
   dma_resource_t     *dma_source;   /* DMA channel RX resource */
   uint8_t             *txrxbuf;    /* The TX DMA buffer */
   size_t              buflen;      /* The DMA buffer length */
-  sem_t               txrxsem;     /* Wait for TX/RX DMA to complete */
 #endif
   int                 rx_data_count;
   int                 tx_data_count;
@@ -307,7 +306,7 @@ static void hpm_i2c_dma_tc_callback(DMA_Type *ptr,
   UNUSED(ptr);
   UNUSED(channel);
 
-  nxsem_post(&priv->txrxsem);
+  nxsem_post(&priv->wait);
 }
 
 #else
@@ -479,7 +478,7 @@ void hpm_i2c_wait_for_dma_complete(struct hpm_i2cdev_s *priv)
   volatile uint32_t status;
 
   /* Wait for the DMA transfer to complete */
-  nxsem_wait_uninterruptible(&priv->txrxsem);
+  nxsem_wait_uninterruptible(&priv->wait);
 
   /* wait for i2c transaction complete */
   do {
@@ -842,9 +841,6 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
       nxsem_set_protocol(&priv->wait, SEM_PRIO_NONE);
 
     #ifdef CONFIG_HPM_I2C_DMA
-      nxsem_init(&priv->txrxsem, 0, 0);
-      nxsem_set_protocol(&priv->txrxsem, SEM_PRIO_NONE);
-
       if(priv->dma_source == NULL && priv->i2c_context)
       {
         hpm_i2c_dma_mgr_install_callback(priv->i2c_context, NULL);
