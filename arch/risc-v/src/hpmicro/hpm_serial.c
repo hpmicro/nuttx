@@ -44,6 +44,7 @@
 
 #include "riscv_internal.h"
 #include "hpm_config.h"
+#include "hpm_gpio.h"
 #include "chip.h"
 
 /****************************************************************************
@@ -101,6 +102,16 @@ struct hpm_uart_s
   uint32_t             irq_num;
   clock_name_t         clock_name;
   uart_config_t        config;
+  uint32_t             tx_pin;
+  uint32_t             rx_pin;
+#ifdef CONFIG_SERIAL_IFLOWCONTROL
+  uint32_t             rtspin;          /* RTS pin number */
+  bool                 iflow;           /* Input flow control (RTS) enabled */
+#endif
+#ifdef CONFIG_SERIAL_OFLOWCONTROL
+  uint32_t              ctspin;          /* CTS pin number */
+  bool                  oflow;           /* Output flow control (CTS) enabled */
+#endif
 };
 
 /****************************************************************************
@@ -159,7 +170,7 @@ static struct hpm_uart_s g_uart0priv =
   .config =
     {
       .src_freq_in_hz = 24000000,
-      .baudrate = 115200,
+      .baudrate = CONFIG_UART0_BAUD,
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
@@ -174,6 +185,16 @@ static struct hpm_uart_s g_uart0priv =
           .set_rts_high = false,
         },
     },
+  .tx_pin = GPIO_UART0_TX,
+  .rx_pin = GPIO_UART0_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART0_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART0_CTS,
+  .oflow = true,
+#endif
 };
 
 static uart_dev_t g_uart0port =
@@ -208,7 +229,7 @@ static struct hpm_uart_s g_uart1priv =
   .config =
     {
       .src_freq_in_hz = 24000000,
-      .baudrate = 115200,
+      .baudrate = CONFIG_UART1_BAUD,
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
@@ -223,6 +244,16 @@ static struct hpm_uart_s g_uart1priv =
           .set_rts_high = false,
         },
     },
+  .tx_pin = GPIO_UART1_TX,
+  .rx_pin = GPIO_UART1_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART1_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART1_CTS,
+  .oflow = true,
+#endif
 };
 
 static uart_dev_t g_uart1port =
@@ -245,13 +276,881 @@ static uart_dev_t g_uart1port =
 };
 #endif
 
+#ifdef CONFIG_HPM_UART2
+static char g_uart2rxbuffer[CONFIG_UART2_RXBUFSIZE];
+static char g_uart2txbuffer[CONFIG_UART2_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart2priv =
+{
+  .base     = HPM_UART2_BASE,
+  .irq_num  = HPM_IRQn_UART2,
+  .clock_name = clock_uart2,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART2_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART2_TX,
+  .rx_pin = GPIO_UART2_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART2_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART2_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart2port =
+{
+#ifdef CONFIG_UART2_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART2_RXBUFSIZE,
+      .buffer = g_uart2rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART2_TXBUFSIZE,
+      .buffer = g_uart2txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart2priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART3
+static char g_uart3rxbuffer[CONFIG_UART3_RXBUFSIZE];
+static char g_uart3txbuffer[CONFIG_UART3_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart3priv =
+{
+  .base     = HPM_UART3_BASE,
+  .irq_num  = HPM_IRQn_UART3,
+  .clock_name = clock_uart3,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART3_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART3_TX,
+  .rx_pin = GPIO_UART3_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART3_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART3_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart3port =
+{
+#ifdef CONFIG_UART3_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART3_RXBUFSIZE,
+      .buffer = g_uart3rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART3_TXBUFSIZE,
+      .buffer = g_uart3txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart3priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART4
+static char g_uart4rxbuffer[CONFIG_UART4_RXBUFSIZE];
+static char g_uart4txbuffer[CONFIG_UART4_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart4priv =
+{
+  .base     = HPM_UART4_BASE,
+  .irq_num  = HPM_IRQn_UART4,
+  .clock_name = clock_uart4,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART4_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART4_TX,
+  .rx_pin = GPIO_UART4_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART4_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART4_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart4port =
+{
+#ifdef CONFIG_UART4_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART4_RXBUFSIZE,
+      .buffer = g_uart4rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART4_TXBUFSIZE,
+      .buffer = g_uart4txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart4priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART5
+static char g_uart5rxbuffer[CONFIG_UART5_RXBUFSIZE];
+static char g_uart5txbuffer[CONFIG_UART5_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart5priv =
+{
+  .base     = HPM_UART5_BASE,
+  .irq_num  = HPM_IRQn_UART5,
+  .clock_name = clock_uart5,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART5_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART5_TX,
+  .rx_pin = GPIO_UART5_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART5_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART5_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart5port =
+{
+#ifdef CONFIG_UART5_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART5_RXBUFSIZE,
+      .buffer = g_uart5rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART5_TXBUFSIZE,
+      .buffer = g_uart5txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart5priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART6
+static char g_uart6rxbuffer[CONFIG_UART6_RXBUFSIZE];
+static char g_uart6txbuffer[CONFIG_UART6_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart6priv =
+{
+  .base     = HPM_UART6_BASE,
+  .irq_num  = HPM_IRQn_UART6,
+  .clock_name = clock_uart6,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART6_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART6_TX,
+  .rx_pin = GPIO_UART6_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART6_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART6_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart6port =
+{
+#ifdef CONFIG_UART6_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART6_RXBUFSIZE,
+      .buffer = g_uart6rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART6_TXBUFSIZE,
+      .buffer = g_uart6txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart6priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART7
+static char g_uart7rxbuffer[CONFIG_UART7_RXBUFSIZE];
+static char g_uart7txbuffer[CONFIG_UART7_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart7priv =
+{
+  .base     = HPM_UART7_BASE,
+  .irq_num  = HPM_IRQn_UART7,
+  .clock_name = clock_uart7,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART7_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART7_TX,
+  .rx_pin = GPIO_UART7_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART7_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART7_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart7port =
+{
+#ifdef CONFIG_UART7_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART7_RXBUFSIZE,
+      .buffer = g_uart7rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART7_TXBUFSIZE,
+      .buffer = g_uart7txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart7priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART8
+static char g_uart8rxbuffer[CONFIG_UART8_RXBUFSIZE];
+static char g_uart8txbuffer[CONFIG_UART8_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart8priv =
+{
+  .base     = HPM_UART8_BASE,
+  .irq_num  = HPM_IRQn_UART8,
+  .clock_name = clock_uart8,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART8_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART8_TX,
+  .rx_pin = GPIO_UART8_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART8_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART8_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart8port =
+{
+#ifdef CONFIG_UART8_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART8_RXBUFSIZE,
+      .buffer = g_uart8rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART8_TXBUFSIZE,
+      .buffer = g_uart8txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart8priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART9
+static char g_uart9rxbuffer[CONFIG_UART9_RXBUFSIZE];
+static char g_uart9txbuffer[CONFIG_UART9_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart9priv =
+{
+  .base     = HPM_UART9_BASE,
+  .irq_num  = HPM_IRQn_UART9,
+  .clock_name = clock_uart9,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART9_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART9_TX,
+  .rx_pin = GPIO_UART9_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART9_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART9_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart9port =
+{
+#ifdef CONFIG_UART9_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART9_RXBUFSIZE,
+      .buffer = g_uart9rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART9_TXBUFSIZE,
+      .buffer = g_uart9txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart9priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART10
+static char g_uart10rxbuffer[CONFIG_UART10_RXBUFSIZE];
+static char g_uart10txbuffer[CONFIG_UART10_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart10priv =
+{
+  .base     = HPM_UART10_BASE,
+  .irq_num  = HPM_IRQn_UART10,
+  .clock_name = clock_uart10,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART10_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART10_TX,
+  .rx_pin = GPIO_UART10_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART10_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART10_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart10port =
+{
+#ifdef CONFIG_UART10_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART10_RXBUFSIZE,
+      .buffer = g_uart10rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART10_TXBUFSIZE,
+      .buffer = g_uart10txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart10priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART11
+static char g_uart11rxbuffer[CONFIG_UART11_RXBUFSIZE];
+static char g_uart11txbuffer[CONFIG_UART11_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart11priv =
+{
+  .base     = HPM_UART11_BASE,
+  .irq_num  = HPM_IRQn_UART11,
+  .clock_name = clock_uart11,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART11_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART11_TX,
+  .rx_pin = GPIO_UART11_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART11_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART11_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart11port =
+{
+#ifdef CONFIG_UART11_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART11_RXBUFSIZE,
+      .buffer = g_uart11rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART11_TXBUFSIZE,
+      .buffer = g_uart11txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart11priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART12
+static char g_uart12rxbuffer[CONFIG_UART12_RXBUFSIZE];
+static char g_uart12txbuffer[CONFIG_UART12_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart12priv =
+{
+  .base     = HPM_UART12_BASE,
+  .irq_num  = HPM_IRQn_UART12,
+  .clock_name = clock_uart12,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART12_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART12_TX,
+  .rx_pin = GPIO_UART12_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART12_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART12_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart12port =
+{
+#ifdef CONFIG_UART12_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART12_RXBUFSIZE,
+      .buffer = g_uart12rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART12_TXBUFSIZE,
+      .buffer = g_uart12txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart12priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART13
+static char g_uart13rxbuffer[CONFIG_UART13_RXBUFSIZE];
+static char g_uart13txbuffer[CONFIG_UART13_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart13priv =
+{
+  .base     = HPM_UART13_BASE,
+  .irq_num  = HPM_IRQn_UART13,
+  .clock_name = clock_uart13,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART13_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART13_TX,
+  .rx_pin = GPIO_UART13_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART13_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART13_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart13port =
+{
+#ifdef CONFIG_UART13_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART13_RXBUFSIZE,
+      .buffer = g_uart13rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART13_TXBUFSIZE,
+      .buffer = g_uart13txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart13priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART14
+static char g_uart14rxbuffer[CONFIG_UART14_RXBUFSIZE];
+static char g_uart14txbuffer[CONFIG_UART14_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart14priv =
+{
+  .base     = HPM_UART14_BASE,
+  .irq_num  = HPM_IRQn_UART14,
+  .clock_name = clock_uart14,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART14_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART14_TX,
+  .rx_pin = GPIO_UART14_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART14_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART14_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart14port =
+{
+#ifdef CONFIG_UART14_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART14_RXBUFSIZE,
+      .buffer = g_uart14rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART14_TXBUFSIZE,
+      .buffer = g_uart14txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart14priv,
+};
+#endif
+
+#ifdef CONFIG_HPM_UART15
+static char g_uart15rxbuffer[CONFIG_UART15_RXBUFSIZE];
+static char g_uart15txbuffer[CONFIG_UART15_TXBUFSIZE];
+
+static struct hpm_uart_s g_uart15priv =
+{
+  .base     = HPM_UART15_BASE,
+  .irq_num  = HPM_IRQn_UART15,
+  .clock_name = clock_uart15,
+  .config =
+    {
+      .src_freq_in_hz = 24000000,
+      .baudrate = CONFIG_UART15_BAUD,
+      .num_of_stop_bits = stop_bits_1,
+      .word_length = word_length_8_bits,
+      .parity = parity_none,
+      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .tx_fifo_level = uart_tx_fifo_trg_not_full,
+      .fifo_enable = true,
+      .dma_enable = false,
+      .modem_config =
+        {
+          .auto_flow_ctrl_en = false,
+          .loop_back_en = false,
+          .set_rts_high = false,
+        },
+    },
+  .tx_pin = GPIO_UART15_TX,
+  .rx_pin = GPIO_UART15_RX,
+#ifdef CONFIG_UART0_IFLOWCONTROL
+  .rts_pin = GPIO_UART15_RTS,
+  .iflow = true,
+#endif
+#ifdef CONFIG_UART0_OFLOWCONTROL
+  .cts_pin = GPIO_UART15_CTS,
+  .oflow = true,
+#endif
+};
+
+static uart_dev_t g_uart15port =
+{
+#ifdef CONFIG_UART15_SERIAL_CONSOLE
+  .isconsole = 1,
+#endif
+  .recv =
+    {
+      .size   = CONFIG_UART15_RXBUFSIZE,
+      .buffer = g_uart15rxbuffer,
+    },
+  .xmit =
+    {
+      .size   = CONFIG_UART15_TXBUFSIZE,
+      .buffer = g_uart15txbuffer,
+    },
+  .ops  = &g_uart_ops,
+  .priv = (void *)&g_uart15priv,
+};
+#endif
+
 static struct uart_dev_s *const g_uart_devs[] =
 {
 #ifdef CONFIG_HPM_UART0
   [0] = &g_uart0port,
 #endif
 #ifdef CONFIG_HPM_UART1
-  [1] = &g_uart1port
+  [1] = &g_uart1port,
+#endif
+#ifdef CONFIG_HPM_UART2
+  [2] = &g_uart2port,
+#endif
+#ifdef CONFIG_HPM_UART3
+  [3] = &g_uart3port,
+#endif
+#ifdef CONFIG_HPM_UART4
+  [4] = &g_uart4port,
+#endif
+#ifdef CONFIG_HPM_UART5
+  [5] = &g_uart5port,
+#endif
+#ifdef CONFIG_HPM_UART6
+  [6] = &g_uart6port,
+#endif
+#ifdef CONFIG_HPM_UART7
+  [7] = &g_uart7port,
+#endif
+#ifdef CONFIG_HPM_UART8
+  [8] = &g_uart8port,
+#endif
+#ifdef CONFIG_HPM_UART9
+  [9] = &g_uart9port,
+#endif
+#ifdef CONFIG_HPM_UART10
+  [10] = &g_uart10port,
+#endif
+#ifdef CONFIG_HPM_UART11
+  [11] = &g_uart11port,
+#endif
+#ifdef CONFIG_HPM_UART12
+  [12] = &g_uart12port,
+#endif
+#ifdef CONFIG_HPM_UART13
+  [13] = &g_uart13port,
+#endif
+#ifdef CONFIG_HPM_UART14
+  [14] = &g_uart14port,
+#endif
+#ifdef CONFIG_HPM_UART15
+  [15] = &g_uart15port,
 #endif
 };
 
@@ -310,7 +1209,20 @@ static int hpm_setup(struct uart_dev_s *dev)
 {
   struct hpm_uart_s *priv = (struct hpm_uart_s *)dev->priv;
 
-  init_uart_pins((UART_Type *)priv->base);
+  hpm_config_gpio(priv->tx_pin);
+  hpm_config_gpio(priv->rx_pin);
+#ifdef CONFIG_SERIAL_IFLOWCONTROL
+  if (priv->iflow)
+    {
+      hpm_config_gpio(priv->rts_pin);
+    }
+#endif
+#ifdef CONFIG_SERIAL_OFLOWCONTROL
+  if (priv->oflow)
+    {
+      hpm_config_gpio(priv->cts_pin);
+    }
+#endif
 
   priv->config.src_freq_in_hz = board_init_uart_clock((UART_Type *)priv->base);
 

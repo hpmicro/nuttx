@@ -234,6 +234,111 @@ config HPM_UART0
 	select ARCH_HAVE_SERIAL_TERMIOS
 	default y
 
+config HPM_UART1
+	bool "UART1"
+	select ARCH_HAVE_UART1
+	select UART1_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART2
+	bool "UART2"
+	select ARCH_HAVE_UART2
+	select UART2_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART3
+	bool "UART3"
+	select ARCH_HAVE_UART3
+	select UART3_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART4
+	bool "UART4"
+	select ARCH_HAVE_UART4
+	select UART4_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART5
+	bool "UART5"
+	select ARCH_HAVE_UART5
+	select UART5_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART6
+	bool "UART6"
+	select ARCH_HAVE_UART6
+	select UART6_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART7
+	bool "UART7"
+	select ARCH_HAVE_UART7
+	select UART7_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART8
+	bool "UART8"
+	select ARCH_HAVE_UART8
+	select UART8_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART9
+	bool "UART9"
+	select ARCH_HAVE_UART9
+	select UART9_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART10
+	bool "UART10"
+	select ARCH_HAVE_UART10
+	select UART10_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART11
+	bool "UART11"
+	select ARCH_HAVE_UART11
+	select UART11_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART12
+	bool "UART12"
+	select ARCH_HAVE_UART12
+	select UART12_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART13
+	bool "UART13"
+	select ARCH_HAVE_UART13
+	select UART13_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART14
+	bool "UART14"
+	select ARCH_HAVE_UART14
+	select UART14_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
+config HPM_UART15
+	bool "UART15"
+	select ARCH_HAVE_UART15
+	select UART15_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	default n
+
 #####################################################################
 #  I2C master config
 #####################################################################
