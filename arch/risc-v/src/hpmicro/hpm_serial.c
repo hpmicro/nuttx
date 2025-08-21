@@ -1307,7 +1307,158 @@ static void hpm_detach(struct uart_dev_s *dev)
 
 static int hpm_ioctl(struct file *filep, int cmd, unsigned long arg)
 {
-  return -ENOTTY;
+#if defined(CONFIG_SERIAL_TERMIOS) || defined(CONFIG_SERIAL_TIOCSERGSTRUCT)
+  struct inode *     inode = filep->f_inode;
+  struct uart_dev_s *dev   = inode->i_private;
+#endif
+  int ret = OK;
+
+  switch (cmd)
+    {
+#ifdef CONFIG_SERIAL_TERMIOS
+    case TCGETS:
+      do
+        {
+          struct termios * termiosp = (struct termios *)arg;
+          struct hpm_uart_s *priv = (struct hpm_uart_s *)dev->priv;
+
+          if (!termiosp)
+            {
+              ret = -EINVAL;
+              break;
+            }
+          termiosp->c_cflag = 0;
+
+          /* Return parity */
+
+          termiosp->c_cflag = ((priv->config.parity != 0) ? PARENB : 0) |
+                              ((priv->config.parity == 1) ? PARODD : 0);
+
+          /* Return stop bits */
+
+          termiosp->c_cflag |= (priv->config.num_of_stop_bits) ? CSTOPB : 0;
+
+          /* Return flow control */
+#ifdef CONFIG_SERIAL_OFLOWCONTROL
+          termiosp->c_cflag |= ((priv->oflow) ? CCTS_OFLOW : 0);
+#endif
+#ifdef CONFIG_SERIAL_IFLOWCONTROL
+          termiosp->c_cflag |= ((priv->iflow) ? CRTS_IFLOW : 0);
+#endif
+          /* Return baud */
+
+          cfsetispeed(termiosp, priv->config.baudrate);
+
+          /* Return number of bits */
+
+          switch (priv->config.word_length)
+            {
+            case 0:
+              termiosp->c_cflag |= CS5;
+              break;
+
+            case 1:
+              termiosp->c_cflag |= CS6;
+              break;
+
+            case 2:
+              termiosp->c_cflag |= CS7;
+              break;
+
+            default:
+            case 3:
+              termiosp->c_cflag |= CS8;
+              break;
+            }
+        }
+      while (0);
+      break;
+
+    case TCSETS:
+      do
+        {
+          struct termios *     termiosp = (struct termios *)arg;
+          struct hpm_uart_s *    priv = (struct hpm_uart_s *)dev->priv;
+          uint32_t             tmp_val;
+
+          if (!termiosp)
+            {
+              ret = -EINVAL;
+              break;
+            }
+
+          /* Decode baud. */
+
+          ret         = OK;
+          priv->config.baudrate = cfgetispeed(termiosp);
+
+          /* Decode number of bits */
+
+          switch (termiosp->c_cflag & CSIZE)
+            {
+            case CS5:
+              priv->config.word_length = 0;
+              break;
+
+            case CS6:
+              priv->config.word_length = 1;
+              break;
+
+            case CS7:
+              priv->config.word_length = 2;
+              break;
+
+            case CS8:
+              priv->config.word_length = 3;
+              break;
+
+            default:
+              ret = -EINVAL;
+              break;
+            }
+
+          /* Decode parity */
+
+          if ((termiosp->c_cflag & PARENB) != 0)
+            {
+              priv->config.parity = (termiosp->c_cflag & PARODD) ? 1 : 2;
+            }
+          else
+            {
+              priv->config.parity = 0;
+            }
+
+          /* Decode stop bits */
+
+          priv->config.num_of_stop_bits = (termiosp->c_cflag & CSTOPB) != 0;
+
+          /* Decode flow control */
+#if defined(CONFIG_SERIAL_OFLOWCONTROL) && defined(CONFIG_SERIAL_IFLOWCONTROL)
+          priv->oflow = (termiosp->c_cflag & CCTS_OFLOW) != 0;
+          priv->iflow = (termiosp->c_cflag & CRTS_IFLOW) != 0;
+
+          priv->config.modem_config.auto_flow_ctrl_en = priv->iflow;
+#endif
+          /* Verify that all settings are valid before committing */
+
+          if (ret == OK)
+            {
+              /* effect the changes immediately - note that we do not
+               * implement TCSADRAIN / TCSAFLUSH
+               */
+              uart_init((UART_Type *)priv->base, &priv->config);
+            }
+        }
+      while (0);
+      break;
+#endif /* CONFIG_SERIAL_TERMIOS */
+
+    default:
+      ret = -ENOTTY;
+      break;
+    }
+
+  return ret;
 }
 
 /****************************************************************************
