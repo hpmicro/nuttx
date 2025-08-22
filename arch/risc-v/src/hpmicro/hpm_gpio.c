@@ -305,8 +305,8 @@ int hpm_config_gpio(uint32_t cfgset)
   bool output = false;
   irqstate_t flags;
 
-  uint32_t port = (cfgset & GPIO_PORT_MASK) >> GPIO_PORT_SHIFT; // 端口0~15
-  uint32_t pin = (cfgset & GPIO_PIN_MASK) >> GPIO_PIN_SHIFT; // 引脚0~31
+  uint32_t port = (cfgset & GPIO_PORT_MASK) >> GPIO_PORT_SHIFT;
+  uint32_t pin = (cfgset & GPIO_PIN_MASK) >> GPIO_PIN_SHIFT;
   uint32_t pad_index = port * 32 + pin;
   if(pad_index > sizeof(IOC_Type) / (2 * sizeof(uint32_t))){
     return -EINVAL;
@@ -316,7 +316,6 @@ int hpm_config_gpio(uint32_t cfgset)
 
   pad_ctl = HPM_IOC->PAD[pad_index].PAD_CTL;
 
-  // GPIO控制器选择
   switch (cfgset & GPIO_CONTROLLER_MASK){
     default:
     case GPIO0:
@@ -347,94 +346,42 @@ int hpm_config_gpio(uint32_t cfgset)
 #endif
   }
 
-  /* 模式 */
+  fun_ctl &= ~IOC_PAD_FUNC_CTL_ALT_SELECT_MASK;
+  pad_ctl &= ~(IOC_PAD_PAD_CTL_PE_MASK | IOC_PAD_PAD_CTL_PS_MASK);
+  pad_ctl &= ~IOC_PAD_PAD_CTL_OD_MASK;
+  switch (cfgset & GPIO_PUPD_MASK)
+  {
+    default:
+    case GPIO_FLOAT:
+      break;
+    case GPIO_PULLUP:
+      pad_ctl |= IOC_PAD_PAD_CTL_PS_SET(1) | IOC_PAD_PAD_CTL_PE_SET(1);
+      break;
+    case GPIO_PULLDOWN:
+      pad_ctl |= IOC_PAD_PAD_CTL_PE_SET(1);
+      break;
+  }
+
+  if(cfgset & GPIO_OPENDRAIN){
+    pad_ctl |= IOC_PAD_PAD_CTL_OD_SET(1);
+  }
+
   switch (cfgset & GPIO_MODE_MASK)
   {
     default:
-    case GPIO_INPUT:      /* 输入 */
+    case GPIO_INPUT:
       gpio_set_pin_input(ptr, port, pin);
-      fun_ctl &= ~IOC_PAD_FUNC_CTL_ALT_SELECT_MASK;//ALT0
-      pad_ctl &= ~(IOC_PAD_PAD_CTL_PE_MASK | IOC_PAD_PAD_CTL_PS_MASK);//浮空
-      switch (cfgset & GPIO_PUPD_MASK)
-      {
-        default:
-        case GPIO_FLOAT:      /* 浮空 */
-          break;
-        case GPIO_PULLUP:     /* 上拉 */
-          pad_ctl |= IOC_PAD_PAD_CTL_PS_SET(1) | IOC_PAD_PAD_CTL_PE_SET(1);
-          break;
-        case GPIO_PULLDOWN:   /* 下拉*/
-          pad_ctl |= IOC_PAD_PAD_CTL_PE_SET(1);
-          break;
-      }
       break;
 
-    case GPIO_OUTPUT:     /* 输出 */
+    case GPIO_OUTPUT:
       output = true;
-      fun_ctl &= ~IOC_PAD_FUNC_CTL_ALT_SELECT_MASK;//ALT0
-      pad_ctl &= ~(IOC_PAD_PAD_CTL_PE_MASK | IOC_PAD_PAD_CTL_PS_MASK);//浮空
-      if(cfgset & GPIO_OPENDRAIN){
-        pad_ctl |= IOC_PAD_PAD_CTL_OD_SET(1);// 开漏输出使能
-        switch (cfgset & GPIO_PUPD_MASK)
-        {
-          default:
-          case GPIO_FLOAT:      /* 浮空 */
-          case GPIO_PULLUP:     /* 上拉 */
-            break;
-          case GPIO_PULLDOWN:   /* 下拉*/
-            pad_ctl |= IOC_PAD_PAD_CTL_PE_SET(1);// 下拉
-            break;
-        }
-      }else{
-        pad_ctl &= ~IOC_PAD_PAD_CTL_OD_MASK;// 推挽输出
-        switch (cfgset & GPIO_PUPD_MASK)
-        {
-          default:
-          case GPIO_FLOAT:       /* 浮空 */
-            break;
-          case GPIO_PULLUP:      /* 上拉 */
-            pad_ctl |= IOC_PAD_PAD_CTL_PS_SET(1) | IOC_PAD_PAD_CTL_PE_SET(1);// 上拉
-            break;
-          case GPIO_PULLDOWN:    /* 下拉*/
-            pad_ctl |= IOC_PAD_PAD_CTL_PE_SET(1);//下拉
-            break;
-        }
-      }
       break;
 
-    case GPIO_ALT: /* 复用模式 */
-      fun_ctl |= IOC_PAD_FUNC_CTL_ALT_SELECT_SET((cfgset & GPIO_AF_MASK) >> GPIO_AF_SHIFT);// 复用
-      pad_ctl &= ~(IOC_PAD_PAD_CTL_PE_MASK | IOC_PAD_PAD_CTL_PS_MASK);//浮空
-      if(cfgset & GPIO_OPENDRAIN){
-        pad_ctl |= IOC_PAD_PAD_CTL_OD_SET(1);// 开漏输出使能
-        switch (cfgset & GPIO_PUPD_MASK)
-        {
-          default:
-          case GPIO_FLOAT:      /* 浮空 */
-          case GPIO_PULLUP:     /* 上拉 */
-            break;
-          case GPIO_PULLDOWN:   /* 下拉*/
-            pad_ctl |= IOC_PAD_PAD_CTL_PE_SET(1);// 下拉
-            break;
-        }
-      }else{
-        pad_ctl &= ~IOC_PAD_PAD_CTL_OD_MASK;// 推挽输出
-        switch (cfgset & GPIO_PUPD_MASK)
-        {
-          default:
-          case GPIO_FLOAT:       /* 浮空 */
-            break;
-          case GPIO_PULLUP:      /* 上拉 */
-            pad_ctl |= IOC_PAD_PAD_CTL_PS_SET(1) | IOC_PAD_PAD_CTL_PE_SET(1);// 上拉
-            break;
-          case GPIO_PULLDOWN:    /* 下拉*/
-            pad_ctl |= IOC_PAD_PAD_CTL_PE_SET(1);//下拉
-            break;
-        }
-      }
+    case GPIO_ALT:
+      fun_ctl |= IOC_PAD_FUNC_CTL_ALT_SELECT_SET((cfgset & GPIO_AF_MASK) >> GPIO_AF_SHIFT);
       break;
 
-    case GPIO_ANALOG: /* 模拟 */
+    case GPIO_ANALOG:
       fun_ctl |= IOC_PAD_FUNC_CTL_ANALOG_SET(1);
       break;
   }
@@ -444,7 +391,7 @@ int hpm_config_gpio(uint32_t cfgset)
   }
 
   pad_ctl &= ~IOC_PAD_PAD_CTL_DS_MASK;
-  pad_ctl |= IOC_PAD_PAD_CTL_DS_SET((cfgset & GPIO_DS_MASK) >> GPIO_DS_SHIFT);// 驱动强度
+  pad_ctl |= IOC_PAD_PAD_CTL_DS_SET((cfgset & GPIO_DS_MASK) >> GPIO_DS_SHIFT);
 
 #if defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
   if(cfgset & GPIO_1V8){
@@ -460,9 +407,9 @@ int hpm_config_gpio(uint32_t cfgset)
   }
 #else
   pad_ctl &= ~IOC_PAD_PAD_CTL_SPD_MASK;
-  pad_ctl |= IOC_PAD_PAD_CTL_SPD_SET((cfgset & GPIO_SPEED_MASK) >> GPIO_SPEED_SHIFT);//速度
+  pad_ctl |= IOC_PAD_PAD_CTL_SPD_SET((cfgset & GPIO_SPEED_MASK) >> GPIO_SPEED_SHIFT);
   if((cfgset & GPIO_SPEED_MASK) > GPIO_SPEED_50MHz){
-    pad_ctl |= IOC_PAD_PAD_CTL_SR_SET(1);// 快速压摆率
+    pad_ctl |= IOC_PAD_PAD_CTL_SR_SET(1);
   }else{
     pad_ctl &= ~IOC_PAD_PAD_CTL_SR_MASK;
   }
@@ -474,7 +421,6 @@ int hpm_config_gpio(uint32_t cfgset)
   }
 #endif
 
- // GPIO控制器选择
   switch (cfgset & GPIO_CONTROLLER_MASK){
     default:
     case GPIO0:

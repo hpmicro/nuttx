@@ -1379,7 +1379,6 @@ static int hpm_ioctl(struct file *filep, int cmd, unsigned long arg)
         {
           struct termios *     termiosp = (struct termios *)arg;
           struct hpm_uart_s *    priv = (struct hpm_uart_s *)dev->priv;
-          uint32_t             tmp_val;
 
           if (!termiosp)
             {
