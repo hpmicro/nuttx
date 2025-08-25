@@ -1682,7 +1682,6 @@ void riscv_serialinit(void)
 
   /* Register all UARTs */
 
-  strcpy(devname, "/dev/ttySx");
   for (i = 0; i < sizeof(g_uart_devs) / sizeof(g_uart_devs[0]); i++)
     {
       if (g_uart_devs[i] == 0)
@@ -1699,7 +1698,7 @@ void riscv_serialinit(void)
 
       /* Register USARTs as devices in increasing order */
 
-      devname[9] = '0' + i;
+      snprintf(devname, sizeof(devname), "/dev/ttyS%d", i);
       uart_register(devname, g_uart_devs[i]);
     }
 }

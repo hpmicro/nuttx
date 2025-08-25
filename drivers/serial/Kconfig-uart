@@ -53,6 +53,41 @@ config UART8_SERIALDRIVER
 	default n
 	select MCU_SERIAL
 
+config UART9_SERIALDRIVER
+	bool
+	default n
+	select MCU_SERIAL
+
+config UART10_SERIALDRIVER
+	bool
+	default n
+	select MCU_SERIAL
+
+config UART11_SERIALDRIVER
+	bool
+	default n
+	select MCU_SERIAL
+
+config UART12_SERIALDRIVER
+	bool
+	default n
+	select MCU_SERIAL
+
+config UART13_SERIALDRIVER
+	bool
+	default n
+	select MCU_SERIAL
+
+config UART14_SERIALDRIVER
+	bool
+	default n
+	select MCU_SERIAL
+
+config UART15_SERIALDRIVER
+	bool
+	default n
+	select MCU_SERIAL
+
 menu "UART0 Configuration"
 	depends on UART0_SERIALDRIVER
 
