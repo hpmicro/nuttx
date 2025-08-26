@@ -63,6 +63,7 @@ void pwm_get_default_pwm_config(PWM_Type *pwm_x, pwm_config_t *config)
 {
     (void) pwm_x;
     config->enable_output = false;
+    config->invert_output = false;
     config->update_trigger = pwm_shadow_register_update_on_modify;
     config->fault_mode = pwm_fault_mode_force_output_highz;
     config->fault_recovery_trigger = pwm_fault_recovery_on_fault_clear;

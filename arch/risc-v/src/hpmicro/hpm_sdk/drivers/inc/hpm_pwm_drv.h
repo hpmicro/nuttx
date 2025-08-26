@@ -602,6 +602,32 @@ static inline void pwm_cmp_update_cmp_value(PWM_Type *pwm_x, uint8_t index,
 }
 
 /**
+ * @brief get pwm cmp value
+ *
+ * @param[in] pwm_x PWM base address, HPM_PWMx(x=0..n)
+ * @param[in] index cmp index (0..(PWM_SOC_CMP_MAX_COUNT-1))
+ *
+ * @return cmp clock counter compare value
+ */
+static inline uint32_t pwm_cmp_get_cmp_value(PWM_Type *pwm_x, uint8_t index)
+{
+    return PWM_CMP_CMP_GET(pwm_x->CMP[index]);
+}
+
+/**
+ * @brief get pwm ex_cmp value
+ *
+ * @param[in] pwm_x PWM base address, HPM_PWMx(x=0..n)
+ * @param[in] index cmp index (0..(PWM_SOC_CMP_MAX_COUNT-1))
+ *
+ * @return ex_cmp clock counter compare value
+ */
+static inline uint32_t pwm_cmp_get_excmp_value(PWM_Type *pwm_x, uint8_t index)
+{
+    return PWM_CMP_XCMP_GET(pwm_x->CMP[index]);
+}
+
+/**
  * @brief update pwm cmp value in order to recovery pwm fault
  * The configured values need to be staggered to coincide with the moment when the pwm output changes,
  * otherwise the recovery will be abnormal
