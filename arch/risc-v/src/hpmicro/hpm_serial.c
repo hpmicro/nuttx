@@ -174,7 +174,7 @@ static struct hpm_uart_s g_uart0priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -233,7 +233,7 @@ static struct hpm_uart_s g_uart1priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -292,7 +292,7 @@ static struct hpm_uart_s g_uart2priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -351,7 +351,7 @@ static struct hpm_uart_s g_uart3priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -410,7 +410,7 @@ static struct hpm_uart_s g_uart4priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -469,7 +469,7 @@ static struct hpm_uart_s g_uart5priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -528,7 +528,7 @@ static struct hpm_uart_s g_uart6priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -587,7 +587,7 @@ static struct hpm_uart_s g_uart7priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -646,7 +646,7 @@ static struct hpm_uart_s g_uart8priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -705,7 +705,7 @@ static struct hpm_uart_s g_uart9priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -764,7 +764,7 @@ static struct hpm_uart_s g_uart10priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -823,7 +823,7 @@ static struct hpm_uart_s g_uart11priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -882,7 +882,7 @@ static struct hpm_uart_s g_uart12priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -941,7 +941,7 @@ static struct hpm_uart_s g_uart13priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -1000,7 +1000,7 @@ static struct hpm_uart_s g_uart14priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -1059,7 +1059,7 @@ static struct hpm_uart_s g_uart15priv =
       .num_of_stop_bits = stop_bits_1,
       .word_length = word_length_8_bits,
       .parity = parity_none,
-      .rx_fifo_level = uart_rx_fifo_trg_not_empty,
+      .rx_fifo_level = uart_rx_fifo_trg_gt_three_quarters,
       .tx_fifo_level = uart_tx_fifo_trg_not_full,
       .fifo_enable = true,
       .dma_enable = false,
@@ -1177,16 +1177,15 @@ static int __uart_interrupt(int irq, void *context, void *arg)
 
   /* Length of uart rx data transfer arrived interrupt */
 
-  if ((irq_id & uart_intr_id_rx_data_avail))
+  if ((irq_id == uart_intr_id_rx_data_avail) || (irq_id == uart_intr_id_rx_timeout))
     {
       /* Receive Data ready */
-
       uart_recvchars(dev);
     }
 
   /* Tx fifo ready interrupt,auto-cleared when data is pushed */
 
-  if ((irq_id & uart_intr_id_tx_slot_avail))
+  if ((irq_id == uart_intr_id_tx_slot_avail))
     {
       /* Transmit data request interrupt */
 
@@ -1552,9 +1551,7 @@ static void hpm_send(struct uart_dev_s *dev, int ch)
   struct hpm_uart_s *priv = (struct hpm_uart_s *)dev->priv;
   UART_Type *uart_ptr     = (UART_Type *)priv->base;
 
-  while (status_success != uart_send_byte(uart_ptr, ch))
-    {
-    }
+  uart_send_byte(uart_ptr, ch);
 }
 
 /****************************************************************************
