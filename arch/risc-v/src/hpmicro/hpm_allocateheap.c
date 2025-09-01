@@ -22,7 +22,12 @@
  * Included Files
  ****************************************************************************/
 
-#include "hpm.h"
+#include <nuttx/config.h>
+#include <nuttx/kmalloc.h>
+
+#include <nuttx/arch.h>
+
+#include "chip.h"
 
 /****************************************************************************
  * Public Variables
@@ -30,6 +35,10 @@
 
 extern uint8_t __heap_start__[];
 extern uint8_t __heap_end__[];
+#if CONFIG_MM_REGIONS > 1
+extern uint8_t __heap2_start__[];
+extern uint8_t __heap2_end__[];
+#endif
 
 /****************************************************************************
  * Public Functions
@@ -71,5 +80,9 @@ void up_allocate_heap(void **heap_start, size_t *heap_size)
 #if CONFIG_MM_REGIONS > 1
 void riscv_addregion(void)
 {
+  uint32_t len;
+
+  len = (uint32_t)__heap2_end__ - (uint32_t)__heap2_start__;
+  kumm_addregion((void *)__heap2_start__, len);
 }
 #endif
