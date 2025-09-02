@@ -415,6 +415,30 @@ static inline void pwm_enable_irq(PWM_Type *pwm_x, uint32_t mask)
 }
 
 /**
+ * @brief set capture irq on fall edge
+ *
+ * @param[in] pwm_x PWM base address, HPM_PWMx(x=0..n)
+ * @param[in] mask :
+ *  @arg       PWM_IRQ_CMP(x)(x=0...n): input capture flag interrupt on fall edge
+ */
+static inline void pwm_set_capture_irq_fall_edge(PWM_Type *pwm_x, uint32_t mask)
+{
+    pwm_x->CAP_EN_NEG |= mask;
+}
+
+/**
+ * @brief set capture irq on rise edge
+ *
+ * @param[in] pwm_x PWM base address, HPM_PWMx(x=0..n)
+ * @param[in] mask :
+ *  @arg       PWM_IRQ_CMP(x)(x=0...n): input capture flag interrupt on rise edge
+ */
+static inline void pwm_set_capture_irq_rise_edge(PWM_Type *pwm_x, uint32_t mask)
+{
+    pwm_x->CAP_EN_NEG &= ~mask;
+}
+
+/**
  * @brief disable pwm dma request
  *
  * @param[in] pwm_x PWM base address, HPM_PWMx(x=0..n)
