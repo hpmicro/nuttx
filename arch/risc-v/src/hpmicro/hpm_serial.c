@@ -112,6 +112,7 @@ struct hpm_uart_s
   uint32_t              ctspin;          /* CTS pin number */
   bool                  oflow;           /* Output flow control (CTS) enabled */
 #endif
+  uint8_t              tx_available;     /* tx available fifo size */
 };
 
 /****************************************************************************
@@ -195,6 +196,7 @@ static struct hpm_uart_s g_uart0priv =
   .cts_pin = GPIO_UART0_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart0port =
@@ -254,6 +256,7 @@ static struct hpm_uart_s g_uart1priv =
   .cts_pin = GPIO_UART1_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart1port =
@@ -313,6 +316,7 @@ static struct hpm_uart_s g_uart2priv =
   .cts_pin = GPIO_UART2_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart2port =
@@ -372,6 +376,7 @@ static struct hpm_uart_s g_uart3priv =
   .cts_pin = GPIO_UART3_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart3port =
@@ -431,6 +436,7 @@ static struct hpm_uart_s g_uart4priv =
   .cts_pin = GPIO_UART4_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart4port =
@@ -490,6 +496,7 @@ static struct hpm_uart_s g_uart5priv =
   .cts_pin = GPIO_UART5_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart5port =
@@ -549,6 +556,7 @@ static struct hpm_uart_s g_uart6priv =
   .cts_pin = GPIO_UART6_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart6port =
@@ -608,6 +616,7 @@ static struct hpm_uart_s g_uart7priv =
   .cts_pin = GPIO_UART7_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart7port =
@@ -667,6 +676,7 @@ static struct hpm_uart_s g_uart8priv =
   .cts_pin = GPIO_UART8_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart8port =
@@ -726,6 +736,7 @@ static struct hpm_uart_s g_uart9priv =
   .cts_pin = GPIO_UART9_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart9port =
@@ -785,6 +796,7 @@ static struct hpm_uart_s g_uart10priv =
   .cts_pin = GPIO_UART10_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart10port =
@@ -844,6 +856,7 @@ static struct hpm_uart_s g_uart11priv =
   .cts_pin = GPIO_UART11_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart11port =
@@ -903,6 +916,7 @@ static struct hpm_uart_s g_uart12priv =
   .cts_pin = GPIO_UART12_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart12port =
@@ -962,6 +976,7 @@ static struct hpm_uart_s g_uart13priv =
   .cts_pin = GPIO_UART13_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart13port =
@@ -1021,6 +1036,7 @@ static struct hpm_uart_s g_uart14priv =
   .cts_pin = GPIO_UART14_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart14port =
@@ -1080,6 +1096,7 @@ static struct hpm_uart_s g_uart15priv =
   .cts_pin = GPIO_UART15_CTS,
   .oflow = true,
 #endif
+  .tx_available = UART_SOC_FIFO_SIZE,
 };
 
 static uart_dev_t g_uart15port =
@@ -1185,9 +1202,10 @@ static int __uart_interrupt(int irq, void *context, void *arg)
 
   /* Tx fifo ready interrupt,auto-cleared when data is pushed */
 
-  if ((irq_id == uart_intr_id_tx_slot_avail))
+  if (irq_id == uart_intr_id_tx_slot_avail)
     {
       /* Transmit data request interrupt */
+      priv->tx_available = UART_SOC_FIFO_SIZE;
 
       uart_xmitchars(dev);
     }
@@ -1551,6 +1569,9 @@ static void hpm_send(struct uart_dev_s *dev, int ch)
   struct hpm_uart_s *priv = (struct hpm_uart_s *)dev->priv;
   UART_Type *uart_ptr     = (UART_Type *)priv->base;
 
+  if (priv->tx_available > 0) {
+    priv->tx_available--;
+  }
   uart_send_byte(uart_ptr, ch);
 }
 
@@ -1605,11 +1626,10 @@ static void hpm_txint(struct uart_dev_s *dev, bool enable)
 static bool hpm_txready(struct uart_dev_s *dev)
 {
   struct hpm_uart_s *priv = (struct hpm_uart_s *)dev->priv;
-  UART_Type *uart_ptr     = (UART_Type *)priv->base;
 
   /* Return TRUE if the TX FIFO is not full */
 
-  return (uart_check_status(uart_ptr, uart_stat_tx_slot_avail));
+  return (priv->tx_available > 0) ? true : false;
 }
 
 /****************************************************************************
@@ -1625,7 +1645,7 @@ static bool hpm_txempty(struct uart_dev_s *dev)
   struct hpm_uart_s *priv = (struct hpm_uart_s *)dev->priv;
   UART_Type *uart_ptr     = (UART_Type *)priv->base;
 
-  return (uart_check_status(uart_ptr, uart_stat_transmitter_empty));
+  return (uart_check_status(uart_ptr, uart_stat_tx_slot_avail));
 }
 
 /****************************************************************************
