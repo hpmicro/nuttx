@@ -345,6 +345,7 @@ config HPM_UART15
 
 config HPM_I2C_MASTER
 	bool
+	select HPM_COMPONENTS_I2C
 	default n
 
 #####################################################################
@@ -361,7 +362,6 @@ config HPM_I2C0_DMA
 	bool "I2C0_DMA"
 	default n
 	select HPM_DMA
-	select HPM_COMPONENTS_I2C
 	select HPM_I2C_DMA
 
 config HPM_I2C0_DMA_BUFFER
@@ -436,7 +436,6 @@ config HPM_I2C1_DMA
 	bool "I2C1_DMA"
 	default n
 	select HPM_DMA
-	select HPM_COMPONENTS_I2C
 	select HPM_I2C_DMA
 
 config HPM_I2C1_DMA_BUFFER
@@ -511,7 +510,6 @@ config HPM_I2C2_DMA
 	bool "I2C2_DMA"
 	default n
 	select HPM_DMA
-	select HPM_COMPONENTS_I2C
 	select HPM_I2C_DMA
 
 config HPM_I2C2_DMA_BUFFER
@@ -586,7 +584,6 @@ config HPM_I2C3_DMA
 	bool "I2C3_DMA"
 	default n
 	select HPM_DMA
-	select HPM_COMPONENTS_I2C
 	select HPM_I2C_DMA
 
 config HPM_I2C3_DMA_BUFFER

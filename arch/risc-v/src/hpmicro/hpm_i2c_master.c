@@ -48,9 +48,9 @@
 #include "hpm_i2c_regs.h"
 #include "hpm_clock_drv.h"
 
+# include "hpm_i2c.h"
 #ifdef CONFIG_HPM_I2C_DMA
 # include "hpm_dma.h"
-# include "hpm_i2c.h"
 #endif
 
 #ifdef CONFIG_HPM_I2C_MASTER
@@ -59,7 +59,7 @@
  * Pre-processor Definitions
  ****************************************************************************/
 
-#define HPM_I2C_DRV_RETRY_COUNT  (5000)
+#define HPM_I2C_DRV_RETRY_COUNT  (1000)
 #define I2C_FIFO_MAX_SIZE     (4)
 
 /****************************************************************************
@@ -70,23 +70,20 @@ struct hpm_i2cdev_s
 {
   struct i2c_master_s dev;        /* Generic I2C device */
   I2C_Type            *base;       /* Base address of registers */
-  clock_name_t        i2c_clock;  /* i2c clock */
-  i2c_config_t        i2c_config; /* i2c config */
   uint16_t            irqid;      /* IRQ for this device */
   int8_t              port;       /* Port number */
-  uint32_t            base_freq;  /* branch frequency */
 
   bool                initialized;  /* Has SPI interface been initialized */
   sem_t               mutex;      /* Only one thread can access at a time */
   sem_t               wait;       /* Place to wait for transfer completion */
-  uint32_t            frequency;  /* Current I2C frequency */
 
   struct i2c_msg_s    *msgs;
-#ifdef CONFIG_HPM_I2C_DMA
   hpm_i2c_context_t  *i2c_context;
+#ifdef CONFIG_HPM_I2C_DMA
   dma_resource_t     *dma_source;   /* DMA channel RX resource */
   uint8_t             *txrxbuf;    /* The TX DMA buffer */
   size_t              buflen;      /* The DMA buffer length */
+  bool                dma_enable;
 #endif
   int                 rx_data_count;
   int                 tx_data_count;
@@ -102,13 +99,14 @@ struct hpm_i2cdev_s
 
 #ifdef CONFIG_HPM_I2C0_MASTER
 
-#ifdef CONFIG_HPM_I2C0_DMA
 hpm_i2c_context_t g_i2c0_context =
 {
   .base = HPM_I2C0,
+  .init_config.communication_mode = i2c_master,
   .addr_endianness = i2c_master_addr_little_endian,
 };
 
+#ifdef CONFIG_HPM_I2C0_DMA
 ATTR_PLACE_AT_NONCACHEABLE uint8_t g_i2c0_buffer[CONFIG_HPM_I2C0_DMA_BUFFER];
 #endif
 
@@ -116,14 +114,11 @@ static struct hpm_i2cdev_s g_i2c0dev =
 {
   .port                           = 0,
   .base                           = HPM_I2C0,
-  .i2c_clock                      = clock_i2c0,
-  .frequency                      = 100000,
-  .i2c_config.i2c_mode            = CONFIG_HPM_I2C0_MASTER_MODE,
-  .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C0_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C0,
   .initialized                    = false,
-#ifdef CONFIG_HPM_I2C0_DMA
   .i2c_context                    = &g_i2c0_context,
+#ifdef CONFIG_HPM_I2C0_DMA
+  .dma_enable                     = true,
   .txrxbuf                        = g_i2c0_buffer,
   .buflen                         = CONFIG_HPM_I2C0_DMA_BUFFER,
 #endif
@@ -141,13 +136,14 @@ static struct hpm_i2cdev_s g_i2c0dev =
 
 #ifdef CONFIG_HPM_I2C1_MASTER
 
-#ifdef CONFIG_HPM_I2C1_DMA
 hpm_i2c_context_t g_i2c1_context =
 {
   .base = HPM_I2C1,
+  .init_config.communication_mode = i2c_master,
   .addr_endianness = i2c_master_addr_little_endian,
 };
 
+#ifdef CONFIG_HPM_I2C1_DMA
 ATTR_PLACE_AT_NONCACHEABLE uint8_t g_i2c1_buffer[CONFIG_HPM_I2C1_DMA_BUFFER];
 #endif
 
@@ -155,13 +151,11 @@ static struct hpm_i2cdev_s g_i2c1dev =
 {
   .port                           = 1,
   .base                           = HPM_I2C1,
-  .i2c_clock                      = clock_i2c1,
-  .i2c_config.i2c_mode            = CONFIG_HPM_I2C1_MASTER_MODE,
-  .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C1_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C1,
   .initialized                    = false,
-#ifdef CONFIG_HPM_I2C1_DMA
   .i2c_context                    = &g_i2c1_context,
+#ifdef CONFIG_HPM_I2C1_DMA
+  .dma_enable                     = true,
   .txrxbuf                        = g_i2c1_buffer,
   .buflen                         = CONFIG_HPM_I2C1_DMA_BUFFER,
 #endif
@@ -178,13 +172,14 @@ static struct hpm_i2cdev_s g_i2c1dev =
 
 #ifdef CONFIG_HPM_I2C2_MASTER
 
-#ifdef CONFIG_HPM_I2C2_DMA
 hpm_i2c_context_t g_i2c2_context =
 {
   .base = HPM_I2C2,
+  .init_config.communication_mode = i2c_master,
   .addr_endianness = i2c_master_addr_little_endian,
 };
 
+#ifdef CONFIG_HPM_I2C2_DMA
 ATTR_PLACE_AT_NONCACHEABLE uint8_t g_i2c2_buffer[CONFIG_HPM_I2C2_DMA_BUFFER];
 #endif
 
@@ -192,13 +187,11 @@ static struct hpm_i2cdev_s g_i2c2dev =
 {
   .port                           = 2,
   .base                           = HPM_I2C2,
-  .i2c_clock                      = clock_i2c2,
-  .i2c_config.i2c_mode            = CONFIG_HPM_I2C2_MASTER_MODE,
-  .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C2_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C2,
   .initialized                    = false,
-#ifdef CONFIG_HPM_I2C2_DMA
   .i2c_context                    = &g_i2c2_context,
+#ifdef CONFIG_HPM_I2C2_DMA
+  .dma_enable                     = true,
   .txrxbuf                        = g_i2c2_buffer,
   .buflen                         = CONFIG_HPM_I2C2_DMA_BUFFER,
 #endif
@@ -215,13 +208,14 @@ static struct hpm_i2cdev_s g_i2c2dev =
 
 #ifdef CONFIG_HPM_I2C3_MASTER
 
-#ifdef CONFIG_HPM_I2C3_DMA
 hpm_i2c_context_t g_i2c3_context =
 {
   .base = HPM_I2C3,
+  .init_config.communication_mode = i2c_master,
   .addr_endianness = i2c_master_addr_little_endian,
 };
 
+#ifdef CONFIG_HPM_I2C3_DMA
 ATTR_PLACE_AT_NONCACHEABLE uint8_t g_i2c3_buffer[CONFIG_HPM_I2C3_DMA_BUFFER];
 #endif
 
@@ -229,13 +223,11 @@ static struct hpm_i2cdev_s g_i2c3dev =
 {
   .port                           = 3,
   .base                           = HPM_I2C3,
-  .i2c_clock                      = clock_i2c3,
-  .i2c_config.i2c_mode            = CONFIG_HPM_I2C3_MASTER_MODE,
-  .i2c_config.is_10bit_addressing = CONFIG_HPM_I2C3_MASTER_10BIT_ADDR,
   .irqid                          = HPM_IRQn_I2C3,
   .initialized                    = false,
-#ifdef CONFIG_HPM_I2C3_DMA
   .i2c_context                    = &g_i2c3_context,
+#ifdef CONFIG_HPM_I2C3_DMA
+  .dma_enable                     = true,
   .txrxbuf                        = g_i2c3_buffer,
   .buflen                         = CONFIG_HPM_I2C3_DMA_BUFFER,
 #endif
@@ -256,9 +248,9 @@ static struct hpm_i2cdev_s g_i2c3dev =
 
 static int  hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_mode);
 #ifndef CONFIG_HPM_I2C_DMA
-static void hpm_i2c_txinit(struct hpm_i2cdev_s *priv, bool enable);
-static void hpm_i2c_rxinit(struct hpm_i2cdev_s *priv, bool enable);
-static int  hpm_i2c_interrupt(int irq, void *context, void *arg);
+// static void hpm_i2c_txinit(struct hpm_i2cdev_s *priv, bool enable);
+// static void hpm_i2c_rxinit(struct hpm_i2cdev_s *priv, bool enable);
+// static int  hpm_i2c_interrupt(int irq, void *context, void *arg);
 #endif
 static int  hpm_i2c_transfer(struct i2c_master_s *dev,
                                 struct i2c_msg_s *msgs, int count);
@@ -310,7 +302,7 @@ static void hpm_i2c_dma_tc_callback(DMA_Type *ptr,
 }
 
 #else
-
+#if 0
 /****************************************************************************
  * Name: hpm_i2c_txinit
  *
@@ -421,7 +413,7 @@ static int hpm_i2c_interrupt(int irq, void *context, void *arg)
     }
     return 0;
 }
-
+#endif
 #endif
 
 /****************************************************************************
@@ -436,40 +428,29 @@ static int hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_
 {
   DEBUGASSERT(priv != NULL);
 
-  uint32_t tmp_freq = 0;
-  uint32_t base_freq;
   hpm_stat_t stat;
 
   if (i2c_freq <= 100000)
     {
-      tmp_freq = 100000;
-      priv->i2c_config.i2c_mode = i2c_mode_normal;
+      priv->i2c_context->init_config.speed = i2c_speed_100khz;
     }
   else if ((i2c_freq > 100000) && (i2c_freq <= 400000))
     {
-      tmp_freq = 400000;
-      priv->i2c_config.i2c_mode = i2c_mode_fast;
+      priv->i2c_context->init_config.speed = i2c_speed_400khz;
     }
   else
     {
-      tmp_freq = 1000000;
-      priv->i2c_config.i2c_mode = i2c_mode_fast_plus;
+      priv->i2c_context->init_config.speed = i2c_speed_1Mhz;
     }
 
-  base_freq = board_init_i2c_clock(priv->base);
-  if (priv->frequency != tmp_freq)
+  if (addr_mode)
     {
-      priv->frequency = tmp_freq;
-      priv->base_freq = base_freq;
-      priv->i2c_config.is_10bit_addressing = addr_mode;
-      stat = i2c_init_master(priv->base, priv->base_freq, &priv->i2c_config);
-      if (stat != status_success)
-        {
-          return -1;
-        }
+      priv->i2c_context->init_config.is_10bit_addressing = true;
     }
 
-  return OK;
+  stat = hpm_i2c_initialize(priv->i2c_context);
+
+  return stat == 0 ? OK : -1;
 }
 
 #ifdef CONFIG_HPM_I2C_DMA
@@ -639,7 +620,6 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
 {
   struct hpm_i2cdev_s *priv = (struct hpm_i2cdev_s *)dev;
   int ret = 0;
-  int semval = 0;
   hpm_stat_t sta;
   bool is_ten_addr = false;
 
@@ -648,13 +628,6 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
   /* Get exclusive access to the I2C bus */
 
   i2c_takesem(&priv->mutex);
-
-    /* Check wait semaphore value. If the value is not 0, the transfer can not
-   * be performed normally.
-   */
-
-  ret = nxsem_get_value(&priv->wait, &semval);
-  DEBUGASSERT(ret == OK && semval == 0);
 
   if (msgs[0].flags & I2C_M_TEN)
     {
@@ -667,11 +640,11 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
     {
       if (msgs[0].flags & I2C_M_READ)
         {
-          sta = i2c_master_read(priv->base, msgs[0].addr, msgs[0].buffer, msgs[0].length);
+          sta = hpm_i2c_master_read_blocking(priv->i2c_context, msgs[0].addr, msgs[0].buffer, msgs[0].length, HPM_I2C_DRV_RETRY_COUNT);
         }
       else
         {
-          sta = i2c_master_write(priv->base, msgs[0].addr, msgs[0].buffer, msgs[0].length);
+          sta = hpm_i2c_master_write_blocking(priv->i2c_context, msgs[0].addr, msgs[0].buffer, msgs[0].length, HPM_I2C_DRV_RETRY_COUNT);
         }
     }
   else if(count == 2)
@@ -680,14 +653,24 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
         {
           if (msgs[0].length <= 2)
             {
-              sta = i2c_master_address_read(priv->base, msgs[0].addr, msgs[0].buffer, msgs[0].length, msgs[1].buffer, msgs[1].length);
+              uint32_t addr = 0;
+              if(msgs[0].length == 1)
+              {
+                addr = msgs[0].buffer[0];
+              }
+              else if(msgs[0].length == 2)
+              {
+                addr = msgs[0].buffer[0] | (msgs[0].buffer[1] << 8);
+              }
+
+              sta = hpm_i2c_master_addr_read_blocking(priv->i2c_context, msgs[0].addr, addr, msgs[0].length, msgs[1].buffer, msgs[1].length, 5000);
             }
           else
             {
-              sta = i2c_master_write(priv->base, msgs[0].addr, msgs[0].buffer, msgs[0].length);
+              sta = hpm_i2c_master_write_blocking(priv->i2c_context, msgs[0].addr, msgs[0].buffer, msgs[0].length, HPM_I2C_DRV_RETRY_COUNT);
               if(sta == status_success)
               {
-                sta = i2c_master_read(priv->base, msgs[1].addr, msgs[1].buffer, msgs[1].length);
+                sta = hpm_i2c_master_read_blocking(priv->i2c_context, msgs[1].addr, msgs[1].buffer, msgs[1].length, HPM_I2C_DRV_RETRY_COUNT);
               }
             }
         }
@@ -695,14 +678,24 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
         {
           if (msgs[0].length <= 2)
             {
-              sta = i2c_master_address_write(priv->base, msgs[0].addr, msgs[0].buffer, msgs[0].length, msgs[1].buffer, msgs[1].length);
+              uint32_t addr = 0;
+              if(msgs[0].length == 1)
+              {
+                addr = msgs[0].buffer[0];
+              }
+              else if(msgs[0].length == 2)
+              {
+                addr = msgs[0].buffer[0] | (msgs[0].buffer[1] << 8);
+              }
+
+              sta = hpm_i2c_master_addr_write_blocking(priv->i2c_context, msgs[0].addr, addr, msgs[0].length, msgs[1].buffer, msgs[1].length, HPM_I2C_DRV_RETRY_COUNT);
             }
           else
             {
-              sta = i2c_master_write(priv->base, msgs[0].addr, msgs[0].buffer, msgs[0].length);
+              sta = hpm_i2c_master_write_blocking(priv->i2c_context, msgs[0].addr, msgs[0].buffer, msgs[0].length, HPM_I2C_DRV_RETRY_COUNT);
               if(sta == status_success)
               {
-                sta = i2c_master_write(priv->base, msgs[1].addr, msgs[1].buffer, msgs[1].length);
+                sta = hpm_i2c_master_write_blocking(priv->i2c_context, msgs[1].addr, msgs[1].buffer, msgs[1].length, HPM_I2C_DRV_RETRY_COUNT);
               }
             }
         }
@@ -759,12 +752,6 @@ static int hpm_i2c_reset(struct hpm_i2cdev_s *dev)
   /* Lock out other clients */
 
   i2c_takesem(&priv->mutex);
-
-  priv->frequency                      = 100000;
-  priv->i2c_config.i2c_mode            = CONFIG_HPM_I2C0_MASTER_MODE,
-  priv->i2c_config.is_10bit_addressing = CONFIG_HPM_I2C0_MASTER_10BIT_ADDR,
-  priv->base_freq = clock_get_frequency(priv.i2c_clock);
-  stat = i2c_init_master(priv->base, priv->base_freq, &priv->i2c_config);
 
   i2c_givesem(&priv->mutex);
   return ret;
@@ -834,14 +821,15 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
           leave_critical_section(flags);
           return NULL;
         }
-      hpm_i2c_init(priv, priv->frequency, false);
+
+      board_init_i2c_clock(priv->base);
 
       nxsem_init(&priv->mutex, 0, 1);
       nxsem_init(&priv->wait, 0, 0);
       nxsem_set_protocol(&priv->wait, SEM_PRIO_NONE);
 
     #ifdef CONFIG_HPM_I2C_DMA
-      if(priv->dma_source == NULL && priv->i2c_context)
+      if(priv->dma_source == NULL && priv->dma_enable)
       {
         hpm_i2c_dma_mgr_install_callback(priv->i2c_context, NULL);
         priv->dma_source = hpm_i2c_get_dma_mgr_resource(priv->i2c_context);
@@ -850,11 +838,11 @@ struct i2c_master_s *hpm_i2cbus_initialize(int port)
     #else
       /* Attach Interrupt Handler */
 
-      irq_attach(priv->irqid, hpm_i2c_interrupt, priv);
+      //irq_attach(priv->irqid, hpm_i2c_interrupt, priv);
 
       /* Enable Interrupt Handler */
 
-      up_enable_irq(priv->irqid);
+      //up_enable_irq(priv->irqid);
     #endif
       priv->initialized = true;
     }
