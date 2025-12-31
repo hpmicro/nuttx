@@ -1311,6 +1311,7 @@ static int hpm_ioctl(struct file *filep, int cmd, unsigned long arg)
   struct uart_dev_s *dev   = inode->i_private;
 #endif
   int ret = OK;
+  uint32_t ier;
 
   switch (cmd)
     {
@@ -1444,7 +1445,9 @@ static int hpm_ioctl(struct file *filep, int cmd, unsigned long arg)
               /* effect the changes immediately - note that we do not
                * implement TCSADRAIN / TCSAFLUSH
                */
+              ier = ((UART_Type *)priv->base)->IER;
               uart_init((UART_Type *)priv->base, &priv->config);
+              ((UART_Type *)priv->base)->IER = ier;
             }
         }
       while (0);
