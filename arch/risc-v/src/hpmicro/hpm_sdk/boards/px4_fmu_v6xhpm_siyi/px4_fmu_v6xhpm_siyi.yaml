@@ -1,0 +1,36 @@
+# Copyright (c) 2021-2024 HPMicro
+# SPDX-License-Identifier: BSD-3-Clause
+
+board:
+    soc: HPM6750
+    device: HPM6754xVMx
+    openocd-soc: hpm6750-single-core
+    openocd-probe: cmsis-dap
+    on-board-ram:
+      type: sdram
+      size: 0M
+      width: 16bit
+    on-board-flash:
+      type: qspi-nor-flash
+      size: 4M
+    feature:
+      - board_audio_in # PDM
+      - board_audio_out # DAO
+      - board_audio_in_vad # VAD
+      - board_uart_software_rx_idle_pin
+      - board_gpt_pin
+      - board_motor_control
+      - board_gpio_led
+      - board_gpio_key
+      - board_pwm_rgb_led
+      - board_puart_pin
+      - board_enet_pps_output_pin
+      - board_enet_pps_input_pin
+      - board_sdcard
+      - board_sdram
+      - board_i2s_pin
+      - board_power_button
+      - board_clk_ref_pin
+    excluded_samples:
+      - samples/motor_ctrl/bldc_hfi
+      - samples/trace_recorder/rtthread-nano
