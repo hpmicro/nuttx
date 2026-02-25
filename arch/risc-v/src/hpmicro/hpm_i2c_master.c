@@ -450,7 +450,7 @@ static int hpm_i2c_init(struct hpm_i2cdev_s *priv, uint32_t i2c_freq, bool addr_
 
   stat = hpm_i2c_initialize(priv->i2c_context);
 
-  return stat == 0 ? OK : -1;
+  return (stat == status_success) ? OK : -1;
 }
 
 #ifdef CONFIG_HPM_I2C_DMA
@@ -495,7 +495,12 @@ static int hpm_i2c_transfer_dma(struct i2c_master_s *dev,
       is_ten_addr = true;
     }
 
-  hpm_i2c_init(priv, msgs[0].frequency, is_ten_addr);
+  ret = hpm_i2c_init(priv, msgs[0].frequency, is_ten_addr);
+  if (ret == -1)
+    {
+      i2cerr("I2C init failure");
+      return -1;
+    }
 
   if (count == 1)
     {
@@ -634,7 +639,12 @@ static int hpm_i2c_transfer_nodma(struct i2c_master_s *dev,
       is_ten_addr = true;
     }
 
-  hpm_i2c_init(priv, msgs[0].frequency, is_ten_addr);
+  ret = hpm_i2c_init(priv, msgs[0].frequency, is_ten_addr);
+  if (ret == -1)
+    {
+      i2cerr("I2C init failure");
+      return -1;
+    }
 
   if (count == 1)
     {

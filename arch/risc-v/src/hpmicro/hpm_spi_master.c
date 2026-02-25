@@ -829,6 +829,7 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
   struct hpm_spidev_s *priv = (struct hpm_spidev_s *)dev;
   uint32_t actual  = 0;
   spi_timing_config_t timing_config = {0};
+  hpm_stat_t status;
 
   /* Limit to max possible (if STM32_SPI_CLK_MAX is defined in board.h) */
 
@@ -845,8 +846,20 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
       spi_master_get_default_timing_config(&timing_config);
       timing_config.master_config.clk_src_freq_in_hz = clock_get_frequency(priv->spiclock);
       timing_config.master_config.sclk_freq_in_hz = frequency;
-      spi_master_timing_init((SPI_Type *)priv->spibase, &timing_config);
-      actual = (timing_config.master_config.clk_src_freq_in_hz >> 1) / (SPI_TIMING_SCLK_DIV_GET(priv->spibase->TIMING) + 1);
+      status = spi_master_timing_init((SPI_Type *)priv->spibase, &timing_config);
+      if (status != status_success)
+        {
+          i2cerr("Error: Failed to set SPI timing\n");
+          return 0;
+        }
+      if (SPI_TIMING_SCLK_DIV_GET(priv->spibase->TIMING) == 0xFF)
+        {
+          actual = timing_config.master_config.clk_src_freq_in_hz;
+        }
+      else
+        {
+          actual = (timing_config.master_config.clk_src_freq_in_hz >> 1) / (SPI_TIMING_SCLK_DIV_GET(priv->spibase->TIMING) + 1);
+        }
       spiinfo("Frequency %" PRId32 "->%" PRId32 "\n", frequency, actual);
       priv->frequency = frequency;
       priv->actual    = actual;
