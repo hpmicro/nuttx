@@ -176,6 +176,7 @@ uint32_t board_init_spi_clock(SPI_Type *ptr)
         clock_add_to_group(clock_spi1, 0);
         return clock_get_frequency(clock_spi1);
     } else if (ptr == HPM_SPI2) {
+        clock_set_source_divider(clock_spi2, clk_src_osc24m, 1);
         clock_add_to_group(clock_spi2, 0);
         return clock_get_frequency(clock_spi2);
     } else if (ptr == HPM_SPI3) {
