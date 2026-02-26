@@ -81,7 +81,7 @@
  * Pre-processor Definitions
  ****************************************************************************/
 #if defined(SPI_SOC_TRANSFER_COUNT_MAX) && (SPI_SOC_TRANSFER_COUNT_MAX == 512)
-#define  HPM_MAX_SPI_DMA_COUNT  1
+#define  HPM_MAX_SPI_DMA_COUNT  2
 #define  HPM_SPI_DMA_MAX_TRANS_SIZE (HPM_MAX_SPI_DMA_COUNT * SPI_SOC_TRANSFER_COUNT_MAX)
 #else
 #define  HPM_MAX_SPI_DMA_COUNT  1
