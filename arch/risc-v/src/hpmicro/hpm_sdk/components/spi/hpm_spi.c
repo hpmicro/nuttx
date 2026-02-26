@@ -193,6 +193,7 @@ static hpm_stat_t hpm_spi_rx_trigger_dma(DMA_Type *dma_ptr, uint8_t ch_num, SPI_
 {
     dma_handshake_config_t config;
 
+    spi_disable_rx_dma(spi_ptr);
     dma_default_handshake_config(dma_ptr, &config);
     config.ch_index = ch_num;
     config.dst = dst;
