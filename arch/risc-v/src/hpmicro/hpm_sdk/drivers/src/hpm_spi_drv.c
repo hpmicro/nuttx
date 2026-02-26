@@ -505,16 +505,6 @@ hpm_stat_t spi_setup_dma_transfer(SPI_Type *ptr,
         return stat;
     }
 
-    if (config->common_config.tx_dma_enable) {
-#if defined(HPM_IP_FEATURE_SPI_DMA_TX_REQ_AFTER_CMD_FO_MASTER) && (HPM_IP_FEATURE_SPI_DMA_TX_REQ_AFTER_CMD_FO_MASTER == 1)
-        ptr->CTRL |= SPI_CTRL_CMD_OP_MASK;
-#endif
-        ptr->CTRL |= SPI_CTRL_TXDMAEN_MASK;
-    }
-    if (config->common_config.rx_dma_enable) {
-        ptr->CTRL |= SPI_CTRL_RXDMAEN_MASK;
-    }
-
     /* address phase */
     stat = spi_write_address(ptr, mode, config, addr);
     if (stat != status_success) {
@@ -525,6 +515,16 @@ hpm_stat_t spi_setup_dma_transfer(SPI_Type *ptr,
     stat = spi_write_command(ptr, mode, config, cmd);
     if (stat != status_success) {
         return stat;
+    }
+
+    if (config->common_config.tx_dma_enable) {
+#if defined(HPM_IP_FEATURE_SPI_DMA_TX_REQ_AFTER_CMD_FO_MASTER) && (HPM_IP_FEATURE_SPI_DMA_TX_REQ_AFTER_CMD_FO_MASTER == 1)
+        ptr->CTRL |= SPI_CTRL_CMD_OP_MASK;
+#endif
+        ptr->CTRL |= SPI_CTRL_TXDMAEN_MASK;
+    }
+    if (config->common_config.rx_dma_enable) {
+        ptr->CTRL |= SPI_CTRL_RXDMAEN_MASK;
     }
 
     return stat;
