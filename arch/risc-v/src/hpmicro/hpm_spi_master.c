@@ -840,7 +840,7 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
 
   /* Has the frequency changed? */
 
-  if (frequency != priv->frequency)
+  if ((frequency != priv->frequency) && (frequency != 0))
     {
       /* set SPI sclk frequency for master */
       spi_master_get_default_timing_config(&timing_config);
@@ -849,7 +849,7 @@ static uint32_t spi_setfrequency(struct spi_dev_s *dev,
       status = spi_master_timing_init((SPI_Type *)priv->spibase, &timing_config);
       if (status != status_success)
         {
-          i2cerr("Error: Failed to set SPI timing\n");
+          spierr("Error: Failed to set SPI timing, clk_src_freq:%ld, sclk_freq: %ld\n", timing_config.master_config.clk_src_freq_in_hz, frequency);
           return 0;
         }
       if (SPI_TIMING_SCLK_DIV_GET(priv->spibase->TIMING) == 0xFF)
@@ -1299,15 +1299,16 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
         priv->spi_context->rx_buff          = (uint8_t *)&rx_buffer[inc_len * data_width];
         priv->spi_context->rx_count         = dummy_len;
 
-        priv->spi_context->dma_context.data_width = data_width - 1;
+        priv->spi_context->dma_context.data_width = (data_width >= 3) ? 2 : (data_width - 1);
 
         stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
         if (stat != status_success)
           {
+            spierr("ERROR: setup dma transfer failure: %d\n", (unsigned int)stat);
             return;
           }
-        spi_dmarxwait(priv);
         spi_dmatxwait(priv);
+        spi_dmarxwait(priv);
         stat = spi_wait_for_idle_status(priv->spibase);
         if (stat != status_success)
           {
