@@ -80,14 +80,6 @@
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
-#if defined(SPI_SOC_TRANSFER_COUNT_MAX) && (SPI_SOC_TRANSFER_COUNT_MAX == 512)
-#define  HPM_MAX_SPI_DMA_COUNT  2
-#define  HPM_SPI_DMA_MAX_TRANS_SIZE (HPM_MAX_SPI_DMA_COUNT * SPI_SOC_TRANSFER_COUNT_MAX)
-#else
-#define  HPM_MAX_SPI_DMA_COUNT  1
-#define  HPM_SPI_DMA_MAX_TRANS_SIZE 0xFFFFFFFF
-#endif
-
 #if defined (CONFIG_HPM_SPI_DRV) && defined (CONFIG_SPI_DRIVER)
 
 /* Configuration ************************************************************/
@@ -125,24 +117,52 @@
             CONFIG_HPM_SPI0_DMA_BUFFER > 0
 #    define SPI0_DMABUFSIZE_ADJUSTED SPIDMA_SIZE(CONFIG_HPM_SPI0_DMA_BUFFER)
 #    define SPI0_DMABUFSIZE_ALGN SPIDMA_BUF_ALIGN
+
+#    if defined(SPI_SOC_TRANSFER_COUNT_MAX) && (SPI_SOC_TRANSFER_COUNT_MAX == 512)
+#        define  HPM_MAX_SPI0_DMA_COUNT  ((SPI0_DMABUFSIZE_ADJUSTED + SPI_SOC_TRANSFER_COUNT_MAX - 1) / SPI_SOC_TRANSFER_COUNT_MAX)
+#    else
+#        define  HPM_MAX_SPI0_DMA_COUNT  1
+#    endif
+
 #  endif
 
 #  if defined(CONFIG_HPM_SPI1_DMA_BUFFER) && \
             CONFIG_HPM_SPI1_DMA_BUFFER > 0
 #    define SPI1_DMABUFSIZE_ADJUSTED SPIDMA_SIZE(CONFIG_HPM_SPI1_DMA_BUFFER)
 #    define SPI1_DMABUFSIZE_ALGN SPIDMA_BUF_ALIGN
+
+#    if defined(SPI_SOC_TRANSFER_COUNT_MAX) && (SPI_SOC_TRANSFER_COUNT_MAX == 512)
+#        define  HPM_MAX_SPI1_DMA_COUNT  ((SPI1_DMABUFSIZE_ADJUSTED + SPI_SOC_TRANSFER_COUNT_MAX - 1) / SPI_SOC_TRANSFER_COUNT_MAX)
+#    else
+#        define  HPM_MAX_SPI1_DMA_COUNT  1
+#    endif
+
 #  endif
 
 #  if defined(CONFIG_HPM_SPI2_DMA_BUFFER) && \
             CONFIG_HPM_SPI2_DMA_BUFFER > 0
 #    define SPI2_DMABUFSIZE_ADJUSTED SPIDMA_SIZE(CONFIG_HPM_SPI2_DMA_BUFFER)
 #    define SPI2_DMABUFSIZE_ALGN SPIDMA_BUF_ALIGN
+
+#    if defined(SPI_SOC_TRANSFER_COUNT_MAX) && (SPI_SOC_TRANSFER_COUNT_MAX == 512)
+#        define  HPM_MAX_SPI2_DMA_COUNT  ((SPI2_DMABUFSIZE_ADJUSTED + SPI_SOC_TRANSFER_COUNT_MAX - 1) / SPI_SOC_TRANSFER_COUNT_MAX)
+#    else
+#        define  HPM_MAX_SPI2_DMA_COUNT  1
+#    endif
+
 #  endif
 
 #  if defined(CONFIG_HPM_SPI3_DMA_BUFFER) && \
             CONFIG_HPM_SPI3_DMA_BUFFER > 0
 #    define SPI3_DMABUFSIZE_ADJUSTED SPIDMA_SIZE(CONFIG_HPM_SPI3_DMA_BUFFER)
 #    define SPI3_DMABUFSIZE_ALGN SPIDMA_BUF_ALIGN
+
+#    if defined(SPI_SOC_TRANSFER_COUNT_MAX) && (SPI_SOC_TRANSFER_COUNT_MAX == 512)
+#        define  HPM_MAX_SPI3_DMA_COUNT  ((SPI3_DMABUFSIZE_ADJUSTED + SPI_SOC_TRANSFER_COUNT_MAX - 1) / SPI_SOC_TRANSFER_COUNT_MAX)
+#    else
+#        define  HPM_MAX_SPI3_DMA_COUNT  1
+#    endif
+
 #  endif
 
 #endif
@@ -296,8 +316,8 @@ static const struct spi_ops_s g_spi0ops =
 
 #ifdef CONFIG_HPM_SPI0_DMA
 /* dma descriptors need align 8 bytes */
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi0_dma_linked_descriptor[HPM_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
-ATTR_PLACE_AT_NONCACHEABLE uint32_t spi0_transctrl[HPM_MAX_SPI_DMA_COUNT];
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi0_dma_linked_descriptor[HPM_MAX_SPI0_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
+ATTR_PLACE_AT_NONCACHEABLE uint32_t spi0_transctrl[HPM_MAX_SPI0_DMA_COUNT];
 spi_context_t spi0_context = {
     .ptr                   = HPM_SPI0,
     .write_cs              = NULL,
@@ -384,8 +404,8 @@ static const struct spi_ops_s g_sp1iops =
 
 #ifdef CONFIG_HPM_SPI1_DMA
 /* dma descriptors need align 8 bytes */
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi1_dma_linked_descriptor[HPM_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
-ATTR_PLACE_AT_NONCACHEABLE uint32_t spi1_transctrl[HPM_MAX_SPI_DMA_COUNT];
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi1_dma_linked_descriptor[HPM_MAX_SPI1_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
+ATTR_PLACE_AT_NONCACHEABLE uint32_t spi1_transctrl[HPM_MAX_SPI1_DMA_COUNT];
 spi_context_t spi1_context = {
     .ptr                   = HPM_SPI1,
     .write_cs              = NULL,
@@ -472,8 +492,8 @@ static const struct spi_ops_s g_sp2iops =
 
 #ifdef CONFIG_HPM_SPI2_DMA
 /* dma descriptors need align 8 bytes */
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi2_dma_linked_descriptor[HPM_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
-ATTR_PLACE_AT_NONCACHEABLE uint32_t spi2_transctrl[HPM_MAX_SPI_DMA_COUNT];
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi2_dma_linked_descriptor[HPM_MAX_SPI2_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
+ATTR_PLACE_AT_NONCACHEABLE uint32_t spi2_transctrl[HPM_MAX_SPI2_DMA_COUNT];
 spi_context_t spi2_context = {
     .ptr                   = HPM_SPI2,
     .write_cs              = NULL,
@@ -560,8 +580,8 @@ static const struct spi_ops_s g_sp3iops =
 
 #ifdef CONFIG_HPM_SPI3_DMA
 /* dma descriptors need align 8 bytes */
-ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi3_dma_linked_descriptor[HPM_MAX_SPI_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
-ATTR_PLACE_AT_NONCACHEABLE uint32_t spi3_transctrl[HPM_MAX_SPI_DMA_COUNT];
+ATTR_PLACE_AT_NONCACHEABLE_WITH_ALIGNMENT(8) dma_linked_descriptor_t spi3_dma_linked_descriptor[HPM_MAX_SPI3_DMA_COUNT * SPI_DMA_DESC_COUNT_PER_TRANS];
+ATTR_PLACE_AT_NONCACHEABLE uint32_t spi3_transctrl[HPM_MAX_SPI3_DMA_COUNT];
 spi_context_t spi3_context = {
     .ptr                   = HPM_SPI3,
     .write_cs              = NULL,
@@ -1184,146 +1204,152 @@ static void spi_exchange(struct spi_dev_s *dev, const void *txbuffer,
   size_t inc_len = 0;
   size_t dummy_len = 0;
   size_t nbytes = nwords * data_width;
-  void * orig_rxbuffer = rxbuffer;
-  uint8_t *tx_buffer;
-  uint8_t *rx_buffer;
+  const uint8_t *orig_txbuffer = (const uint8_t *)txbuffer;
+  uint8_t *orig_rxbuffer = (uint8_t *)rxbuffer;
+  bool use_txbuf = false;
+  bool use_rxbuf = false;
+  uint8_t *chunk_tx;
+  uint8_t *chunk_rx;
 
   if ((priv->dma_rxresource.base == NULL) || (priv->dma_txresource.base == NULL))
     {
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
       return;
     }
-  else
+
+  /* Determine if we need to use internal DMA buffers for alignment.
+   * We will perform per-chunk memcpy inside the while loop.
+   */
+  if (priv->txbuf && txbuffer)
     {
-
-    if (nbytes > priv->buflen)
-      {
-        /* Buffer is too big for internal DMA buffer so fall back. */
-
-        spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
-        return;
-      }
-
-    /* If this bus uses the driver's DMA aligned buffers (priv->txbuf != NULL)
-     * we will incur 2 copies. However the copy cost is much less the non
-     * DMA transfer time. So the only extent calculated is buffer
-     * plus the transfer size. The sizes can be less than a cache line size,
-     * and not aligned and are typically greater then 4 bytes, which is
-     * about the break even point for the DMA IO overhead.
-     */
-
-    if (priv->txbuf)
-      {
-        /* First copy: If provided, copy caller's buffer to the internal DMA
-         * txbuf
-         */
-
-        if (txbuffer)
-          {
-            if ((((uint32_t)txbuffer & SPIDMA_BUFFER_MASK) != 0) || ((nbytes & SPIDMA_BUFFER_MASK) != 0))
-              {
-                memcpy(priv->txbuf, txbuffer, nbytes);
-
-                /* Adjust pointers to internal DMA buffers */
-
-                txbuffer  = priv->txbuf;
-              }
-          }
-      }
-
-    /* orig_rxbuffer holds the callers return buffer */
-    if (priv->rxbuf)
-      {
-        if (rxbuffer)
-          {
-            if ((((uint32_t)rxbuffer & SPIDMA_BUFFER_MASK) != 0) || ((nbytes & SPIDMA_BUFFER_MASK) != 0))
-              {
-                /* Adjust pointers to internal DMA buffers */
-
-                rxbuffer  = priv->rxbuf;
-              }
-          }
-      }
-
-    tx_buffer = (uint8_t *)txbuffer;
-    rx_buffer = (uint8_t *)rxbuffer;
-
-    /* set SPI control config for master */
-    spi_master_get_default_control_config(&control_config);
-    control_config.master_config.cmd_enable     = false;
-    control_config.master_config.addr_enable    = false;
-    control_config.master_config.addr_phase_fmt = spi_address_phase_format_single_io_mode;
-    control_config.common_config.data_phase_fmt = spi_single_io_mode;
-    control_config.common_config.dummy_cnt      = spi_dummy_count_1;
-
-    while(len > 0)
-      {
-        dummy_len = (len > HPM_SPI_DMA_MAX_TRANS_SIZE) ? HPM_SPI_DMA_MAX_TRANS_SIZE : len;
-        if(!txbuffer)
-          {
-            control_config.common_config.trans_mode = spi_trans_read_only;
-            control_config.common_config.rx_dma_enable  = true;
-            priv->spi_context->tx_size                  = 0;
-            priv->spi_context->rx_size                  = dummy_len * data_width;   /* Unit: byte */
-            priv->config = SIMPLEX_RX;
-          }
-        else if(!rxbuffer)
-          {
-            control_config.common_config.trans_mode     = spi_trans_write_only;
-            control_config.common_config.tx_dma_enable  = true;
-            priv->spi_context->tx_size                  = dummy_len * data_width;   /* Unit: byte */
-            priv->spi_context->rx_size                  = 0;
-            priv->config = SIMPLEX_TX;
-          }
-        else if(txbuffer && rxbuffer)
-          {
-            control_config.common_config.trans_mode = spi_trans_write_read_together;
-            control_config.common_config.tx_dma_enable  = true;
-            control_config.common_config.rx_dma_enable  = true;
-            priv->spi_context->tx_size                  = dummy_len * data_width;   /* Unit: byte */
-            priv->spi_context->rx_size                  = dummy_len * data_width;   /* Unit: byte */
-            priv->config = FULL_DUPLEX;
-          }
-        else
-          {
-            return;
-          }
-
-        priv->spi_context->cmd              = cmd;
-        priv->spi_context->addr             = addr;
-        priv->spi_context->data_len_in_byte = data_width;
-
-        priv->spi_context->tx_buff          = (uint8_t *)&tx_buffer[inc_len * data_width];
-        priv->spi_context->tx_count         = dummy_len;
-
-        priv->spi_context->rx_buff          = (uint8_t *)&rx_buffer[inc_len * data_width];
-        priv->spi_context->rx_count         = dummy_len;
-
-        priv->spi_context->dma_context.data_width = (data_width >= 3) ? 2 : (data_width - 1);
-
-        stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
-        if (stat != status_success)
-          {
-            spierr("ERROR: setup dma transfer failure: %d\n", (unsigned int)stat);
-            return;
-          }
-        spi_dmatxwait(priv);
-        spi_dmarxwait(priv);
-        stat = spi_wait_for_idle_status(priv->spibase);
-        if (stat != status_success)
-          {
-            spierr("ERROR: wait idle failure: %d\n", (unsigned int)stat);
-          }
-        len      -= dummy_len;
-        inc_len  += dummy_len;
-      }
-
-      /* Second copy: Copy the DMA internal buffer to caller's buffer */
-
-      if (orig_rxbuffer && priv->rxbuf && (rxbuffer != orig_rxbuffer))
+      if ((((uintptr_t)txbuffer & SPIDMA_BUFFER_MASK) != 0) ||
+          ((nbytes & SPIDMA_BUFFER_MASK) != 0))
         {
-          memcpy(orig_rxbuffer, priv->rxbuf, nbytes);
+          use_txbuf = true;
         }
+    }
+
+  if (priv->rxbuf && rxbuffer)
+    {
+      if ((((uintptr_t)rxbuffer & SPIDMA_BUFFER_MASK) != 0) ||
+          ((nbytes & SPIDMA_BUFFER_MASK) != 0))
+        {
+          use_rxbuf = true;
+        }
+    }
+
+  /* set SPI control config for master */
+  spi_master_get_default_control_config(&control_config);
+  control_config.master_config.cmd_enable     = false;
+  control_config.master_config.addr_enable    = false;
+  control_config.master_config.addr_phase_fmt = spi_address_phase_format_single_io_mode;
+  control_config.common_config.data_phase_fmt = spi_single_io_mode;
+  control_config.common_config.dummy_cnt      = spi_dummy_count_1;
+
+  while(len > 0)
+    {
+      /* priv->buflen is in bytes, len is in words, so convert buflen to words */
+      dummy_len = (len > priv->buflen / data_width) ? (priv->buflen / data_width) : len;
+
+      /* Handle per-chunk memcpy for tx buffer if alignment is needed */
+      if (orig_txbuffer)
+        {
+          if (use_txbuf)
+            {
+              memcpy(priv->txbuf,
+                     &orig_txbuffer[inc_len * data_width],
+                     dummy_len * data_width);
+              chunk_tx = priv->txbuf;
+            }
+          else
+            {
+              chunk_tx = (uint8_t *)&orig_txbuffer[inc_len * data_width];
+            }
+        }
+      else
+        {
+          chunk_tx = NULL;
+        }
+
+      /* Handle per-chunk buffer for rx (will copy back after transfer) */
+      if (orig_rxbuffer)
+        {
+          if (use_rxbuf)
+            {
+              chunk_rx = priv->rxbuf;
+            }
+          else
+            {
+              chunk_rx = &orig_rxbuffer[inc_len * data_width];
+            }
+        }
+      else
+        {
+          chunk_rx = NULL;
+        }
+
+      if (!chunk_tx)
+        {
+          control_config.common_config.trans_mode = spi_trans_read_only;
+          control_config.common_config.rx_dma_enable  = true;
+          priv->spi_context->tx_size                  = 0;
+          priv->spi_context->rx_size                  = dummy_len * data_width;
+          priv->config = SIMPLEX_RX;
+        }
+      else if (!chunk_rx)
+        {
+          control_config.common_config.trans_mode     = spi_trans_write_only;
+          control_config.common_config.tx_dma_enable  = true;
+          priv->spi_context->tx_size                  = dummy_len * data_width;
+          priv->spi_context->rx_size                  = 0;
+          priv->config = SIMPLEX_TX;
+        }
+      else
+        {
+          control_config.common_config.trans_mode = spi_trans_write_read_together;
+          control_config.common_config.tx_dma_enable  = true;
+          control_config.common_config.rx_dma_enable  = true;
+          priv->spi_context->tx_size                  = dummy_len * data_width;
+          priv->spi_context->rx_size                  = dummy_len * data_width;
+          priv->config = FULL_DUPLEX;
+        }
+
+      priv->spi_context->cmd              = cmd;
+      priv->spi_context->addr             = addr;
+      priv->spi_context->data_len_in_byte = data_width;
+
+      priv->spi_context->tx_buff          = chunk_tx;
+      priv->spi_context->tx_count         = dummy_len;
+
+      priv->spi_context->rx_buff          = chunk_rx;
+      priv->spi_context->rx_count         = dummy_len;
+
+      priv->spi_context->dma_context.data_width = (data_width >= 3) ? 2 : (data_width - 1);
+
+      stat = hpm_spi_setup_dma_transfer(priv->spi_context, &control_config);
+      if (stat != status_success)
+        {
+          spierr("ERROR: setup dma transfer failure: %d\n", (unsigned int)stat);
+          return;
+        }
+      spi_dmatxwait(priv);
+      spi_dmarxwait(priv);
+      stat = spi_wait_for_idle_status(priv->spibase);
+      if (stat != status_success)
+        {
+          spierr("ERROR: wait idle failure: %d\n", (unsigned int)stat);
+        }
+
+      /* Copy received chunk out of DMA buffer if necessary */
+      if (use_rxbuf && orig_rxbuffer)
+        {
+          memcpy(&orig_rxbuffer[inc_len * data_width],
+                 priv->rxbuf,
+                 dummy_len * data_width);
+        }
+
+      len      -= dummy_len;
+      inc_len  += dummy_len;
     }
 #else
       spi_exchange_nodma(dev, txbuffer, rxbuffer, nwords);
