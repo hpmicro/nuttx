@@ -30,6 +30,7 @@
 #include <errno.h>
 
 #include <nuttx/irq.h>
+#include <nuttx/arch.h>
 
 #include "chip.h"
 #include "riscv_internal.h"
@@ -920,7 +921,7 @@ int hpm_gpio_setevent(uint32_t pinset, bool risingedge, bool fallingedge,
 
   hpm_config_gpio(pinset);
 
-	gpio_clear_pin_interrupt_flag(ptr, port, pin);// 清空中断标志
+  gpio_clear_pin_interrupt_flag(ptr, port, pin);// 清空中断标志
   if(func){
     if(cb[pin] == NULL){
       cb[pin] = (struct gpio_callback_s *)malloc(sizeof(struct gpio_callback_s));
@@ -934,28 +935,28 @@ int hpm_gpio_setevent(uint32_t pinset, bool risingedge, bool fallingedge,
     cb[pin]->port     = port;
     cb[pin]->pin      = pin;
 
-		irq_attach(irq, hpm_gpio_interrupt, (void*)cb);
-		up_enable_irq(irq);// 使能全局中断
-		gpio_enable_pin_interrupt(ptr, port, pin);// 使能引脚中断
+    irq_attach(irq, hpm_gpio_interrupt, (void*)cb);
+    up_enable_irq(irq);// 使能全局中断
+    gpio_enable_pin_interrupt(ptr, port, pin);// 使能引脚中断
 
   }else{
     if(cb[pin]!= NULL){
       free(cb[pin]);
       cb[pin] = NULL;
     }
-		gpio_disable_pin_interrupt(ptr, port, pin);//禁止引脚中断
+    gpio_disable_pin_interrupt(ptr, port, pin);//禁止引脚中断
 
-		bool disirq =true;
-		for (int i = 0; i < 32; i++){
-			if (cb[i] != NULL){
-				disirq = false;
-				break;
-			}
-		}
+    bool disirq =true;
+    for (int i = 0; i < 32; i++){
+      if (cb[i] != NULL){
+        disirq = false;
+        break;
+      }
+    }
 
-		if (disirq){
-			up_disable_irq(irq);// 禁止全局中断
-		}
+    if (disirq){
+      up_disable_irq(irq);// 禁止全局中断
+    }
   }
 
   leave_critical_section(flags);
@@ -1256,27 +1257,27 @@ int hpm_gpio_setevent(uint32_t pinset, bool risingedge, bool fallingedge,
 
   hpm_config_gpio(pinset);
 
-	gpio_clear_pin_interrupt_flag(ptr, port, pin);// 清空中断标志
+  gpio_clear_pin_interrupt_flag(ptr, port, pin);// 清空中断标志
   if(func){
-		irq_attach(irq, hpm_gpio_interrupt, (void*)cb);
-		up_enable_irq(irq);// 使能全局中断
-		gpio_enable_pin_interrupt(ptr, port, pin);// 使能引脚中断
+    irq_attach(irq, hpm_gpio_interrupt, (void*)cb);
+    up_enable_irq(irq);// 使能全局中断
+    gpio_enable_pin_interrupt(ptr, port, pin);// 使能引脚中断
 
   }else{
-		cb[pin].ptr = NULL;
-		gpio_disable_pin_interrupt(ptr, port, pin);//禁止引脚中断
+    cb[pin].ptr = NULL;
+    gpio_disable_pin_interrupt(ptr, port, pin);//禁止引脚中断
 
-		bool disirq =true;
-		for (int i = 0; i < 32; i++){
-			if (cb[i].callback != NULL){
-				disirq = false;
-				break;
-			}
-		}
+    bool disirq =true;
+    for (int i = 0; i < 32; i++){
+      if (cb[i].callback != NULL){
+        disirq = false;
+        break;
+      }
+    }
 
-		if (disirq){
-			up_disable_irq(irq);// 禁止全局中断
-		}
+    if (disirq){
+      up_disable_irq(irq);// 禁止全局中断
+    }
   }
 
   leave_critical_section(flags);
