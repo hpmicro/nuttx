@@ -28,9 +28,6 @@ SECTIONS
         KEEP(*(.isr_vector))
         KEEP(*(.isr_vector.*))
         KEEP(*(.vector_table))
-        KEEP(*(.isr_s_vector))
-        KEEP(*(.isr_s_vector.*))
-        KEEP(*(.vector_s_table))
         . = ALIGN(8);
     } > ILM
 

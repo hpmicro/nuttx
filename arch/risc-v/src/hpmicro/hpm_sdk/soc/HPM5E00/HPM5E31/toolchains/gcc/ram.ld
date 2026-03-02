@@ -12,7 +12,8 @@ MEMORY
 {
     ILM (wx) : ORIGIN = 0x00000000, LENGTH = 128K
     DLM (w) : ORIGIN = 0x00200000, LENGTH = 128K
-    AXI_SRAM (wx) : ORIGIN = 0x01200000, LENGTH = 256K
+    AXI_SRAM (wx) : ORIGIN = 0x01200000, LENGTH = 256K - _noncacheable_size
+    AXI_SRAM_NONCACHEABLE (wx) : ORIGIN = 0x01240000 - _noncacheable_size, LENGTH = _noncacheable_size
     AHB_SRAM (w) : ORIGIN = 0xF0200000, LENGTH = 32k
 }
 
@@ -194,7 +195,7 @@ SECTIONS
         KEEP(*(.noncacheable.init.*))
         . = ALIGN(8);
         __noncacheable_init_end__ = .;
-    } > DLM
+    } > AXI_SRAM_NONCACHEABLE
 
     __fast_ram_init_load_addr__ = __data_load_addr__ + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata) + SIZEOF(.noncacheable.init);
     .fast_ram.init : AT(__fast_ram_init_load_addr__) {
@@ -239,7 +240,7 @@ SECTIONS
         KEEP(*(.noncacheable.bss.*))
         . = ALIGN(8);
         __noncacheable_bss_end__ = .;
-    } > DLM
+    } > AXI_SRAM_NONCACHEABLE
 
     .ahb_sram (NOLOAD) : {
         KEEP(*(.ahb_sram))
@@ -275,6 +276,9 @@ SECTIONS
         PROVIDE (_stack = .);
         PROVIDE (_stack_safe = .);
     } > DLM
+
+    __noncacheable_start__ = ORIGIN(AXI_SRAM_NONCACHEABLE);
+    __noncacheable_end__ = ORIGIN(AXI_SRAM_NONCACHEABLE) + LENGTH(AXI_SRAM_NONCACHEABLE);
 
     __fw_size__ = SIZEOF(.start) + SIZEOF(.vectors) + SIZEOF(.rel) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata)
                 + SIZEOF(.noncacheable.init) + SIZEOF(.fast_ram.init) + SIZEOF(.eh_frame) + SIZEOF(.eh_frame_hdr) + SIZEOF(.init_section);

@@ -12,8 +12,8 @@ MEMORY
 {
     ILM (wx) : ORIGIN = 0x00000000, LENGTH = 256K
     DLM (w) : ORIGIN = 0x00080000, LENGTH = 256K
-    NONCACHEABLE_RAM (wx) : ORIGIN = 0x01140000, LENGTH = 64K    /* AXI SRAM1 */
-    AXI_SRAM (wx) : ORIGIN = 0x01150000, LENGTH = 176K
+    NONCACHEABLE_RAM (wx) : ORIGIN = 0x01140000, LENGTH = _noncacheable_size    /* AXI SRAM1 */
+    AXI_SRAM (wx) : ORIGIN = 0x01140000 + _noncacheable_size, LENGTH = 240K - _noncacheable_size
     SHARE_RAM (w) : ORIGIN = 0x0117C000, LENGTH = 16K
 }
 

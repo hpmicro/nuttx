@@ -13,10 +13,10 @@ MEMORY
     FLASH (rx) : ORIGIN = 0x80000000, LENGTH = _flash_size - 0x3000
     ILM (wx) : ORIGIN = 0x00000000, LENGTH = 256K
     DLM (w) : ORIGIN = 0x00080000, LENGTH = 256K
-    AXI_SRAM (wx) : ORIGIN = 0x01200000, LENGTH = 256K
-    AXI_SRAM_NONCACHEABLE (wx) : ORIGIN = 0x01240000, LENGTH = 256K
+    AXI_SRAM (wx) : ORIGIN = 0x01200000, LENGTH = 512K - _noncacheable_size
+    AXI_SRAM_NONCACHEABLE (wx) : ORIGIN = 0x01280000 - _noncacheable_size, LENGTH = _noncacheable_size
     AHB_SRAM (w) : ORIGIN = 0xF0400000, LENGTH = 32k
-    APB_SRAM (w): ORIGIN = 0xF4130000, LENGTH = 16k
+    APB_SRAM (w): ORIGIN = 0xF4130000, LENGTH = 8k
 }
 
 __nor_cfg_option_load_addr__ = ORIGIN(FLASH) + 0x400;

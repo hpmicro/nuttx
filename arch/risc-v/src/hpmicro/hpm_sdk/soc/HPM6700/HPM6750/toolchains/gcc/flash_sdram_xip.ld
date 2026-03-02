@@ -17,8 +17,8 @@ MEMORY
     SHARE_RAM (w) : ORIGIN = 0x0117C000, LENGTH = 16K
     AHB_SRAM (w) : ORIGIN = 0xF0300000, LENGTH = 32k
     APB_SRAM (w): ORIGIN = 0xF40F0000, LENGTH = 8k
-    SDRAM (wx) : ORIGIN = 0x40000000, LENGTH = (_extram_size - 4M)
-    NONCACHEABLE_RAM (wx) : ORIGIN = 0x40000000 + (_extram_size - 4M), LENGTH = 4M
+    SDRAM (wx) : ORIGIN = 0x40000000, LENGTH = (_extram_size - _noncacheable_size)
+    NONCACHEABLE_RAM (wx) : ORIGIN = 0x40000000 + (_extram_size - _noncacheable_size), LENGTH = _noncacheable_size
 }
 
 __nor_cfg_option_load_addr__ = ORIGIN(FLASH) + 0x400;

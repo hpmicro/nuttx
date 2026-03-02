@@ -39,7 +39,7 @@ typedef struct {
     __RW uint32_t PWMCFG[8];                   /* 0x200 - 0x21C: PWM channel configure register */
     __W  uint32_t SR;                          /* 0x220: Status register */
     __RW uint32_t IRQEN;                       /* 0x224: Interrupt request enable register */
-    __RW uint32_t CAP_EN_NEG;                  /* 0x228:  */
+    __RW uint32_t CAP_EN_NEG;                  /* 0x228: Capture irq mode */
     __RW uint32_t DMAEN;                       /* 0x22C: DMA request enable register */
     __RW uint32_t CMPCFG[24];                  /* 0x230 - 0x28C: Comparator configure register */
 } PWM_Type;
@@ -707,6 +707,8 @@ typedef struct {
 /*
  * CAP_EN_NEG (RW)
  *
+ * In capture mode, those bits setting for generate capture irq when capture falling edge.
+ * Default those bits is 0, generate capture irq when capture rising edge.
  */
 #define PWM_CAP_EN_NEG_CAP_EN_NEG_MASK (0xFFFFFFUL)
 #define PWM_CAP_EN_NEG_CAP_EN_NEG_SHIFT (0U)

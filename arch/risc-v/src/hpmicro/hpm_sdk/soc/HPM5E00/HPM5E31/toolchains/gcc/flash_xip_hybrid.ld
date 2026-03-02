@@ -252,7 +252,6 @@ SECTIONS
 
     .noncacheable (NOLOAD) : {
         . = ALIGN(8);
-        __noncacheable_start__ = .;
         KEEP(*(.noncacheable))  /* Legacy sections, kept for backwards compatibility */
         KEEP(*(.noncacheable.non_init))
         KEEP(*(.noncacheable.non_init.*))
@@ -262,7 +261,6 @@ SECTIONS
         KEEP(*(.noncacheable.bss.*))
         . = ALIGN(8);
         __noncacheable_bss_end__ = .;
-        __noncacheable_end__ = .;
     } > DLM
 
     .ahb_sram (NOLOAD) : {
@@ -299,6 +297,9 @@ SECTIONS
         PROVIDE (_stack = .);
         PROVIDE (_stack_safe = .);
     } > DLM
+
+    __noncacheable_start__ = ORIGIN(DLM);
+    __noncacheable_end__ = ORIGIN(DLM) + LENGTH(DLM);
 
     __fw_size__ = SIZEOF(.start) + SIZEOF(.vectors) + SIZEOF(.rel) + SIZEOF(.text) + SIZEOF(.data) + SIZEOF(.fast) + SIZEOF(.tdata)
                 + SIZEOF(.noncacheable.init) + SIZEOF(.fast_ram.init) + SIZEOF(.eh_frame) + SIZEOF(.eh_frame_hdr) + SIZEOF(.init_section);

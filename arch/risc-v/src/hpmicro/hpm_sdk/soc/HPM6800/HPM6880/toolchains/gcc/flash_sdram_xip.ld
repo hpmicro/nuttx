@@ -15,10 +15,10 @@ MEMORY
     DLM (w) : ORIGIN = 0x00080000, LENGTH = 256K
     AXI_SRAM (wx) : ORIGIN = 0x1200000, LENGTH = 512K
     SDRAM (wx) : ORIGIN = 0x40000000, LENGTH = (_extram_size - 64M)
-    SDRAM_NONCACHEABLE (wx) : ORIGIN = 0x40000000 + (_extram_size - 64M), LENGTH = 32M
+    SDRAM_NONCACHEABLE (wx) : ORIGIN = 0x40000000 + (_extram_size - 32M - _noncacheable_size), LENGTH = _noncacheable_size
     SDRAM_GPU (wx) : ORIGIN = 0x40000000 + (_extram_size - 32M), LENGTH = 32M
     AHB_SRAM (w) : ORIGIN = 0xF0400000, LENGTH = 32k
-    APB_SRAM (w): ORIGIN = 0xF4130000, LENGTH = 16k
+    APB_SRAM (w): ORIGIN = 0xF4130000, LENGTH = 8k
 }
 
 __nor_cfg_option_load_addr__ = ORIGIN(FLASH) + 0x400;

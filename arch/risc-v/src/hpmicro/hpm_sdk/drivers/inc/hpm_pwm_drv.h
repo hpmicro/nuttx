@@ -178,7 +178,7 @@ typedef struct pwm_config {
 #endif
     bool enable_output;                 /**< enable pwm output */
     bool invert_output;                 /**< invert pwm output level */
-    uint8_t update_trigger;             /**< pwm config update trigger */
+    uint8_t force_cmd_shadow_update_trigger;  /**< force command shadow register update trigger */
     uint8_t fault_mode;                 /**< fault mode */
     uint8_t fault_recovery_trigger;     /**< fault recoverty trigger */
     uint8_t force_source;               /**< fault source */
@@ -207,7 +207,7 @@ static inline void pwm_deinit(PWM_Type *pwm_x)
 {
     pwm_x->IRQEN = 0;
     pwm_x->DMAEN = 0;
-    pwm_x->SR |= pwm_x->SR;
+    pwm_x->SR = pwm_x->SR;
     pwm_x->STA = 0;
     pwm_x->RLD = PWM_RLD_RLD_MASK;
     for (uint8_t i = 0; i < PWM_SOC_CMP_MAX_COUNT; i++) {
@@ -344,7 +344,7 @@ static inline void pwm_set_hrpwm_reload(PWM_Type *pwm_x,
  */
 static inline void pwm_clear_status(PWM_Type *pwm_x, uint32_t mask)
 {
-    pwm_x->SR |= mask;
+    pwm_x->SR = mask;
 }
 
 #if defined(PWM_SOC_TIMER_RESET_SUPPORT) && PWM_SOC_TIMER_RESET_SUPPORT
@@ -415,25 +415,25 @@ static inline void pwm_enable_irq(PWM_Type *pwm_x, uint32_t mask)
 }
 
 /**
- * @brief set capture irq on fall edge
+ * @brief set capture irq on falling edge
  *
  * @param[in] pwm_x PWM base address, HPM_PWMx(x=0..n)
  * @param[in] mask :
- *  @arg       PWM_IRQ_CMP(x)(x=0...n): input capture flag interrupt on fall edge
+ *  @arg       PWM_IRQ_CMP(x)(x=0...n): input capture flag interrupt on falling edge
  */
-static inline void pwm_set_capture_irq_fall_edge(PWM_Type *pwm_x, uint32_t mask)
+static inline void pwm_set_capture_irq_falling_edge(PWM_Type *pwm_x, uint32_t mask)
 {
     pwm_x->CAP_EN_NEG |= mask;
 }
 
 /**
- * @brief set capture irq on rise edge
+ * @brief set capture irq on rising edge
  *
  * @param[in] pwm_x PWM base address, HPM_PWMx(x=0..n)
  * @param[in] mask :
- *  @arg       PWM_IRQ_CMP(x)(x=0...n): input capture flag interrupt on rise edge
+ *  @arg       PWM_IRQ_CMP(x)(x=0...n): input capture flag interrupt on rising edge
  */
-static inline void pwm_set_capture_irq_rise_edge(PWM_Type *pwm_x, uint32_t mask)
+static inline void pwm_set_capture_irq_rising_edge(PWM_Type *pwm_x, uint32_t mask)
 {
     pwm_x->CAP_EN_NEG &= ~mask;
 }
@@ -756,7 +756,7 @@ static inline void pwm_config_fault_source(PWM_Type *pwm_x, pwm_fault_source_con
                 | PWM_GCR_FAULTRECHWSEL_MASK))
         | config->source_mask
         | PWM_GCR_FAULTEXPOL_SET((config->fault_external_0_active_low ? 0x1 : 0) | (config->fault_external_1_active_low ? 0x2 : 0))
-        | PWM_GCR_FAULTRECEDG_SET(config->fault_recover_at_rising_edge)
+        | PWM_GCR_FAULTRECEDG_SET(config->fault_recover_at_rising_edge ? 0 : 1)
         | PWM_GCR_FAULTRECHWSEL_SET(config->fault_output_recovery_trigger);
 }
 
@@ -915,7 +915,7 @@ static inline void pwm_config_pwm(PWM_Type *pwm_x, uint8_t index,
                                   pwm_config_t *config, bool enable_pair_mode)
 {
     pwm_x->PWMCFG[index] = PWM_PWMCFG_OEN_SET(config->enable_output)
-        | PWM_PWMCFG_FRCSHDWUPT_SET(config->update_trigger)
+        | PWM_PWMCFG_FRCSHDWUPT_SET(config->force_cmd_shadow_update_trigger)
         | PWM_PWMCFG_FAULTMODE_SET(config->fault_mode)
         | PWM_PWMCFG_FAULTRECTIME_SET(config->fault_recovery_trigger)
         | PWM_PWMCFG_FRCSRCSEL_SET(config->force_source)
@@ -1139,6 +1139,19 @@ static inline void pwm_disable_hrpwm(PWM_Type *pwm_x)
 }
 
 /**
+ * @brief Start counter and enable high-precision pwm
+ * @note This function encapsulates the required sequence of starting the counter
+ *       before enabling HRPWM mode, ensuring correct operation
+ *
+ * @param[in] pwm_x @ref PWM_Type PWM base address
+ */
+static inline void pwm_start_hrpwm_counter(PWM_Type *pwm_x)
+{
+    pwm_start_counter(pwm_x);
+    pwm_enable_hrpwm(pwm_x);
+}
+
+/**
  * @brief Calibrate all channels of hrpwm
  *
  * @param[in] pwm_x @ref PWM_Type PWM base address
@@ -1156,7 +1169,7 @@ static inline void pwm_cal_hrpwm_start(PWM_Type *pwm_x)
  */
 static inline void pwm_cal_hrpwm_chn_start(PWM_Type *pwm_x, uint8_t chn)
 {
-    pwm_x->HRPWM_CFG |= PWM_HRPWM_CFG_CAL_START_SET(chn);
+    pwm_x->HRPWM_CFG |= PWM_HRPWM_CFG_CAL_START_SET((1 << chn));
 }
 
 /**

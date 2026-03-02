@@ -11,14 +11,14 @@
 /* #undef SDK_VERSION_CODE */
 #define SDK_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
 
-#define SDKVERSION          0x1100000
-#define SDK_VERSION_NUMBER  0x11000
+#define SDKVERSION          0x1110000
+#define SDK_VERSION_NUMBER  0x11100
 #define SDK_VERSION_MAJOR   1
-#define SDK_VERSION_MINOR   10
+#define SDK_VERSION_MINOR   11
 #define SDK_PATCHLEVEL      0
-#define SDK_VERSION_STRING  "1.10.0"
+#define SDK_VERSION_STRING  "1.11.0"
 
-#define BUILD_VERSION          v1.10.0
+#define BUILD_VERSION          v1.11.0
 
 
 #endif /* HPM_SDK_VERSION_H */

@@ -14,8 +14,8 @@ MEMORY
     ILM (wx) : ORIGIN = 0x00000000, LENGTH = 128K
     DLM (w) : ORIGIN = 0x00080000, LENGTH = 128K
     AXI_SRAM (wx) : ORIGIN = 0x1080000, LENGTH = 512K
-    SDRAM (wx) : ORIGIN = 0x40000000, LENGTH = (_extram_size - 4M)
-    SDRAM_NONCACHEABLE (wx) : ORIGIN = 0x40000000 + (_extram_size - 4M), LENGTH = 4M
+    SDRAM (wx) : ORIGIN = 0x40000000, LENGTH = (_extram_size - _noncacheable_size)
+    SDRAM_NONCACHEABLE (wx) : ORIGIN = 0x40000000 + (_extram_size - _noncacheable_size), LENGTH = _noncacheable_size
     AHB_SRAM (w) : ORIGIN = 0xF0300000, LENGTH = 32k
 }
 

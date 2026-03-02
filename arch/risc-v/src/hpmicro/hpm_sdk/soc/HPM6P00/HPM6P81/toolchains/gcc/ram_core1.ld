@@ -11,8 +11,8 @@ HEAP_SIZE = _heap_size;
 MEMORY
 {
     ILM (wx) : ORIGIN = 0x00040000, LENGTH = 128K
-    DLM (w) : ORIGIN = 0x00240000, LENGTH = 96K
-    NONCACHEABLE_RAM (wx) : ORIGIN = 0x00258000, LENGTH = 32K
+    DLM (w) : ORIGIN = 0x00240000, LENGTH = 128K - _noncacheable_size
+    NONCACHEABLE_RAM (wx) : ORIGIN = 0x00260000 - _noncacheable_size, LENGTH = _noncacheable_size
     SHARE_RAM (w) : ORIGIN = 0x0123C000, LENGTH = 16K
 }
 

@@ -264,7 +264,7 @@ hpm_stat_t dma_mgr_release_resource(const dma_resource_t *resource)
         uint32_t level = dma_mgr_enter_critical();
         dma_mgr_disable_channel(resource);
         dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(resource->base, resource->channel);
-        dmamux_config(HPM_DMAMUX, dmamux_ch, 0, 0);
+        dmamux_config(HPM_DMAMUX, dmamux_ch, 0, false);
         chn_ctx->is_allocated = false;
         chn_ctx->tc_cb_data_ptr = NULL;
         chn_ctx->half_tc_cb_data_ptr = NULL;

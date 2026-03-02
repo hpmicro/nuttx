@@ -74,6 +74,18 @@ config INCLUDE_BOOTHEADER
 	bool
 	default n
 
+config NONCACHEABLE_MEM_SIZE
+	int "Noncacheable memory size"
+	default 0X40000 if ARCH_CHIP_HPM6750_SDK && HPM_BUILD_TYPE_DEBUG
+	default 0X40000 if ARCH_CHIP_HPM6750_SDK && HPM_BUILD_TYPE_FLASH_XIP
+	default 0X400000 if ARCH_CHIP_HPM6750_SDK && HPM_BUILD_TYPE_FLASH_SDRAM_XIP
+	default 0X40000 if ARCH_CHIP_HPM6360_SDK && HPM_BUILD_TYPE_DEBUG
+	default 0X40000 if ARCH_CHIP_HPM6360_SDK && HPM_BUILD_TYPE_FLASH_XIP
+	default 0X400000 if ARCH_CHIP_HPM6360_SDK && HPM_BUILD_TYPE_FLASH_SDRAM_XIP
+	default 0X20000 if ARCH_CHIP_HPM6280_SDK && HPM_BUILD_TYPE_DEBUG
+	default 0X20000 if ARCH_CHIP_HPM6280_SDK && HPM_BUILD_TYPE_FLASH_XIP
+	default 0X8000
+
 #####################################################################
 #  HPM_SDK Peripheral support
 #####################################################################
