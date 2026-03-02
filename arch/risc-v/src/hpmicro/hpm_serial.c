@@ -44,7 +44,6 @@
 
 #include "riscv_internal.h"
 #include "hpm_config.h"
-#include "hpm_gpio.h"
 #include "chip.h"
 
 /****************************************************************************
@@ -102,14 +101,10 @@ struct hpm_uart_s
   uint32_t             irq_num;
   clock_name_t         clock_name;
   uart_config_t        config;
-  uint32_t             tx_pin;
-  uint32_t             rx_pin;
 #ifdef CONFIG_SERIAL_IFLOWCONTROL
-  uint32_t             rtspin;          /* RTS pin number */
   bool                 iflow;           /* Input flow control (RTS) enabled */
 #endif
 #ifdef CONFIG_SERIAL_OFLOWCONTROL
-  uint32_t              ctspin;          /* CTS pin number */
   bool                  oflow;           /* Output flow control (CTS) enabled */
 #endif
 };
@@ -185,14 +180,10 @@ static struct hpm_uart_s g_uart0priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART0_TX,
-  .rx_pin = GPIO_UART0_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART0_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART0_CTS,
   .oflow = true,
 #endif
 };
@@ -244,14 +235,10 @@ static struct hpm_uart_s g_uart1priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART1_TX,
-  .rx_pin = GPIO_UART1_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART1_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART1_CTS,
   .oflow = true,
 #endif
 };
@@ -303,14 +290,10 @@ static struct hpm_uart_s g_uart2priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART2_TX,
-  .rx_pin = GPIO_UART2_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART2_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART2_CTS,
   .oflow = true,
 #endif
 };
@@ -362,14 +345,10 @@ static struct hpm_uart_s g_uart3priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART3_TX,
-  .rx_pin = GPIO_UART3_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART3_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART3_CTS,
   .oflow = true,
 #endif
 };
@@ -421,14 +400,10 @@ static struct hpm_uart_s g_uart4priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART4_TX,
-  .rx_pin = GPIO_UART4_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART4_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART4_CTS,
   .oflow = true,
 #endif
 };
@@ -480,14 +455,10 @@ static struct hpm_uart_s g_uart5priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART5_TX,
-  .rx_pin = GPIO_UART5_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART5_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART5_CTS,
   .oflow = true,
 #endif
 };
@@ -539,14 +510,10 @@ static struct hpm_uart_s g_uart6priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART6_TX,
-  .rx_pin = GPIO_UART6_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART6_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART6_CTS,
   .oflow = true,
 #endif
 };
@@ -598,14 +565,10 @@ static struct hpm_uart_s g_uart7priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART7_TX,
-  .rx_pin = GPIO_UART7_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART7_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART7_CTS,
   .oflow = true,
 #endif
 };
@@ -657,14 +620,10 @@ static struct hpm_uart_s g_uart8priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART8_TX,
-  .rx_pin = GPIO_UART8_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART8_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART8_CTS,
   .oflow = true,
 #endif
 };
@@ -716,14 +675,10 @@ static struct hpm_uart_s g_uart9priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART9_TX,
-  .rx_pin = GPIO_UART9_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART9_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART9_CTS,
   .oflow = true,
 #endif
 };
@@ -775,14 +730,10 @@ static struct hpm_uart_s g_uart10priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART10_TX,
-  .rx_pin = GPIO_UART10_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART10_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART10_CTS,
   .oflow = true,
 #endif
 };
@@ -834,14 +785,10 @@ static struct hpm_uart_s g_uart11priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART11_TX,
-  .rx_pin = GPIO_UART11_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART11_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART11_CTS,
   .oflow = true,
 #endif
 };
@@ -893,14 +840,10 @@ static struct hpm_uart_s g_uart12priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART12_TX,
-  .rx_pin = GPIO_UART12_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART12_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART12_CTS,
   .oflow = true,
 #endif
 };
@@ -952,14 +895,10 @@ static struct hpm_uart_s g_uart13priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART13_TX,
-  .rx_pin = GPIO_UART13_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART13_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART13_CTS,
   .oflow = true,
 #endif
 };
@@ -1011,14 +950,10 @@ static struct hpm_uart_s g_uart14priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART14_TX,
-  .rx_pin = GPIO_UART14_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART14_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART14_CTS,
   .oflow = true,
 #endif
 };
@@ -1070,14 +1005,10 @@ static struct hpm_uart_s g_uart15priv =
           .set_rts_high = false,
         },
     },
-  .tx_pin = GPIO_UART15_TX,
-  .rx_pin = GPIO_UART15_RX,
 #ifdef CONFIG_UART0_IFLOWCONTROL
-  .rts_pin = GPIO_UART15_RTS,
   .iflow = true,
 #endif
 #ifdef CONFIG_UART0_OFLOWCONTROL
-  .cts_pin = GPIO_UART15_CTS,
   .oflow = true,
 #endif
 };
@@ -1208,20 +1139,7 @@ static int hpm_setup(struct uart_dev_s *dev)
 {
   struct hpm_uart_s *priv = (struct hpm_uart_s *)dev->priv;
 
-  hpm_config_gpio(priv->tx_pin);
-  hpm_config_gpio(priv->rx_pin);
-#ifdef CONFIG_SERIAL_IFLOWCONTROL
-  if (priv->iflow)
-    {
-      hpm_config_gpio(priv->rts_pin);
-    }
-#endif
-#ifdef CONFIG_SERIAL_OFLOWCONTROL
-  if (priv->oflow)
-    {
-      hpm_config_gpio(priv->cts_pin);
-    }
-#endif
+  init_uart_pins((UART_Type *)priv->base);
 
   priv->config.src_freq_in_hz = board_init_uart_clock((UART_Type *)priv->base);
 
@@ -1311,7 +1229,6 @@ static int hpm_ioctl(struct file *filep, int cmd, unsigned long arg)
   struct uart_dev_s *dev   = inode->i_private;
 #endif
   int ret = OK;
-  uint32_t ier;
 
   switch (cmd)
     {
@@ -1445,6 +1362,7 @@ static int hpm_ioctl(struct file *filep, int cmd, unsigned long arg)
               /* effect the changes immediately - note that we do not
                * implement TCSADRAIN / TCSAFLUSH
                */
+              uint32_t ier;
               ier = ((UART_Type *)priv->base)->IER;
               uart_init((UART_Type *)priv->base, &priv->config);
               ((UART_Type *)priv->base)->IER = ier;
