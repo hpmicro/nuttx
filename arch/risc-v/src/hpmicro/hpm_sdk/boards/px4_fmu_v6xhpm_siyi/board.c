@@ -18,7 +18,6 @@
 #include "hpm_sdxc_drv.h"
 #include "hpm_sdxc_soc_drv.h"
 #include "hpm_pllctl_drv.h"
-#include "hpm_pwm_drv.h"
 #include "hpm_pcfg_drv.h"
 #include "hpm_enet_drv.h"
 #include "hpm_sdk_version.h"

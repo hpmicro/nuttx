@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 void init_uart_pins(UART_Type *ptr);
-void init_pwm_pins(PWM_Type *ptr);
 void init_adc12_pins(void);
 void init_adc16_pins(void);
 void init_usb_pins(USB_Type *ptr);
