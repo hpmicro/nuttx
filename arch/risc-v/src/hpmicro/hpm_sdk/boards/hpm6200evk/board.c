@@ -247,15 +247,13 @@ void board_i2c_bus_clear(I2C_Type *ptr)
         }
 
         gpio_set_pin_output(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN);
-        while (1) {
-            for (uint32_t i = 0; i < 9; i++) {
-                gpio_write_pin(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN, 1);
-                board_delay_ms(10);
-                gpio_write_pin(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN, 0);
-                board_delay_ms(10);
-            }
-            board_delay_ms(100);
+        for (uint32_t i = 0; i < 9; i++) {
+            gpio_write_pin(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN, 1);
+            board_delay_ms(10);
+            gpio_write_pin(BOARD_I2C_GPIO_CTRL, BOARD_I2C_SCL_GPIO_INDEX, BOARD_I2C_SCL_GPIO_PIN, 0);
+            board_delay_ms(10);
         }
+        board_delay_ms(100);
         printf("I2C bus is cleared\n");
     }
 }
