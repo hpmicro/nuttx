@@ -54,7 +54,7 @@ struct i2c_master_s * g_i2c0_dev;
  ****************************************************************************/
 
 /****************************************************************************
- * Name: hpm6750_i2cbus_pins_initialize
+ * Name: hpm_i2cbus_pins_init
  *
  * Description:
  *   Initialize the selected I2C port pins
@@ -73,6 +73,7 @@ int hpm_i2cbus_pins_init(int port)
 #if (defined(CONFIG_HPM_I2C0_MASTER) || defined(CONFIG_HPM_I2C0_SLAVE))
   if (port == 0)
     {
+      board_i2c_bus_clear(HPM_I2C0);
       init_i2c_pins(HPM_I2C0);
     }
   else
