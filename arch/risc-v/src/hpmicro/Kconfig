@@ -2068,4 +2068,13 @@ if ARCH_CHIP_HPM6750_SDK || ARCH_CHIP_HPM6280_SDK
       default n
 endif
 
+#####################################################################
+#  PTPC Configuration
+#####################################################################
+
+config HPM_PTPC
+	bool "PTPC"
+	default n
+	select HPM_PTPC_DRV
+
 endmenu # HPM6750 Peripheral Support
