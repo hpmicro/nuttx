@@ -83,7 +83,7 @@ __start:
     csrw mscratch, 0
 
     /* Initial machine trap-vector Base */
-    la t0, __trap_vec
+    la t0, _vector_table
     csrw mtvec, t0
 
     /* Disable vectored external PLIC interrupt */

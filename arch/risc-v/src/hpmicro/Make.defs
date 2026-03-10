@@ -21,6 +21,9 @@
 include common/Make.defs
 include chip/hpm_sdk/Make.defs
 
+# Specify our ASM code within this directory to be included
+CHIP_ASRCS += hpm_vectors.S
+
 # Specify our C code within this directory to be included
 CHIP_CSRCS += hpmicro$(DELIM)hpm_allocateheap.c
 CHIP_CSRCS += hpmicro$(DELIM)hpm_delay.c
