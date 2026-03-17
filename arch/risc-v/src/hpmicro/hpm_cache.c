@@ -36,6 +36,26 @@
  ****************************************************************************/
 
 /****************************************************************************
+ * Name: up_get_icache_linesize
+ *
+ * Description:
+ *   Get icache linesize
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   icache linesize
+ *
+ ****************************************************************************/
+#ifdef CONFIG_ARCH_ICACHE
+size_t up_get_icache_size(void)
+{
+  return (size_t)HPM_L1C_ICACHE_SIZE;
+}
+#endif
+
+/****************************************************************************
  * Name: up_enable_icache
  *
  * Description:
@@ -120,6 +140,26 @@ void up_invalidate_icache(uintptr_t start, uintptr_t end)
 void up_invalidate_icache_all(void)
 {
   l1c_fence_i();
+}
+#endif
+
+/****************************************************************************
+ * Name: up_get_dcache_linesize
+ *
+ * Description:
+ *   Get dcache linesize
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   dcache linesize
+ *
+ ****************************************************************************/
+#ifdef CONFIG_ARCH_DCACHE
+size_t up_get_dcache_linesize(void)
+{
+  return (size_t)HPM_L1C_CACHELINE_SIZE;
 }
 #endif
 
