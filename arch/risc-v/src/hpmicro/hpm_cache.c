@@ -45,10 +45,29 @@
  *   None
  *
  * Returned Value:
- *   icache linesize
+ *   Cache line size
  *
  ****************************************************************************/
 #ifdef CONFIG_ARCH_ICACHE
+size_t up_get_icache_linesize(void)
+{
+  return (size_t)HPM_L1C_CACHELINE_SIZE;
+}
+
+/****************************************************************************
+ * Name: up_get_icache_size
+ *
+ * Description:
+ *   Get icache size
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   Cache size
+ *
+ ****************************************************************************/
+
 size_t up_get_icache_size(void)
 {
   return (size_t)HPM_L1C_ICACHE_SIZE;
@@ -153,13 +172,32 @@ void up_invalidate_icache_all(void)
  *   None
  *
  * Returned Value:
- *   dcache linesize
+ *   Cache line size
  *
  ****************************************************************************/
 #ifdef CONFIG_ARCH_DCACHE
 size_t up_get_dcache_linesize(void)
 {
   return (size_t)HPM_L1C_CACHELINE_SIZE;
+}
+
+/****************************************************************************
+ * Name: up_get_dcache_size
+ *
+ * Description:
+ *   Get icache size
+ *
+ * Input Parameters:
+ *   None
+ *
+ * Returned Value:
+ *   Cache size
+ *
+ ****************************************************************************/
+
+size_t up_get_dcache_size(void)
+{
+  return (size_t)HPM_L1C_DCACHE_SIZE;
 }
 #endif
 
