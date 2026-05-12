@@ -32,8 +32,10 @@
 #include <debug.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <syslog.h>
 
 #include <nuttx/arch.h>
+#include <nuttx/clock.h>
 #include <nuttx/irq.h>
 #include <nuttx/wqueue.h>
 #include <nuttx/signal.h>
@@ -57,9 +59,49 @@
 #include "hpm_enet_phy_common.h"
 #endif
 
+#ifdef CONFIG_HPM_ENET_LINK_MONITOR
+#  include "hpm_enet_phy.h"
+#  if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
+#    include "hpm_rtl8211.h"
+#  elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
+#    include "hpm_rtl8201.h"
+#  endif
+#endif
+
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
+
+/* Driver-local logging (not tied to CONFIG_DEBUG_NET_*). */
+
+#ifdef CONFIG_HPM_ENET_LOG_DEBUG
+#  define hpm_enet_info(fmt, ...) \
+     syslog(LOG_INFO, "hpm_enet: " fmt, ##__VA_ARGS__)
+#else
+#  define hpm_enet_info(fmt, ...) ((void)0)
+#endif
+
+#ifdef CONFIG_HPM_ENET_LOG_ERROR
+#  define hpm_enet_err(fmt, ...) \
+     syslog(LOG_ERR, "hpm_enet: " fmt, ##__VA_ARGS__)
+#else
+#  define hpm_enet_err(fmt, ...) ((void)0)
+#endif
+
+#ifdef CONFIG_HPM_ENET_LOG_WARN
+#  define hpm_enet_warn(fmt, ...) \
+     syslog(LOG_WARNING, "hpm_enet: " fmt, ##__VA_ARGS__)
+#else
+#  define hpm_enet_warn(fmt, ...) ((void)0)
+#endif
+
+#if defined(CONFIG_HPM_ENET_LOG_LINK)
+#  define hpm_enet_link_notice(fmt, ...) \
+     syslog(LOG_NOTICE, "hpm_enet: " fmt, ##__VA_ARGS__)
+#else
+#  define hpm_enet_link_notice(fmt, ...) ((void)0)
+#endif
+
 #define ETHWORK LPWORK
 
 #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
@@ -106,6 +148,10 @@ struct hpm_enet_mac_s
   uint8_t              ifup    : 1; /* true:ifup false:ifdown */
   struct work_s        irqwork;     /* For deferring interrupt work to the work queue */
   struct work_s        pollwork;    /* For deferring poll work to the work queue */
+#ifdef CONFIG_HPM_ENET_LINK_MONITOR
+  struct work_s        linkwork;    /* PHY link polling */
+  bool                 link_up;     /* Last notified carrier / link state */
+#endif
 
   /* This holds the information visible to the NuttX network */
   struct net_driver_s  dev;         /* Interface understood by the network */
@@ -130,6 +176,148 @@ static struct hpm_enet_mac_s g_hpmethmac;
 
 static int hpm_enet_config(struct hpm_enet_mac_s *priv);
 static int hpm_transmit(struct hpm_enet_mac_s *priv);
+
+#ifdef CONFIG_HPM_ENET_LINK_MONITOR
+/****************************************************************************
+ * Function: hpm_mac_sync_phy_line
+ *
+ * Description:
+ *   Match MAC MII speed/duplex bits to PHY negotiated values. enet_mac_init
+ *   defaults (e.g. RGMII at 1000M full) must be updated after autoneg or the
+ *   link may show up while frames fail.
+ *
+ ****************************************************************************/
+
+static void hpm_mac_sync_phy_line(ENET_Type *base, const enet_phy_status_t *st)
+{
+  enet_line_speed_t line;
+  enet_duplex_mode_t dpl;
+
+  switch ((enet_phy_port_speed_t)st->enet_phy_speed)
+    {
+    case enet_phy_port_speed_10mbps:
+      line = enet_line_speed_10mbps;
+      break;
+    case enet_phy_port_speed_100mbps:
+      line = enet_line_speed_100mbps;
+      break;
+    case enet_phy_port_speed_1000mbps:
+      line = enet_line_speed_1000mbps;
+      break;
+    default:
+      line = enet_line_speed_100mbps;
+      break;
+    }
+
+  dpl = (st->enet_phy_duplex == enet_phy_duplex_full) ?
+        enet_full_duplex : enet_half_duplex;
+
+  enet_set_line_speed(base, line);
+  enet_set_duplex_mode(base, dpl);
+}
+
+/****************************************************************************
+ * Function: hpm_link_notice_up
+ *
+ * Description:
+ *   Log negotiated line rate and duplex (from PHY status) on carrier on.
+ *
+ ****************************************************************************/
+
+static void hpm_link_notice_up(const enet_phy_status_t *st)
+{
+  const char *spd;
+  const char *dpl;
+
+  switch ((enet_phy_port_speed_t)st->enet_phy_speed)
+    {
+    case enet_phy_port_speed_10mbps:
+      spd = "10Mbps";
+      break;
+    case enet_phy_port_speed_100mbps:
+      spd = "100Mbps";
+      break;
+    case enet_phy_port_speed_1000mbps:
+      spd = "1000Mbps";
+      break;
+    default:
+      spd = "?";
+      break;
+    }
+
+  dpl = (st->enet_phy_duplex == enet_phy_duplex_full) ? "full" : "half";
+  hpm_enet_link_notice("PHY link up (%s, %s duplex)\n", spd, dpl);
+}
+
+/****************************************************************************
+ * Function: hpm_link_read_and_notify
+ *
+ * Description:
+ *   Read PHY link via HPM SDK and update NuttX carrier (IFF_RUNNING) on
+ *   change. Caller must hold the network lock when this runs in a context
+ *   that can race with the stack (work queue).
+ *
+ ****************************************************************************/
+
+static void hpm_link_read_and_notify(struct hpm_enet_mac_s *priv)
+{
+  enet_phy_status_t st;
+  bool up;
+
+#if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
+  rtl8211_get_phy_status(priv->base, RTL8211_ADDR, &st);
+#elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
+  rtl8201_get_phy_status(priv->base, RTL8201_ADDR, &st);
+#else
+  return;
+#endif
+
+  up = (st.enet_phy_link == enet_phy_link_up);
+  if (up != priv->link_up)
+    {
+      priv->link_up = up;
+      if (up)
+        {
+          hpm_mac_sync_phy_line(priv->base, &st);
+          hpm_link_notice_up(&st);
+          netdev_carrier_on(&priv->dev);
+        }
+      else
+        {
+          hpm_enet_link_notice("PHY link down\n");
+          netdev_carrier_off(&priv->dev);
+        }
+    }
+}
+
+/****************************************************************************
+ * Function: hpm_link_mon_work
+ *
+ * Description:
+ *   Periodic PHY link poll on the low-priority work queue.
+ *
+ ****************************************************************************/
+
+static void hpm_link_mon_work(void *arg)
+{
+  struct hpm_enet_mac_s *priv = (struct hpm_enet_mac_s *)arg;
+
+  net_lock();
+
+  if (priv->ifup)
+    {
+      hpm_link_read_and_notify(priv);
+    }
+
+  if (priv->ifup)
+    {
+      work_queue(ETHWORK, &priv->linkwork, hpm_link_mon_work, priv,
+                 MSEC2TICK(CONFIG_HPM_ENET_LINK_MON_INTERVAL_MS));
+    }
+
+  net_unlock();
+}
+#endif /* CONFIG_HPM_ENET_LINK_MONITOR */
 
 /****************************************************************************
  * Function: hpm_ifup
@@ -156,24 +344,58 @@ static int hpm_ifup(struct net_driver_s *dev)
   int ret;
 
 #ifdef CONFIG_NET_IPv4
-  ninfo("Bringing up: %d.%d.%d.%d\n",
-        (int)(dev->d_ipaddr & 0xff),
-        (int)((dev->d_ipaddr >> 8) & 0xff),
-        (int)((dev->d_ipaddr >> 16) & 0xff),
-        (int)(dev->d_ipaddr >> 24));
+#  ifdef CONFIG_NETINIT_DHCPC
+  if (dev->d_ipaddr != 0)
+    {
+      hpm_enet_info("Bringing up: %d.%d.%d.%d (may be replaced by DHCP)\n",
+                    (int)(dev->d_ipaddr & 0xff),
+                    (int)((dev->d_ipaddr >> 8) & 0xff),
+                    (int)((dev->d_ipaddr >> 16) & 0xff),
+                    (int)(dev->d_ipaddr >> 24));
+    }
+  else
+    {
+      hpm_enet_info("Bringing up link (IPv4 assigned via DHCP after link is up)\n");
+    }
+#  else
+  if (dev->d_ipaddr != 0)
+    {
+      hpm_enet_info("Bringing up (static): %d.%d.%d.%d\n",
+                    (int)(dev->d_ipaddr & 0xff),
+                    (int)((dev->d_ipaddr >> 8) & 0xff),
+                    (int)((dev->d_ipaddr >> 16) & 0xff),
+                    (int)(dev->d_ipaddr >> 24));
+    }
+  else
+    {
+      hpm_enet_info("Bringing up link (IPv4 not set; check ipcfg or NETINIT)\n");
+    }
+#  endif
 #endif
 
- /* Configure the Ethernet interface for DMA operation. */
+  /* Configure the Ethernet interface for DMA operation. */
   ret = hpm_enet_config(priv);
   if (ret < 0)
     {
+      hpm_enet_warn("ifup: configuration failed (%d)\n", ret);
       return ret;
     }
 
   /* Enable the Ethernet interrupt */
 
   priv->ifup = true;
+  hpm_enet_info("interface up\n");
   up_enable_irq(ENET_IRQ);
+
+#ifdef CONFIG_HPM_ENET_LINK_MONITOR
+  /* Caller (netdev_ifup) holds the network lock. */
+
+  priv->link_up = false;
+  netdev_carrier_off(&priv->dev);
+  hpm_link_read_and_notify(priv);
+  work_queue(ETHWORK, &priv->linkwork, hpm_link_mon_work, priv,
+             MSEC2TICK(CONFIG_HPM_ENET_LINK_MON_INTERVAL_MS));
+#endif
 
   return OK;
 }
@@ -201,7 +423,13 @@ static int hpm_ifdown(struct net_driver_s *dev)
   irqstate_t flags;
   int ret = OK;
 
-  ninfo("Taking the network down\n");
+#ifdef CONFIG_HPM_ENET_LINK_MONITOR
+  /* Stop link polling; caller holds the network lock (netdev_ifdown). */
+
+  work_cancel(ETHWORK, &priv->linkwork);
+  priv->link_up = false;
+  netdev_carrier_off(&priv->dev);
+#endif
 
   /* Disable the Ethernet interrupt */
 
@@ -213,10 +441,10 @@ static int hpm_ifdown(struct net_driver_s *dev)
    * successfully brings the interface back up.
    */
 
-
   /* Mark the device "down" */
 
   priv->ifup = false;
+  hpm_enet_info("interface down\n");
   leave_critical_section(flags);
   return ret;
 }
@@ -326,8 +554,6 @@ static void hpm_dopoll(struct hpm_enet_mac_s *priv)
 static void hpm_txavail_work(void *arg)
 {
   struct hpm_enet_mac_s *priv = (struct hpm_enet_mac_s *)arg;
-
-  ninfo("ifup: %d\n", priv->ifup);
 
   /* Ignore the notification if the interface is not yet up */
   net_lock();
@@ -635,7 +861,8 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
       else
 #endif
         {
-          nerr("ERROR: Dropped, Unknown type: %04x\n", BUF->type);
+          hpm_enet_warn("dropped frame, unknown ethertype: 0x%04x\n",
+                        BUF->type);
         }
 
       /* We are finished with the RX buffer.  NOTE:  If the buffer is
@@ -656,7 +883,6 @@ static void hpm_receive(struct hpm_enet_mac_s *priv)
 static void hpm_freeframe(struct hpm_enet_mac_s *priv)
 {
     enet_tx_desc_t *txdesc;
-    ninfo("%d: tx_desc_list_cur: %p txtail: %p inflight: %d\n", __LINE__, priv->desc.tx_desc_list_cur, priv->txtail, priv->inflight);
 
     txdesc = priv->txtail;
     if (txdesc) {
@@ -685,7 +911,6 @@ static void hpm_freeframe(struct hpm_enet_mac_s *priv)
         }
 
         priv->txtail = txdesc;
-        ninfo("%d: tx_desc_list_cur: %p txtail: %p inflight: %d\n", __LINE__, priv->desc.tx_desc_list_cur, priv->txtail, priv->inflight);
     }
 }
 
@@ -898,18 +1123,20 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 
     /* Initialize phy */
     #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
-        rtl8211_reset(priv->base);
+        rtl8211_reset(priv->base, RTL8211_ADDR);
         rtl8211_basic_mode_default_config(priv->base, &phy_config);
-        if (rtl8211_basic_mode_init(priv->base, &phy_config) == true) {
+        if (rtl8211_basic_mode_init(priv->base, RTL8211_ADDR, &phy_config) == true) {
     #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
-        rtl8201_reset(priv->base);
+        rtl8201_reset(priv->base, RTL8201_ADDR);
         rtl8201_basic_mode_default_config(priv->base, &phy_config);
-        if (rtl8201_basic_mode_init(priv->base, &phy_config) == true) {
+        phy_config.media_interface = ENET_INF_TYPE;
+        phy_config.rmii_refclk_dir = (uint8_t)CONFIG_RMII_REFCLK;
+        if (rtl8201_basic_mode_init(priv->base, RTL8201_ADDR, &phy_config) == true) {
     #endif
-            ninfo("Enet phy init passed !\n");
+            hpm_enet_info("Enet phy init passed\n");
             return status_success;
         } else {
-            ninfo("Enet phy init failed !\n");
+            hpm_enet_err("Enet phy init failed\n");
             return status_fail;
         }
 }
@@ -943,14 +1170,14 @@ static int hpm_enet_config(struct hpm_enet_mac_s *priv)
   #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
       /* Set RMII reference clock */
       board_init_enet_rmii_reference_clock(priv->base, CONFIG_RMII_REFCLK);
-      ninfo("Reference Clock: %s\n", CONFIG_RMII_REFCLK ? "Internal Clock" : "External Clock");
+      hpm_enet_info("Reference Clock: %s\n",
+                    CONFIG_RMII_REFCLK ? "Internal Clock" : "External Clock");
   #endif
 
   /* Initialize the MAC and DMA */
-  ninfo("Initialize the MAC and DMA\n");
+  hpm_enet_info("Initialize the MAC and DMA\n");
 
   ret = hpm_enet_init(priv);
-  ninfo("%d: ret value: %d\n", __LINE__, ret);
   if (ret < 0)
     {
       return ret;
@@ -1025,7 +1252,7 @@ int hpm_enet_initialize(int intf)
   ret = hpm_ifdown(&priv->dev);
   if (ret < 0)
     {
-      nerr("ERROR: Initialization of Ethernet block failed: %d\n", ret);
+      hpm_enet_err("Initialization of Ethernet block failed: %d\n", ret);
       return ret;
     }
   /* Register the device with the OS so that socket IOCTLs can be performed */
