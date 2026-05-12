@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 HPMicro
+ * Copyright (c) 2021-2026 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -89,13 +89,13 @@ bool rtl8201_basic_mode_init(ENET_Type *ptr, uint32_t phy_addr, rtl8201_config_t
 
     enet_write_phy(ptr, phy_addr, RTL8201_BMCR, data);
 
-#if defined(RMII) && RMII
-    if (config->rmii_refclk_dir == enet_phy_rmii_refclk_dir_in) {
-        rtl8201_set_rmii_refclk_direction(ptr, phy_addr, rtl8201_config_refclk_input);
-    } else {
-        rtl8201_set_rmii_refclk_direction(ptr, phy_addr, rtl8201_config_refclk_output);
+    if (config->media_interface == enet_inf_rmii) {
+        if (config->rmii_refclk_dir == enet_phy_rmii_refclk_dir_in) {
+            rtl8201_set_rmii_refclk_direction(ptr, phy_addr, rtl8201_config_refclk_input);
+        } else {
+            rtl8201_set_rmii_refclk_direction(ptr, phy_addr, rtl8201_config_refclk_output);
+        }
     }
-#endif
 
     return true;
 }
@@ -104,8 +104,12 @@ void rtl8201_get_phy_status(ENET_Type *ptr, uint32_t phy_addr, enet_phy_status_t
 {
     uint16_t data;
 
+    /* Clause 22 regs 0/1 are on page 0. RMII setup leaves PAGESEL at 7. */
+    enet_write_phy(ptr, phy_addr, RTL8201_PAGESEL, 0);
+    /* BMSR link bit may be latched; second read is current state (802.3 / common practice). */
+    (void)enet_read_phy(ptr, phy_addr, RTL8201_BMSR);
     data = enet_read_phy(ptr, phy_addr, RTL8201_BMSR);
-    status->enet_phy_link = RTL8201_BMSR_LINK_STATUS_GET(data);
+    status->enet_phy_link = (uint8_t)(RTL8201_BMSR_LINK_STATUS_GET(data) ? enet_phy_link_up : enet_phy_link_down);
 
     data = enet_read_phy(ptr, phy_addr, RTL8201_BMCR);
     status->enet_phy_speed = RTL8201_BMCR_SPEED0_GET(data) == 0 ? enet_phy_port_speed_10mbps : enet_phy_port_speed_100mbps;
@@ -131,4 +135,7 @@ void rtl8201_set_rmii_refclk_direction(ENET_Type *ptr, uint32_t phy_addr, uint8_
 
     /* write register RMSR */
     enet_write_phy(ptr, phy_addr, RTL8201_RMSR_P7, data);
+
+    /* Clause 22 regs 0/1 are on page 0; leave PHY there for MDIO users. */
+    enet_write_phy(ptr, phy_addr, RTL8201_PAGESEL, 0);
 }

@@ -1213,6 +1213,7 @@ hpm_stat_t board_init_enet_phy(ENET_Type *ptr)
     } else if (ptr == HPM_ENET1) {
         rtl8201_reset(HPM_ENET1, RTL8201_ADDR);
         rtl8201_basic_mode_default_config(HPM_ENET1, &phy_config1);
+        phy_config1.media_interface = enet_inf_rmii;
         phy_config1.rmii_refclk_dir = BOARD_ENET_RMII_INT_REF_CLK;
         if (rtl8201_basic_mode_init(HPM_ENET1, RTL8201_ADDR, &phy_config1) == true) {
             return status_success;
