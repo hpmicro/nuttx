@@ -1910,154 +1910,237 @@ config HPM_SDXC1
 #####################################################################
 #  Enet Configuration
 #####################################################################
-config ENET_RGMII
-    bool
-    default n
+menuconfig HPM_ENET
+	bool "ENET"
+	default n
+	---help---
+		Enable configuration of HPM on-chip Ethernet (ENET0 / ENET1
+		and shared driver options). Choose one active MAC below (exclusive
+		choice). Must be enabled before port-specific options appear.
 
-config ENET_RMII
-    bool
-    default n
+	if HPM_ENET
 
-config ENET_PHY
-    bool
-    default n
+	config ENET_RGMII
+	    bool
+	    default n
 
-config ENET_PHY_RTL8211
-    bool
-    default n
+	config ENET_RMII
+	    bool
+	    default n
 
-config ENET_PHY_RTL8201
-    bool
-    default n
+	config ENET_PHY
+	    bool
+	    default n
 
-config HPM_ENET0
-    bool "ENT0"
-    default n
-    select HPM_ENET_DRV
-    select ENET_PHY
-    select ENET_PHY_RTL8211
+	config ENET_PHY_RTL8211
+	    bool
+	    default n
 
-    menu "ENET0 device driver options"
-    depends on HPM_ENET0
+	config ENET_PHY_RTL8201
+	    bool
+	    default n
 
-        choice
-            prompt "Interface Type"
-            default HPM_ENET_RGMII
+	choice HPM_ENET_MAC
+	    prompt "Active Ethernet MAC"
+	    default HPM_ENET_MAC_NONE
+	    ---help---
+		Exactly one controller can be enabled: the HPM ENET driver is currently
+		built for a single MAC instance. Dual-MAC support may relax this layout
+		later.
 
-            config HPM_ENET_RGMII
-            bool "RGMII"
+	    config HPM_ENET_MAC_NONE
+		bool "None"
+		---help---
+		    ENET subsystem is configured but no on-chip Ethernet port is enabled
+		    (no MAC driver selection).
 
-        endchoice
-        # End Of PHY Mode Setting
+	    config HPM_ENET0
+		bool "ENT0 (RGMII)"
+		select HPM_ENET_DRV
+		select ENET_PHY
+		select ENET_PHY_RTL8211
+		---help---
+		    Enable HPM6750 Ethernet port 0 (RGMII, RTL8211 on typical boards).
 
-        # MAC Setting
-        config MAC_ADDR0
-        hex "MAC_ADDR0"
-        range 0 ff
-        default 98
+	    config HPM_ENET1
+		bool "ENT1 (RMII)"
+		select HPM_ENET_DRV
+		select ENET_PHY
+		select ENET_PHY_RTL8201
+		---help---
+		    Enable HPM6750 Ethernet port 1 (RMII, RTL8201 on typical boards).
 
-        config MAC_ADDR1
-        hex "MAC_ADDR1"
-        range 0 ff
-        default 2C
+	endchoice
 
-        config MAC_ADDR2
-        hex "MAC_ADDR2"
-        range 0 ff
-        default BC
+	menu "Common options"
 
-        config MAC_ADDR3
-        hex "MAC_ADDR3"
-        range 0 ff
-        default B1
+	config HPM_ENET_LINK_MONITOR
+		bool "Poll Ethernet PHY link (netdev carrier)"
+		default y
+		depends on HPM_ENET_DRV && ENET_PHY
+		---help---
+			Periodically read PHY link status via rtl8211_get_phy_status /
+			rtl8201_get_phy_status and call netdev_carrier_on/off when the
+			link transitions. Uses the low-priority work queue.
 
-        config MAC_ADDR4
-        hex "MAC_ADDR4"
-        range 0 ff
-        default 9F
+	if HPM_ENET_LINK_MONITOR
 
-        config MAC_ADDR5
-        hex "MAC_ADDR5"
-        range 0 ff
-        default 17
-        # End Of MAC Setting
-    endmenu # ENET0 device driver options
+	config HPM_ENET_LINK_MON_INTERVAL_MS
+		int "PHY link poll interval (milliseconds)"
+		default 1000
+		range 100 30000
+		---help---
+			How often to re-check the PHY link while the interface is up.
 
-config HPM_ENET1
-    bool "ENT1"
-    default n
-    select HPM_ENET_DRV
-    select ENET_PHY
-    select ENET_PHY_RTL8201
+	endif # HPM_ENET_LINK_MONITOR
 
-    menu "ENET1 device driver options"
-    depends on HPM_ENET1
+	config HPM_ENET_LOG_DEBUG
+		bool "HPM ENET driver info log"
+		default n
+		depends on HPM_ENET_DRV
+		---help---
+			Print hpm_enet.c informational messages via syslog(LOG_INFO).
+			Independent of CONFIG_DEBUG_NET_* (does not enable stack-wide ninfo).
 
-        choice
-            prompt "Interface Type"
-            default HPM_ENET_RMII
+	config HPM_ENET_LOG_ERROR
+		bool "HPM ENET driver error log"
+		default y
+		depends on HPM_ENET_DRV
+		---help---
+			Print hpm_enet.c errors via syslog(LOG_ERR).
 
-            config HPM_ENET_RMII
-            bool "RMII"
+	config HPM_ENET_LOG_WARN
+		bool "HPM ENET driver warning log"
+		default y
+		depends on HPM_ENET_DRV
+		---help---
+			Print hpm_enet.c warnings via syslog(LOG_WARNING).
 
-        endchoice
-        # End Of PHY Mode Setting
+	config HPM_ENET_LOG_LINK
+		bool "HPM ENET PHY link change log"
+		default y
+		depends on HPM_ENET_DRV && HPM_ENET_LINK_MONITOR
+		---help---
+			Log PHY link up/down via syslog(LOG_NOTICE) when link polling detects a change.
 
-        # REFClk Setting
-        config RMII_REFCLK
-        int
-        default 1
-        depends on RMII_REFCLK_INT
+	endmenu # Common options
 
-        config RMII_REFCLK
-        int
-        default 0
-        depends on RMII_REFCLK_EXT
+	menu "ENET0 device driver options"
+	depends on HPM_ENET0
 
-        choice
-            prompt "Ref Clock"
-            default RMII_REFCLK_INT
+		choice
+			prompt "Interface Type"
+			default HPM_ENET_RGMII
 
-            config RMII_REFCLK_INT
-            bool "Internal Refk"
+			config HPM_ENET_RGMII
+			bool "RGMII"
 
-            config RMII_REFCLK_EXT
-            bool "External RefClk"
-        endchoice
-        # End Of REFClk Setting
+		endchoice
+		# End Of PHY Mode Setting
 
-        # MAC Setting
-        config MAC_ADDR0
-        hex "MAC_ADDR0"
-        range 0 ff
-        default 98
+		# MAC Setting
+		config MAC_ADDR0
+		hex "MAC_ADDR0"
+		range 0 0xff
+		default 0x98
 
-        config MAC_ADDR1
-        hex "MAC_ADDR1"
-        range 0 ff
-        default 2C
+		config MAC_ADDR1
+		hex "MAC_ADDR1"
+		range 0 0xff
+		default 0x2C
 
-        config MAC_ADDR2
-        hex "MAC_ADDR2"
-        range 0 ff
-        default BC
+		config MAC_ADDR2
+		hex "MAC_ADDR2"
+		range 0 0xff
+		default 0xBC
 
-        config MAC_ADDR3
-        hex "MAC_ADDR3"
-        range 0 ff
-        default B1
+		config MAC_ADDR3
+		hex "MAC_ADDR3"
+		range 0 0xff
+		default 0xB1
 
-        config MAC_ADDR4
-        hex "MAC_ADDR4"
-        range 0 ff
-        default 9F
+		config MAC_ADDR4
+		hex "MAC_ADDR4"
+		range 0 0xff
+		default 0x9F
 
-        config MAC_ADDR5
-        hex "MAC_ADDR5"
-        range 0 ff
-        default 17
-        # End Of MAC Setting
-    endmenu # ENET1 device driver options
+		config MAC_ADDR5
+		hex "MAC_ADDR5"
+		range 0 0xff
+		default 0x17
+		# End Of MAC Setting
+	endmenu # ENET0 device driver options
+
+	menu "ENET1 device driver options"
+	depends on HPM_ENET1
+
+		choice
+			prompt "Interface Type"
+			default HPM_ENET_RMII
+
+			config HPM_ENET_RMII
+			bool "RMII"
+
+		endchoice
+		# End Of PHY Mode Setting
+
+		# REFClk Setting
+		config RMII_REFCLK
+		int
+		default 1
+		depends on RMII_REFCLK_INT
+
+		config RMII_REFCLK
+		int
+		default 0
+		depends on RMII_REFCLK_EXT
+
+		choice
+			prompt "Ref Clock"
+			default RMII_REFCLK_INT
+
+			config RMII_REFCLK_INT
+			bool "Internal Refk"
+
+			config RMII_REFCLK_EXT
+			bool "External RefClk"
+		endchoice
+		# End Of REFClk Setting
+
+		# MAC Setting
+		config MAC_ADDR0
+		hex "MAC_ADDR0"
+		range 0 0xff
+		default 0x98
+
+		config MAC_ADDR1
+		hex "MAC_ADDR1"
+		range 0 0xff
+		default 0x2C
+
+		config MAC_ADDR2
+		hex "MAC_ADDR2"
+		range 0 0xff
+		default 0xBC
+
+		config MAC_ADDR3
+		hex "MAC_ADDR3"
+		range 0 0xff
+		default 0xB1
+
+		config MAC_ADDR4
+		hex "MAC_ADDR4"
+		range 0 0xff
+		default 0x9F
+
+		config MAC_ADDR5
+		hex "MAC_ADDR5"
+		range 0 0xff
+		default 0x17
+		# End Of MAC Setting
+	endmenu # ENET1 device driver options
+
+	endif # HPM_ENET
 
 #####################################################################
 #  MBX Configuration
