@@ -1920,14 +1920,6 @@ menuconfig HPM_ENET
 
 	if HPM_ENET
 
-	config ENET_RGMII
-	    bool
-	    default n
-
-	config ENET_RMII
-	    bool
-	    default n
-
 	config ENET_PHY
 	    bool
 	    default n
@@ -1971,6 +1963,13 @@ menuconfig HPM_ENET
 		    Enable HPM6750 Ethernet port 1 (RMII, RTL8201 on typical boards).
 
 	endchoice
+
+	# Polled PHY advertisement for MII ioctl consumers (e.g. NETINIT_MONITOR).
+	config HPM_ENET_PHY_IOCTL_POLL
+		bool
+		default y
+		depends on HPM_ENET0 || HPM_ENET1
+		select ARCH_PHY_POLLED
 
 	menu "Common options"
 

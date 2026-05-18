@@ -40,6 +40,8 @@
 #include <nuttx/wqueue.h>
 #include <nuttx/signal.h>
 #include <nuttx/net/arp.h>
+#include <nuttx/net/ioctl.h>
+#include <nuttx/net/mii.h>
 #include <nuttx/net/netdev.h>
 #if defined(CONFIG_NET_PKT)
 #  include <nuttx/net/pkt.h>
@@ -162,6 +164,7 @@ struct hpm_enet_mac_s
   ENET_Type *base;
   enet_desc_t desc;
   enet_mac_config_t mac_config;
+  bool dma_inited_once; /* Successful full PHY+DMA init at least once (warm ifup OK) */
 };
 
 /****************************************************************************
@@ -176,6 +179,9 @@ static struct hpm_enet_mac_s g_hpmethmac;
 
 static int hpm_enet_config(struct hpm_enet_mac_s *priv);
 static int hpm_transmit(struct hpm_enet_mac_s *priv);
+#ifdef CONFIG_NETDEV_IOCTL
+static int hpm_enet_ioctl(struct net_driver_s *dev, int cmd, unsigned long arg);
+#endif
 
 #ifdef CONFIG_HPM_ENET_LINK_MONITOR
 /****************************************************************************
@@ -605,6 +611,118 @@ static int hpm_txavail(struct net_driver_s *dev)
 
   return OK;
 }
+
+/****************************************************************************
+ * Function: hpm_enet_ioctl
+ *
+ * Description:
+ *   PHY MDIO ioctl entry points used by upper layers (for example netinit
+ *   link monitoring via SIOCGMIIPHY / SIOCGMIIREG).
+ *
+ ****************************************************************************/
+
+#ifdef CONFIG_NETDEV_IOCTL
+static int hpm_enet_ioctl(struct net_driver_s *dev, int cmd,
+                          unsigned long arg)
+{
+#ifdef CONFIG_NETDEV_PHY_IOCTL
+  struct hpm_enet_mac_s *priv =
+    (struct hpm_enet_mac_s *)dev->d_private;
+#endif
+  int ret;
+
+  switch (cmd)
+    {
+#ifdef CONFIG_NETDEV_PHY_IOCTL
+#if defined(CONFIG_ENET_PHY) && CONFIG_ENET_PHY
+      case SIOCGMIIPHY: /* Get MII PHY address */
+        {
+          struct mii_ioctl_data_s *req =
+            (struct mii_ioctl_data_s *)((uintptr_t)arg);
+
+#if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
+          req->phy_id = RTL8211_ADDR;
+          ret = OK;
+#elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
+          req->phy_id = RTL8201_ADDR;
+          ret = OK;
+#else
+          ret = -ENOTSUP;
+#endif
+        }
+        break;
+
+      case SIOCGMIIREG: /* Read MII PHY register */
+        {
+          struct mii_ioctl_data_s *req =
+            (struct mii_ioctl_data_s *)((uintptr_t)arg);
+          ENET_Type *base = priv->base;
+          uint32_t addr = req->phy_id;
+
+          /* Align link status with the same PHY semantics as HPM link monitor /
+           * rtl8211_get_phy_status / rtl8201_get_phy_status.  NETINIT_MONITOR
+           * reads MII_MSR (BMSR); RTL8211 real-time link is in PHYSR, not BMSR.
+           */
+
+#if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
+          if (req->reg_num == MII_MSR)
+            {
+              uint16_t physr = enet_read_phy(base, addr, RTL8211_PHYSR);
+              uint16_t bmsr = enet_read_phy(base, addr, MII_MSR);
+
+              req->val_out = bmsr;
+              if (RTL8211_PHYSR_LINK_REAL_TIME_GET(physr))
+                {
+                  req->val_out |= MII_MSR_LINKSTATUS;
+                }
+              else
+                {
+                  req->val_out &= (uint16_t)~MII_MSR_LINKSTATUS;
+                }
+            }
+          else
+            {
+              req->val_out = enet_read_phy(base, addr, req->reg_num);
+            }
+#elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
+          if (req->reg_num == MII_MSR)
+            {
+              enet_write_phy(base, addr, RTL8201_PAGESEL, 0);
+              (void)enet_read_phy(base, addr, RTL8201_BMSR);
+              req->val_out = enet_read_phy(base, addr, RTL8201_BMSR);
+            }
+          else
+            {
+              req->val_out = enet_read_phy(base, addr, req->reg_num);
+            }
+#else
+          req->val_out = enet_read_phy(base, addr, req->reg_num);
+#endif
+          ret = OK;
+        }
+        break;
+
+      case SIOCSMIIREG: /* Write MII PHY register */
+        {
+          struct mii_ioctl_data_s *req =
+            (struct mii_ioctl_data_s *)((uintptr_t)arg);
+
+          enet_write_phy(priv->base, req->phy_id, req->reg_num,
+                         req->val_in);
+          ret = OK;
+        }
+        break;
+#endif /* CONFIG_ENET_PHY */
+#endif /* CONFIG_NETDEV_PHY_IOCTL */
+
+      default:
+        ret = -ENOTTY;
+        break;
+    }
+
+  return ret;
+}
+#endif /* CONFIG_NETDEV_IOCTL */
 
 /****************************************************************************
  * Function: hpm_enet_gpioconfig
@@ -1063,6 +1181,9 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
         rtl8201_config_t phy_config;
     #endif
 
+    /* Same as cold_boot_hw in hpm_enet_config(): dma_inited_once set only after OK. */
+
+    const bool cold_phy_reset = !priv->dma_inited_once;
     /* Initialize td, rd and the corresponding buffers */
     memset((uint8_t *)dma_tx_desc_tab, 0x00, sizeof(dma_tx_desc_tab));
     memset((uint8_t *)dma_rx_desc_tab, 0x00, sizeof(dma_rx_desc_tab));
@@ -1121,24 +1242,57 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
     /* Disable LPI interrupt */
     enet_disable_lpi_interrupt(priv->base);
 
-    /* Initialize phy */
-    #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
+    /* PHY: cold path resets/program PHY; warm path keeps link up across IFF_UP */
+
+#if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
+    if (cold_phy_reset)
+      {
         rtl8211_reset(priv->base, RTL8211_ADDR);
         rtl8211_basic_mode_default_config(priv->base, &phy_config);
-        if (rtl8211_basic_mode_init(priv->base, RTL8211_ADDR, &phy_config) == true) {
-    #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
-        rtl8201_reset(priv->base, RTL8201_ADDR);
-        rtl8201_basic_mode_default_config(priv->base, &phy_config);
-        phy_config.media_interface = ENET_INF_TYPE;
-        phy_config.rmii_refclk_dir = (uint8_t)CONFIG_RMII_REFCLK;
-        if (rtl8201_basic_mode_init(priv->base, RTL8201_ADDR, &phy_config) == true) {
-    #endif
-            hpm_enet_info("Enet phy init passed\n");
-            return status_success;
-        } else {
+
+        if (rtl8211_basic_mode_init(priv->base, RTL8211_ADDR, &phy_config) != true)
+          {
             hpm_enet_err("Enet phy init failed\n");
             return status_fail;
-        }
+          }
+
+        hpm_enet_info("Enet phy init passed\n");
+      }
+    else
+      {
+        enet_phy_status_t st;
+
+        rtl8211_get_phy_status(priv->base, RTL8211_ADDR, &st);
+        hpm_mac_sync_phy_line(priv->base, &st);
+        hpm_enet_info("Enet PHY warm ifup (link retained)\n");
+      }
+#elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
+    if (cold_phy_reset)
+      {
+        rtl8201_reset(priv->base, RTL8201_ADDR);
+        rtl8201_basic_mode_default_config(priv->base, &phy_config);
+        phy_config.media_interface  = ENET_INF_TYPE;
+        phy_config.rmii_refclk_dir  = (uint8_t)CONFIG_RMII_REFCLK;
+
+        if (rtl8201_basic_mode_init(priv->base, RTL8201_ADDR, &phy_config) != true)
+          {
+            hpm_enet_err("Enet phy init failed\n");
+            return status_fail;
+          }
+
+        hpm_enet_info("Enet phy init passed\n");
+      }
+    else
+      {
+        enet_phy_status_t st;
+
+        rtl8201_get_phy_status(priv->base, RTL8201_ADDR, &st);
+        hpm_mac_sync_phy_line(priv->base, &st);
+        hpm_enet_info("Enet PHY warm ifup (link retained)\n");
+      }
+#endif
+
+    return status_success;
 }
 
 /****************************************************************************
@@ -1159,34 +1313,40 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 
 static int hpm_enet_config(struct hpm_enet_mac_s *priv)
 {
-  int ret;
+  hpm_stat_t hs;
+  const bool cold_boot_hw = !priv->dma_inited_once;
 
-  /* Reset an enet PHY */
-  board_reset_enet_phy(priv->base);
+  if (cold_boot_hw)
+    {
+      board_reset_enet_phy(priv->base);
 
   #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
-      /* Set RGMII clock delay */
       board_init_enet_rgmii_clock_delay(priv->base);
   #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
-      /* Set RMII reference clock */
       board_init_enet_rmii_reference_clock(priv->base, CONFIG_RMII_REFCLK);
       hpm_enet_info("Reference Clock: %s\n",
                     CONFIG_RMII_REFCLK ? "Internal Clock" : "External Clock");
   #endif
 
-  /* Initialize the MAC and DMA */
-  hpm_enet_info("Initialize the MAC and DMA\n");
-
-  ret = hpm_enet_init(priv);
-  if (ret < 0)
-    {
-      return ret;
+      hpm_enet_info("Initialize the MAC and DMA\n");
     }
-  
-  priv->txtail = NULL;
-  priv->inflight = 0;
+  else
+    {
+      hpm_enet_info("Warm ifup: re-init MAC/DMA only (PHY not reset)\n");
+    }
 
-  return 0;
+  hs = hpm_enet_init(priv);
+  if (hs != status_success)
+    {
+      return -EIO;
+    }
+
+  priv->dma_inited_once = true;
+
+  priv->txtail             = NULL;
+  priv->inflight           = 0;
+
+  return OK;
 }
 
 /****************************************************************************
@@ -1226,6 +1386,9 @@ int hpm_enet_initialize(int intf)
   priv->dev.d_ifup    = hpm_ifup;     /* I/F up (new IP address) callback */
   priv->dev.d_ifdown  = hpm_ifdown;   /* I/F down callback */
   priv->dev.d_txavail = hpm_txavail;  /* New TX data callback */
+#ifdef CONFIG_NETDEV_IOCTL
+  priv->dev.d_ioctl   = hpm_enet_ioctl;
+#endif
   priv->dev.d_private = &g_hpmethmac;  /* Used to recover private state from dev */
   priv->base = ENET;
 
