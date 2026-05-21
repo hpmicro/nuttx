@@ -61,7 +61,8 @@
 #include "hpm_enet_phy_common.h"
 #endif
 
-#ifdef CONFIG_HPM_ENET_LINK_MONITOR
+#if (defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII) || \
+    (defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII)
 #  include "hpm_enet_phy.h"
 #  if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
 #    include "hpm_rtl8211.h"
@@ -164,7 +165,7 @@ struct hpm_enet_mac_s
   ENET_Type *base;
   enet_desc_t desc;
   enet_mac_config_t mac_config;
-  bool dma_inited_once; /* Successful full PHY+DMA init at least once (warm ifup OK) */
+  bool cold_enet_init_done; /* Full hpm_enet_init (cold MAC/DMA+PHY) succeeded this boot */
 };
 
 /****************************************************************************
@@ -183,7 +184,13 @@ static int hpm_transmit(struct hpm_enet_mac_s *priv);
 static int hpm_enet_ioctl(struct net_driver_s *dev, int cmd, unsigned long arg);
 #endif
 
-#ifdef CONFIG_HPM_ENET_LINK_MONITOR
+#if (defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII) || \
+    (defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII)
+static hpm_stat_t hpm_enet_ifup_resume_only(struct hpm_enet_mac_s *priv);
+#endif
+
+#if (defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII) || \
+    (defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII)
 /****************************************************************************
  * Function: hpm_mac_sync_phy_line
  *
@@ -221,7 +228,9 @@ static void hpm_mac_sync_phy_line(ENET_Type *base, const enet_phy_status_t *st)
   enet_set_line_speed(base, line);
   enet_set_duplex_mode(base, dpl);
 }
+#endif /* RGMII || RMII PHY */
 
+#ifdef CONFIG_HPM_ENET_LINK_MONITOR
 /****************************************************************************
  * Function: hpm_link_notice_up
  *
@@ -267,15 +276,15 @@ static void hpm_link_notice_up(const enet_phy_status_t *st)
 
 static void hpm_link_read_and_notify(struct hpm_enet_mac_s *priv)
 {
-  enet_phy_status_t st;
+  enet_phy_status_t st = {0};
   bool up;
+
+  /* RGMII/RMII: fill st via MDIO; otherwise st stays zero (link down). */
 
 #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
   rtl8211_get_phy_status(priv->base, RTL8211_ADDR, &st);
 #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
   rtl8201_get_phy_status(priv->base, RTL8201_ADDR, &st);
-#else
-  return;
 #endif
 
   up = (st.enet_phy_link == enet_phy_link_up);
@@ -428,6 +437,7 @@ static int hpm_ifdown(struct net_driver_s *dev)
   struct hpm_enet_mac_s *priv = (struct hpm_enet_mac_s *)dev->d_private;
   irqstate_t flags;
   int ret = OK;
+  const bool was_up = priv->ifup;
 
 #ifdef CONFIG_HPM_ENET_LINK_MONITOR
   /* Stop link polling; caller holds the network lock (netdev_ifdown). */
@@ -450,7 +460,15 @@ static int hpm_ifdown(struct net_driver_s *dev)
   /* Mark the device "down" */
 
   priv->ifup = false;
-  hpm_enet_info("interface down\n");
+  if (was_up)
+    {
+      /* Avoid noise when netdev/stack calls ifdown on an already-down IF
+       * (e.g. driver init ending in ifdown before first bring-up).
+       */
+
+      hpm_enet_info("interface down\n");
+    }
+
   leave_critical_section(flags);
   return ret;
 }
@@ -805,7 +823,6 @@ static void hpm_freesegment(struct hpm_enet_mac_s *priv)
 static int hpm_recvframe(struct hpm_enet_mac_s *priv)
 {
     enet_frame_t frame = {0, 0, 0};
-    enet_rx_desc_t *dma_rx_desc;
     int ret = -EAGAIN;
 
     frame = enet_get_received_frame_interrupt(&priv->desc.rx_desc_list_cur, &priv->desc.rx_frame_info, ENET_RX_BUFF_COUNT);
@@ -1172,6 +1189,15 @@ static int hpm_interrupt(int irq, void *context, void *arg)
 
 static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 {
+    /* Same as cold_boot_hw in hpm_enet_config(): cold_enet_init_done set only after OK. */
+
+    const bool cold_phy_reset = !priv->cold_enet_init_done;
+
+#if (defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII) || \
+    (defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII)
+    enet_phy_status_t st = {0};
+#endif
+
     enet_int_config_t int_config = {.int_enable = 0, .int_mask = 0};
     enet_mac_config_t enet_config;
 
@@ -1181,9 +1207,6 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
         rtl8201_config_t phy_config;
     #endif
 
-    /* Same as cold_boot_hw in hpm_enet_config(): dma_inited_once set only after OK. */
-
-    const bool cold_phy_reset = !priv->dma_inited_once;
     /* Initialize td, rd and the corresponding buffers */
     memset((uint8_t *)dma_tx_desc_tab, 0x00, sizeof(dma_tx_desc_tab));
     memset((uint8_t *)dma_rx_desc_tab, 0x00, sizeof(dma_rx_desc_tab));
@@ -1206,9 +1229,6 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 
     priv->desc.tx_control_config.cic = 0;
     priv->desc.tx_control_config.enable_ioc = true;
-
-    /* Set the control config for tx descriptor */
-    memcpy(&priv->desc.tx_control_config, &priv->desc.tx_control_config, sizeof(enet_tx_control_config_t));
 
     /* Set MAC0 address */
     enet_config.mac_addr_high[0] = priv->dev.d_mac.ether.ether_addr_octet[5] << 8 |
@@ -1236,13 +1256,17 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 
     int_config.int_mask = enet_rgsmii_int_mask; /* Disable RGSMII interrupt */
 
-    /* Initialize enet controller */
-    enet_controller_init(priv->base, ENET_INF_TYPE, &priv->desc, &enet_config, &int_config);
+    if (enet_controller_init(priv->base, ENET_INF_TYPE, &priv->desc, &enet_config,
+                             &int_config) != status_success)
+      {
+        hpm_enet_err("Enet controller init failed\n");
+        return status_fail;
+      }
 
     /* Disable LPI interrupt */
     enet_disable_lpi_interrupt(priv->base);
 
-    /* PHY: cold path resets/program PHY; warm path keeps link up across IFF_UP */
+    /* PHY: cold path resets/program PHY after MAC/DMA (SDK order); warm path sync only */
 
 #if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
     if (cold_phy_reset)
@@ -1260,10 +1284,12 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
       }
     else
       {
-        enet_phy_status_t st;
-
         rtl8211_get_phy_status(priv->base, RTL8211_ADDR, &st);
-        hpm_mac_sync_phy_line(priv->base, &st);
+        if (st.enet_phy_link == (uint8_t)enet_phy_link_up)
+          {
+            hpm_mac_sync_phy_line(priv->base, &st);
+          }
+
         hpm_enet_info("Enet PHY warm ifup (link retained)\n");
       }
 #elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
@@ -1284,10 +1310,12 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
       }
     else
       {
-        enet_phy_status_t st;
-
         rtl8201_get_phy_status(priv->base, RTL8201_ADDR, &st);
-        hpm_mac_sync_phy_line(priv->base, &st);
+        if (st.enet_phy_link == (uint8_t)enet_phy_link_up)
+          {
+            hpm_mac_sync_phy_line(priv->base, &st);
+          }
+
         hpm_enet_info("Enet PHY warm ifup (link retained)\n");
       }
 #endif
@@ -1295,11 +1323,49 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
     return status_success;
 }
 
+#if (defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII) || \
+    (defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII)
+/****************************************************************************
+ * Name: hpm_enet_ifup_resume_only
+ *
+ * Description:
+ *   After one successful full init since power-on, further netdev ifup only
+ *   re-syncs MAC line speed/duplex from PHY and restarts RX; MAC/DMA/PHY
+ *   are not reset or re-programmed.
+ *
+ ****************************************************************************/
+
+static hpm_stat_t hpm_enet_ifup_resume_only(struct hpm_enet_mac_s *priv)
+{
+  enet_phy_status_t st = {0};
+
+#if defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII
+  rtl8211_get_phy_status(priv->base, RTL8211_ADDR, &st);
+  if (st.enet_phy_link == (uint8_t)enet_phy_link_up)
+    {
+      hpm_mac_sync_phy_line(priv->base, &st);
+    }
+#elif defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII
+  rtl8201_get_phy_status(priv->base, RTL8201_ADDR, &st);
+  if (st.enet_phy_link == (uint8_t)enet_phy_link_up)
+    {
+      hpm_mac_sync_phy_line(priv->base, &st);
+    }
+#else
+  return status_fail;
+#endif
+
+  enet_rx_resume(priv->base);
+  return status_success;
+}
+#endif /* RGMII || RMII PHY */
+
 /****************************************************************************
  * Function: hpm_enet_config
  *
  * Description:
- *  Configure the Ethernet interface for DMA operation.
+ *  First successful ifup after boot: full board + MAC/DMA + PHY init.
+ *  Later ifups: PHY MDIO sync + RX resume only (ENET core not re-init).
  *
  * Input Parameters:
  *   priv - A reference to the private driver state structure
@@ -1313,8 +1379,26 @@ static hpm_stat_t hpm_enet_init(struct hpm_enet_mac_s *priv)
 
 static int hpm_enet_config(struct hpm_enet_mac_s *priv)
 {
+  /* Same !cold_enet_init_done notion as cold_phy_reset in hpm_enet_init(). */
+
+  const bool cold_boot_hw = !priv->cold_enet_init_done;
   hpm_stat_t hs;
-  const bool cold_boot_hw = !priv->dma_inited_once;
+
+#if (defined(CONFIG_HPM_ENET_RGMII) && CONFIG_HPM_ENET_RGMII) || \
+    (defined(CONFIG_HPM_ENET_RMII) && CONFIG_HPM_ENET_RMII)
+  if (priv->cold_enet_init_done)
+    {
+      hs = hpm_enet_ifup_resume_only(priv);
+      if (hs != status_success)
+        {
+          return -EIO;
+        }
+
+      priv->txtail   = NULL;
+      priv->inflight = 0;
+      return OK;
+    }
+#endif
 
   if (cold_boot_hw)
     {
@@ -1341,7 +1425,7 @@ static int hpm_enet_config(struct hpm_enet_mac_s *priv)
       return -EIO;
     }
 
-  priv->dma_inited_once = true;
+  priv->cold_enet_init_done = true;
 
   priv->txtail             = NULL;
   priv->inflight           = 0;
