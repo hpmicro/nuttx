@@ -46,9 +46,31 @@
 #  include <nuttx/spi/spi.h>
 #  include <nuttx/lcd/lcd.h>
 #  include <nuttx/lcd/st7789.h>
-#endif 
+#endif
 
 #ifdef CONFIG_HPM_SPI_DRV
+
+typedef struct gpio_cfg
+{
+  uint16_t ioc_pad;                    /* gpio ioc pad*/
+  uint16_t ico_func_ctl;              /* gpio function mux */
+}gpio_cfg_t;
+
+typedef struct spi_gpio_cfg
+{
+  gpio_cfg_t cs;
+  gpio_cfg_t miso;
+  gpio_cfg_t mosi;
+  gpio_cfg_t sclk;
+}spi_gpio_cfg_t;
+
+const spi_gpio_cfg_t spi_gpio_cfg_table[4] =
+{
+  {{IOC_PAD_PD22, IOC_PD22_FUNC_CTL_GPIO_D_22}, {IOC_PAD_PD26, IOC_PD26_FUNC_CTL_SPI0_MISO}, {IOC_PAD_PD21, IOC_PD21_FUNC_CTL_SPI0_MOSI}, {IOC_PAD_PD27, IOC_PD27_FUNC_CTL_SPI0_SCLK}},
+  {{IOC_PAD_PE03, IOC_PE03_FUNC_CTL_GPIO_E_03}, {IOC_PAD_PD30, IOC_PD30_FUNC_CTL_SPI1_MISO}, {IOC_PAD_PE04, IOC_PE04_FUNC_CTL_SPI1_MOSI}, {IOC_PAD_PD31, IOC_PD31_FUNC_CTL_SPI1_SCLK}},
+  {{IOC_PAD_PC08, IOC_PC08_FUNC_CTL_GPIO_C_08}, {IOC_PAD_PC06, IOC_PC06_FUNC_CTL_SPI2_MISO}, {IOC_PAD_PC07, IOC_PC07_FUNC_CTL_SPI2_MOSI}, {IOC_PAD_PC05, IOC_PC05_FUNC_CTL_SPI2_SCLK}},
+  {{IOC_PAD_PC18, IOC_PC18_FUNC_CTL_GPIO_C_18}, {IOC_PAD_PC19, IOC_PC19_FUNC_CTL_SPI3_MISO}, {IOC_PAD_PC21, IOC_PC21_FUNC_CTL_SPI3_MOSI}, {IOC_PAD_PC20, IOC_PC20_FUNC_CTL_SPI3_SCLK}},
+};
 
 /****************************************************************************
  * Private Data
@@ -74,16 +96,16 @@ static struct lcd_dev_s *g_lcd = NULL;
 
 void weak_function hpm6300_spidev_initialize(void)
 {
-#ifdef CONFIG_HPM6300_SPI2
-    board_init_spi_clock(BOARD_APP_SPI_BASE);
-    board_init_spi_pins_with_gpio_as_cs(BOARD_APP_SPI_BASE);
+#ifdef CONFIG_HPM_SPI2
+    board_init_spi_clock(HPM_SPI2);
+    board_init_spi_pins_with_gpio_as_cs(HPM_SPI2);
 
     HPM_IOC->PAD[IOC_PAD_PZ08].FUNC_CTL = IOC_PZ08_FUNC_CTL_GPIO_Z_08;
     HPM_BIOC->PAD[IOC_PAD_PZ08].FUNC_CTL = IOC_PZ08_FUNC_CTL_SOC_PZ_08;
 
     gpio_set_pin_output(HPM_GPIO0, GPIO_OE_GPIOZ, 8);
     gpiom_set_pin_controller(HPM_GPIOM, GPIOM_ASSIGN_GPIOZ, 8, gpiom_soc_gpio0);
-    
+
     HPM_IOC->PAD[IOC_PAD_PZ09].FUNC_CTL = IOC_PZ09_FUNC_CTL_GPIO_Z_09;
     HPM_BIOC->PAD[IOC_PAD_PZ09].FUNC_CTL = IOC_PZ09_FUNC_CTL_SOC_PZ_09;
 
@@ -94,6 +116,44 @@ void weak_function hpm6300_spidev_initialize(void)
     up_mdelay(400);
     gpio_write_pin(HPM_GPIO0, GPIO_DO_GPIOZ , 9, 1);
 #endif
+}
+
+/****************************************************************************
+ * Name: hpm_spibus_pins_init
+ *
+ * Description:
+ *   Initialize the selected SPI bus pins
+ *
+ * Input Parameters:
+ *   Port number (for hardware that has multiple SPI interfaces)
+ *
+ ****************************************************************************/
+
+void hpm_spibus_pins_init(int bus)
+{
+    HPM_IOC->PAD[spi_gpio_cfg_table[bus].cs.ioc_pad].FUNC_CTL   = spi_gpio_cfg_table[bus].cs.ico_func_ctl;
+    HPM_IOC->PAD[spi_gpio_cfg_table[bus].mosi.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].mosi.ico_func_ctl;
+    HPM_IOC->PAD[spi_gpio_cfg_table[bus].miso.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].miso.ico_func_ctl;
+    HPM_IOC->PAD[spi_gpio_cfg_table[bus].sclk.ioc_pad].FUNC_CTL = spi_gpio_cfg_table[bus].sclk.ico_func_ctl | IOC_PAD_FUNC_CTL_LOOP_BACK_SET(1);
+}
+
+/****************************************************************************
+ * Name: hpm_spibus_get_cs_pin
+ *
+ * Description:
+ *   get the selected SPI bus cs pin num
+ *
+ * Input Parameters:
+ *   Port number (for hardware that has multiple SPI interfaces)
+ *
+ * Returned Value:
+ *   cs pin
+ *
+ ****************************************************************************/
+
+uint32_t hpm_spibus_get_cs_pin(int bus)
+{
+    return spi_gpio_cfg_table[bus].cs.ioc_pad;
 }
 
 /****************************************************************************
@@ -154,6 +214,12 @@ uint8_t hpm_spi1status(struct spi_dev_s *dev, uint32_t devid)
 
 
 #ifdef CONFIG_HPM_SPI2
+
+void write_spi2_cs(uint32_t pin, uint8_t state)
+{
+  gpio_write_pin(HPM_GPIO0, GPIO_GET_PORT_INDEX(spi_gpio_cfg_table[2].cs.ioc_pad), GPIO_GET_PIN_INDEX(spi_gpio_cfg_table[2].cs.ioc_pad),state);
+}
+
 void hpm_spi2select(struct spi_dev_s *dev,
                       uint32_t devid, bool selected)
 {
@@ -276,7 +342,7 @@ int hpm6300_spi3cmddata(struct spi_dev_s *dev, uint32_t devid, bool cmd)
  *
  ****************************************************************************/
 
-#ifdef CONFIG_HPM6300_SPI2
+#ifdef CONFIG_HPM_SPI2
 struct spi_dev_s *hpm6300_spi2initialize(void)
 {
   if (!g_spidev2)

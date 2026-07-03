@@ -16,11 +16,10 @@
 #define CORE0_DLM_SYSTEM_BASE (0x1060000U)
 
 #define ADDRESS_IN_ILM(address) \
-    ((ILM_LOCAL_BASE) <= (address)) && \
     ((ILM_LOCAL_BASE + ILM_SIZE_IN_BYTE) > (address))
 #define ADDRESS_IN_DLM(address) \
-    ((DLM_LOCAL_BASE) <= (address)) && \
-    ((DLM_LOCAL_BASE + DLM_SIZE_IN_BYTE) > (address))
+    (((DLM_LOCAL_BASE) <= (address)) && \
+     ((DLM_LOCAL_BASE + DLM_SIZE_IN_BYTE) > (address)))
 #define ADDRESS_IN_CORE0_DLM_SYSTEM(address) \
     ((CORE0_DLM_SYSTEM_BASE) <= (address)) && \
     ((CORE0_DLM_SYSTEM_BASE + DLM_SIZE_IN_BYTE) > (address))

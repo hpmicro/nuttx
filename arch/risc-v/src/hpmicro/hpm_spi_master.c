@@ -75,7 +75,12 @@
 #include "hpm_spi_regs.h"
 #include "hpm_soc_feature.h"
 #include "hpm_sysctl_drv.h"
-#include "hpm_pllctl_drv.h"
+#if defined(CONFIG_ARCH_CHIP_HPM6750_SDK)
+ #include "hpm_pllctl_drv.h"
+#elif defined(CONFIG_ARCH_CHIP_HPM6360_SDK)
+#include "hpm_pllctlv2_drv.h"
+#endif
+
 
 /****************************************************************************
  * Pre-processor Definitions

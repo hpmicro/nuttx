@@ -865,6 +865,11 @@ static void hpm_sdmmc_clock(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate)
         is_emmc = true;
         break;
     }
+    if(clock_check_in_group(priv->clock_name,0))
+    {
+        sdxc_enable_emmc_support(priv->base,is_emmc);
+        sdxc_enable_enhanced_strobe(priv->base,enable_enh_strobe);
+    }
     if (need_disable)
     {
         clock_remove_from_group(priv->clock_name, 0);
@@ -874,8 +879,6 @@ static void hpm_sdmmc_clock(FAR struct sdio_dev_s *dev, enum sdio_clock_e rate)
         clock_add_to_group(priv->clock_name, 0);
         board_sd_configure_clock(priv->base, clock_freq, clock_inverse);
     }
-    sdxc_enable_emmc_support(priv->base, is_emmc);
-    sdxc_enable_enhanced_strobe(priv->base, enable_enh_strobe);
 }
 
 static void hpm_sdmmc_sendfifo(struct hpm_sdmmc_dev_s *priv)
