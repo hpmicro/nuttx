@@ -785,7 +785,7 @@ hpm_stat_t hpm_i2c_dma_mgr_install_callback(hpm_i2c_context_t *context, hpm_i2c_
     chg_config.dst_width = DMA_MGR_TRANSFER_WIDTH_BYTE;
     /* i2c dma config */
     resource = &obj->dma_resource;
-    if (dma_mgr_request_resource(resource) == status_success) {
+    if (dma_mgr_request_specified_resource(resource, HPM_XDMA) == status_success) {
         chg_config.src_mode = DMA_MGR_HANDSHAKE_MODE_HANDSHAKE;
         chg_config.src_addr_ctrl = DMA_MGR_ADDRESS_CONTROL_FIXED;
         chg_config.src_addr = (uint32_t)&ptr->DATA;
@@ -1046,7 +1046,7 @@ hpm_stat_t hpm_i2c_dma_mgr_install_custom_callback(hpm_i2c_context_t *context, d
     chg_config.dst_width = DMA_MGR_TRANSFER_WIDTH_BYTE;
     /* i2c dma config */
     resource = &obj->dma_resource;
-    if (dma_mgr_request_resource(resource) == status_success) {
+    if (dma_mgr_request_specified_resource(resource, HPM_XDMA) == status_success) {
         chg_config.src_mode = DMA_MGR_HANDSHAKE_MODE_HANDSHAKE;
         chg_config.src_addr_ctrl = DMA_MGR_ADDRESS_CONTROL_FIXED;
         chg_config.src_addr = (uint32_t)&ptr->DATA;

@@ -1522,7 +1522,7 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
   priv->dma_txresource.base = NULL;
   if (priv->spi_context->dma_context.rx_dma_ch == 0xFF)
     {
-      if (dma_mgr_request_resource(&priv->dma_rxresource) == status_success)
+      if (dma_mgr_request_specified_resource(&priv->dma_rxresource, HPM_XDMA) == status_success)
         {
           dma_mgr_install_chn_tc_callback(&priv->dma_rxresource, spi_rx_dma_channel_tc_callback, (void *)priv);
           priv->spi_context->dma_context.dma_ptr      = priv->dma_rxresource.base;
@@ -1533,7 +1533,7 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
 
   if (priv->spi_context->dma_context.tx_dma_ch == 0xFF)
     {
-      if (dma_mgr_request_resource(&priv->dma_txresource) == status_success)
+      if (dma_mgr_request_specified_resource(&priv->dma_txresource, HPM_XDMA) == status_success)
         {
           dma_mgr_install_chn_tc_callback(&priv->dma_txresource, spi_tx_dma_channel_tc_callback, (void *)priv);
           priv->spi_context->dma_context.dma_ptr      = priv->dma_txresource.base;

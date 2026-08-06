@@ -1175,7 +1175,7 @@ hpm_stat_t hpm_spi_dma_mgr_install_callback(SPI_Type *ptr, spi_dma_complete_cb t
     chg_config.dst_width = DMA_MGR_TRANSFER_WIDTH_BYTE;
     /* spi rx dma config */
     resource = &obj->rxdma_resource;
-    if (dma_mgr_request_resource(resource) == status_success) {
+    if (dma_mgr_request_specified_resource(resource, HPM_XDMA) == status_success) {
         chg_config.src_mode = DMA_MGR_HANDSHAKE_MODE_HANDSHAKE;
         chg_config.src_addr_ctrl = DMA_MGR_ADDRESS_CONTROL_FIXED;
         chg_config.src_addr = (uint32_t)&ptr->DATA;
@@ -1193,7 +1193,7 @@ hpm_stat_t hpm_spi_dma_mgr_install_callback(SPI_Type *ptr, spi_dma_complete_cb t
     }
      /* spi tx dma config */
     resource = &obj->txdma_resource;
-    if (dma_mgr_request_resource(resource) == status_success) {
+    if (dma_mgr_request_specified_resource(resource, HPM_XDMA) == status_success) {
         chg_config.src_mode = DMA_MGR_HANDSHAKE_MODE_NORMAL;
         chg_config.src_addr_ctrl = DMA_MGR_ADDRESS_CONTROL_INCREMENT;
         chg_config.dst_mode = DMA_MGR_HANDSHAKE_MODE_HANDSHAKE;
@@ -1356,7 +1356,7 @@ hpm_stat_t hpm_spi_rx_dma_mgr_install_custom_callback(SPI_Type *ptr, dma_mgr_chn
     chg_config.dst_width = DMA_MGR_TRANSFER_WIDTH_BYTE;
     /* spi rx dma config */
     resource = &obj->rxdma_resource;
-    if (dma_mgr_request_resource(resource) == status_success) {
+    if (dma_mgr_request_specified_resource(resource, HPM_XDMA) == status_success) {
         chg_config.src_mode = DMA_MGR_HANDSHAKE_MODE_HANDSHAKE;
         chg_config.src_addr_ctrl = DMA_MGR_ADDRESS_CONTROL_FIXED;
         chg_config.src_addr = (uint32_t)&ptr->DATA;
@@ -1387,7 +1387,7 @@ hpm_stat_t hpm_spi_tx_dma_mgr_install_custom_callback(SPI_Type *ptr, dma_mgr_chn
     chg_config.dst_width = DMA_MGR_TRANSFER_WIDTH_BYTE;
      /* spi tx dma config */
      resource = &obj->txdma_resource;
-     if (dma_mgr_request_resource(resource) == status_success) {
+     if (dma_mgr_request_specified_resource(resource, HPM_XDMA) == status_success) {
          chg_config.src_mode = DMA_MGR_HANDSHAKE_MODE_NORMAL;
          chg_config.src_addr_ctrl = DMA_MGR_ADDRESS_CONTROL_INCREMENT;
          chg_config.dst_mode = DMA_MGR_HANDSHAKE_MODE_HANDSHAKE;

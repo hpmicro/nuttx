@@ -431,52 +431,6 @@ void board_init_clock(void)
     /* Bump up DCDC voltage to 1275mv */
     pcfg_dcdc_set_voltage(HPM_PCFG, 1275);
 
-    /*
-     * Phase 1 — Cache XPI NOR configuration BEFORE the PLL change
-     *
-     * The XPI serial root clock is typically sourced from PLL1_CLK0 (set by
-     * preset 2). When PLL1 is later ramped from ~480 MHz to BOARD_CPU_FREQ
-     * (648 MHz), the XPI clock changes frequency, invalidating the timing
-     * registers (DLL delay, sample edge, dummy cycles) that the boot ROM
-     * programmed.
-     *
-     * We cannot call rom_xpi_nor_auto_config() *after* the PLL ramp because
-     * its SFDP probe needs to read the flash — impossible once the XPI
-     * interface has wrong timing.
-     *
-     * Instead we use a two-phase approach:
-     *   (1) Switch XPI to a safe PLL-independent clock (OSC24M).
-     *   (2) Probe the flash at this safe frequency and compute the XPI
-     *       controller register values for our target frequency (133 MHz)
-     *       via rom_xpi_nor_get_config() — this caches the configuration
-     *       in RAM with no dependency on PLL1.
-     *   (3) Perform the PLL ramp (XPI is on OSC24M, unaffected).
-     *   (4) Restore the XPI clock to its high-speed source with a divider
-     *       that places the serial root clock near 133 MHz.
-     *   (5) Apply the cached configuration via rom_xpi_nor_init() — register
-     *       writes only, no flash reads — safely re-initialising the XPI
-     *       controller with the correct timing for the new clock.
-     */
-
-    /* (a) Save current XPI0 clock source & divider (set by preset 2) */
-    uint32_t xpi0_src = SYSCTL_CLOCK_MUX_GET(HPM_SYSCTL->CLOCK[clock_node_xpi0]);
-    uint32_t xpi0_div = 1UL + SYSCTL_CLOCK_DIV_GET(HPM_SYSCTL->CLOCK[clock_node_xpi0]);
-
-    /* (b) Switch XPI0 to safe 24 MHz so the PLL ramp does not affect it */
-    sysctl_config_clock(HPM_SYSCTL, clock_node_xpi0, clock_source_osc0_clk0, 1);
-
-    /* (c) Probe flash and cache XPI configuration for 133 MHz target */
-    xpi_nor_config_t nor_cfg;
-    xpi_nor_config_option_t cfg_option;
-    cfg_option.header.U = 0xfcf90001;   /* tag + 1 option word */
-    cfg_option.option0.U = 0x00000007;  /* 133 MHz, auto dummy, SFDP SDR */
-    rom_xpi_nor_get_config(HPM_XPI0, &nor_cfg, &cfg_option);
-
-    /*
-     * Phase 2 — Configure CPU domain clock / PLL1
-     *           XPI remains on safe OSC24M throughout.
-     */
-
     /* Configure CPU to 648MHz, AXI/AHB to 162MHz */
     sysctl_config_cpu0_domain_clock(HPM_SYSCTL, clock_source_pll1_clk0, 1, 4, 4);
     /* Configure PLL1_CLK0 Post Divider to 1 */
@@ -489,39 +443,6 @@ void board_init_clock(void)
 
     /* Configure mchtmr to 24MHz */
     clock_set_source_divider(clock_mchtmr0, clk_src_osc24m, 1);
-
-    /*
-     * Phase 3 — Re-initialise XPI controller for the new PLL1 frequency
-     *
-     * Order matters: apply the cached config FIRST while still on the safe
-     * 24 MHz clock so XPI timing is never mismatched to the current clock.
-     * rom_xpi_nor_init() programs timing registers (DLL delay, sample edge,
-     * dummy cycles) for the 133 MHz target via the APB bus — no flash reads
-     * occur. After the init, switch the XPI serial root clock to its high-
-     * speed source; the DLL gracefully re-locks to the new frequency.
-     */
-
-    /* (a) Apply the cached configuration — register writes only,
-     *     no flash communication.
-     */
-    rom_xpi_nor_init(HPM_XPI0, &nor_cfg);
-
-    /* (b) Restore XPI0 to its original high-speed source. If the source
-     *     is PLL1_CLK0 (which was ramped from the preset default to
-     *     BOARD_CPU_FREQ), recalculate the divider to land close to the
-     *     133 MHz target that rom_xpi_nor_get_config() assumed.
-     *     For any other source the original divider is still correct.
-     */
-    uint32_t xpi_div = xpi0_div;
-    if (xpi0_src == clock_source_pll1_clk0) {
-        /* PLL1 changed from ~480 MHz (preset) to 648 MHz.
-         *   Div 5 → 129.6 MHz  (≈ 2.5 % below 133 MHz target — fine)
-         *   Div 4 → 162 MHz    (too fast for NOR flash)
-         */
-        uint32_t target_xpi_freq = 133000000UL;
-        xpi_div = (BOARD_CPU_FREQ + target_xpi_freq - 1U) / target_xpi_freq;
-    }
-    sysctl_config_clock(HPM_SYSCTL, clock_node_xpi0, (clock_source_t)xpi0_src, xpi_div);
 }
 
 uint32_t board_init_dao_clock(void)

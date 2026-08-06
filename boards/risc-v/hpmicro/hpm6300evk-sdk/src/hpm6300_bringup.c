@@ -101,7 +101,7 @@
 int hpm6300_bringup(void)
 {
   int ret = OK;
-  
+
 #ifdef CONFIG_FS_BINFS
 
   /* Mount the binfs file system */
@@ -175,19 +175,19 @@ int hpm6300_bringup(void)
 #endif
 
 #ifdef CONFIG_PWM
-#  ifdef CONFIG_HPM_PWM2
+#  ifdef CONFIG_HPM_PWM0
   struct pwm_lowerhalf_s *pwm;
 
   /* Initialize PWM and register the PWM driver */
 
-  pwm = hpm_pwminitialize(2);
+  pwm = hpm_pwminitialize(0);
   if (pwm == NULL)
     {
       syslog(LOG_DEBUG, "ERROR: hpm6300_pwminitialize failed\n");
     }
   else
     {
-      ret = pwm_register("/dev/pwm2", pwm);
+      ret = pwm_register("/dev/pwm0", pwm);
       if (ret < 0)
         {
           syslog(LOG_DEBUG, "ERROR: pwm_register failed: %d\n", ret);

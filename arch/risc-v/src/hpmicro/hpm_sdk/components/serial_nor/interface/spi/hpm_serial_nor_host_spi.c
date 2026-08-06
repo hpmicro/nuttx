@@ -210,7 +210,7 @@ static hpm_stat_t init(void *ops)
         chg_config.dst_width = DMA_MGR_TRANSFER_WIDTH_BYTE;
         /* spi rx dma config */
         resource = &host->host_param.param.dma_control.rxdma_resource;
-        if ((resource->base == NULL) && (dma_mgr_request_resource(resource) == status_success)) {
+        if ((resource->base == NULL) && (dma_mgr_request_specified_resource(resource, HPM_XDMA) == status_success)) {
             spi_base = (SPI_Type *)host->host_param.param.host_base;
             chg_config.src_mode = DMA_MGR_HANDSHAKE_MODE_HANDSHAKE;
             chg_config.src_addr_ctrl = DMA_MGR_ADDRESS_CONTROL_FIXED;
@@ -226,7 +226,7 @@ static hpm_stat_t init(void *ops)
         }
         /* spi tx dma config */
         resource = &host->host_param.param.dma_control.txdma_resource;
-        if ((resource->base == NULL) && (dma_mgr_request_resource(resource) == status_success)) {
+        if ((resource->base == NULL) && (dma_mgr_request_specified_resource(resource, HPM_XDMA) == status_success)) {
             spi_base = (SPI_Type *)host->host_param.param.host_base;
             chg_config.src_mode = DMA_MGR_HANDSHAKE_MODE_NORMAL;
             chg_config.src_addr_ctrl = DMA_MGR_ADDRESS_CONTROL_INCREMENT;
