@@ -1522,23 +1522,43 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
   priv->dma_txresource.base = NULL;
   if (priv->spi_context->dma_context.rx_dma_ch == 0xFF)
     {
-      if (dma_mgr_request_specified_resource(&priv->dma_rxresource, HPM_XDMA) == status_success)
+      /* Workaround: the SPI0 receive DMA request is only reliably served by
+       * HDMA channel 0, so route the SPI0 receive path through HDMA.  All
+       * the other SPI ports keep using XDMA.
+       */
+
+      DMA_Type *rx_dma = ((SPI_Type *)priv->spibase == HPM_SPI0) ? HPM_HDMA : HPM_XDMA;
+      if (dma_mgr_request_specified_resource(&priv->dma_rxresource, rx_dma) == status_success)
         {
           dma_mgr_install_chn_tc_callback(&priv->dma_rxresource, spi_rx_dma_channel_tc_callback, (void *)priv);
           priv->spi_context->dma_context.dma_ptr      = priv->dma_rxresource.base;
           priv->spi_context->dma_context.rx_dma_ch    = priv->dma_rxresource.channel;
           priv->spi_context->dma_context.rx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_rxresource.base, priv->dma_rxresource.channel);
         }
+      else
+        {
+          spierr("ERROR: RX dma_mgr_request_specified_resource failed\n");
+        }
     }
 
   if (priv->spi_context->dma_context.tx_dma_ch == 0xFF)
     {
-      if (dma_mgr_request_specified_resource(&priv->dma_txresource, HPM_XDMA) == status_success)
+      /* The transfer context holds a single DMA controller pointer, so the
+       * transmit channel has to come from the same controller as the
+       * receive channel.
+       */
+
+      DMA_Type *tx_dma = ((SPI_Type *)priv->spibase == HPM_SPI0) ? HPM_HDMA : HPM_XDMA;
+      if (dma_mgr_request_specified_resource(&priv->dma_txresource, tx_dma) == status_success)
         {
           dma_mgr_install_chn_tc_callback(&priv->dma_txresource, spi_tx_dma_channel_tc_callback, (void *)priv);
           priv->spi_context->dma_context.dma_ptr      = priv->dma_txresource.base;
           priv->spi_context->dma_context.tx_dma_ch    = priv->dma_txresource.channel;
           priv->spi_context->dma_context.tx_dmamux_ch = DMA_SOC_CHN_TO_DMAMUX_CHN(priv->dma_txresource.base, priv->dma_txresource.channel);
+        }
+      else
+        {
+          spierr("ERROR: TX dma_mgr_request_specified_resource failed\n");
         }
     }
 #endif
