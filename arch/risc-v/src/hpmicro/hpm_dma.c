@@ -84,6 +84,20 @@ void weak_function riscv_dma_initialize(void)
 {
   dma_mgr_init();
 
+#if defined(CONFIG_HPM_SPI0) && defined(CONFIG_HPM_SPI0_DMA)
+  /* SPI0 errata: its receive DMA request is only reliably served by
+   * HDMA channel 0.  Reserve HDMA channel 0 right after dma_mgr_init()
+   * so that no other component can grab it via the generic allocation
+   * path; the SPI0 driver claims it explicitly later with
+   * dma_mgr_request_specified_resource_with_channel().
+   */
+
+  if (dma_mgr_reserve_specified_resource(HPM_HDMA, 0) != status_success)
+    {
+      dmaerr("ERROR: failed to reserve HDMA channel 0 for SPI0 RX\n");
+    }
+#endif
+
   /* Attach DMA interrupt vectors */
 
   irq_attach(HPM_IRQn_HDMA, hpm_dmainterrupt, NULL);

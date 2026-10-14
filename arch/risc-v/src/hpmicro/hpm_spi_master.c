@@ -1522,13 +1522,26 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
   priv->dma_txresource.base = NULL;
   if (priv->spi_context->dma_context.rx_dma_ch == 0xFF)
     {
-      /* Workaround: the SPI0 receive DMA request is only reliably served by
-       * HDMA channel 0, so route the SPI0 receive path through HDMA.  All
-       * the other SPI ports keep using XDMA.
+      /* SPI0 errata: the receive DMA request is only reliably served by
+       * HDMA channel 0, which was reserved at DMA manager init time (see
+       * riscv_dma_initialize()); claim it explicitly here.  All the other
+       * SPI ports keep using XDMA.
        */
 
-      DMA_Type *rx_dma = ((SPI_Type *)priv->spibase == HPM_SPI0) ? HPM_HDMA : HPM_XDMA;
-      if (dma_mgr_request_specified_resource(&priv->dma_rxresource, rx_dma) == status_success)
+      hpm_stat_t dmastat;
+
+      if ((SPI_Type *)priv->spibase == HPM_SPI0)
+        {
+          dmastat = dma_mgr_request_specified_resource_with_channel(
+                      &priv->dma_rxresource, HPM_HDMA, 0);
+        }
+      else
+        {
+          dmastat = dma_mgr_request_specified_resource(
+                      &priv->dma_rxresource, HPM_XDMA);
+        }
+
+      if (dmastat == status_success)
         {
           dma_mgr_install_chn_tc_callback(&priv->dma_rxresource, spi_rx_dma_channel_tc_callback, (void *)priv);
           priv->spi_context->dma_context.dma_ptr      = priv->dma_rxresource.base;
@@ -1537,7 +1550,8 @@ static void spi_bus_initialize(struct hpm_spidev_s *priv)
         }
       else
         {
-          spierr("ERROR: RX dma_mgr_request_specified_resource failed\n");
+          spierr("ERROR: RX DMA resource request failed: %d\n",
+                 (unsigned int)dmastat);
         }
     }
 

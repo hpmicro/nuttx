@@ -751,6 +751,9 @@ uint32_t board_init_uart_clock(UART_Type *ptr)
     } else if (ptr == HPM_UART2) {
         clock_add_to_group(clock_uart2, 0);
         freq = clock_get_frequency(clock_uart2);
+    } else if (ptr == HPM_UART3) {
+        clock_add_to_group(clock_uart3, 0);
+        freq = clock_get_frequency(clock_uart3);
     } else if (ptr == HPM_UART6) {
         clock_add_to_group(clock_uart6, 0);
         freq = clock_get_frequency(clock_uart6);
