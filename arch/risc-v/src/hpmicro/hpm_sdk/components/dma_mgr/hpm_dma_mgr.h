@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 HPMicro
+ * Copyright (c) 2022-2026 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -9,20 +9,35 @@
 #define HPM_DMA_MGR_H
 
 #include "hpm_common.h"
+#include "hpm_soc.h"
 #include "hpm_dmamux_drv.h"
-#include "hpm_dmamux_src.h"
 #ifdef HPMSOC_HAS_HPMSDK_DMAV2
 #include "hpm_dmav2_drv.h"
 #else
 #include "hpm_dma_drv.h"
 #endif
-#include "hpm_soc_feature.h"
+
+#if defined(HPM_HDMA)
+#define DMA_MGR_DMA0      HPM_HDMA
+#define DMA_MGR_IRQn_DMA0 IRQn_HDMA
+#elif defined(HPM_HDMA0)
+#define DMA_MGR_DMA0      HPM_HDMA0
+#define DMA_MGR_IRQn_DMA0 IRQn_HDMA0
+#endif
+
+#if defined(HPM_XDMA)
+#define DMA_MGR_DMA1      HPM_XDMA
+#define DMA_MGR_IRQn_DMA1 IRQn_XDMA
+#elif defined(HPM_HDMA1)
+#define DMA_MGR_DMA1      HPM_HDMA1
+#define DMA_MGR_IRQn_DMA1 IRQn_HDMA1
+#endif
 
 #ifdef HPMSOC_HAS_HPMSDK_DMAV2
-#define DMA_MGR_HAS_INFINITE_LOOP        (1U)
-#define DMA_MGR_HAS_HALF_TC_INT          (1U)
-#define DMA_MGR_HAS_HANDSHAKE_OPT        (1U)
-#define DMA_MGR_HAS_BURST_OPT            (1U)
+#define DMA_MGR_HAS_INFINITE_LOOP (1U)
+#define DMA_MGR_HAS_HALF_TC_INT   (1U)
+#define DMA_MGR_HAS_HANDSHAKE_OPT (1U)
+#define DMA_MGR_HAS_BURST_OPT     (1U)
 #if defined(HPM_IP_FEATURE_DMAV2_BURST_IN_FIXED_TRANS) && (HPM_IP_FEATURE_DMAV2_BURST_IN_FIXED_TRANS == 1)
 #define DMA_MGR_HAS_BURST_IN_FIXED_TRANS HPM_IP_FEATURE_DMAV2_BURST_IN_FIXED_TRANS
 #else
@@ -199,6 +214,46 @@ hpm_stat_t dma_mgr_request_resource(dma_resource_t *resource);
  * @retval status_dma_mgr_no_resource if all DMA channels are occupied
  */
 hpm_stat_t dma_mgr_request_specified_resource(dma_resource_t *resource, DMA_Type *base);
+
+/**
+ * @brief Request a specific DMA channel from a specified DMA instance
+ *
+ * Both reserved and unreserved channels can be acquired. Acquisition preserves the reservation.
+ *
+ * @param [out] resource DMA resource
+ * @param [in] base specified DMA, such as HPM_HDMA, HPM_XDMA
+ * @param [in] channel specified DMA channel index
+ * @retval status_success if no error occurred
+ * @retval status_invalid_argument if the resource, DMA instance, or channel is invalid
+ * @retval status_dma_mgr_no_resource if the specified channel is already occupied
+ */
+hpm_stat_t dma_mgr_request_specified_resource_with_channel(dma_resource_t *resource, DMA_Type *base, uint32_t channel);
+
+/**
+ * @brief Reserve a DMA channel for later specified-channel acquisition, excluding automatic allocation
+ *
+ * Call after dma_mgr_init and before other components request DMA resources.
+ * The reservation remains after resource release until explicitly canceled or the system is reset.
+ *
+ * @param [in] base specified DMA, such as HPM_HDMA, HPM_XDMA
+ * @param [in] channel specified DMA channel index
+ * @retval status_success if the channel is reserved successfully
+ * @retval status_invalid_argument if the DMA instance or channel is invalid
+ * @retval status_dma_mgr_no_resource if the specified channel is already allocated or reserved
+ */
+hpm_stat_t dma_mgr_reserve_specified_resource(DMA_Type *base, uint32_t channel);
+
+/**
+ * @brief Cancel a DMA channel reservation without releasing an allocated resource
+ *
+ * An allocated channel becomes available for automatic allocation only after it is released.
+ *
+ * @param [in] base specified DMA, such as HPM_HDMA, HPM_XDMA
+ * @param [in] channel specified DMA channel index
+ * @retval status_success if the reservation is cleared or the channel was not reserved
+ * @retval status_invalid_argument if the DMA instance or channel is invalid
+ */
+hpm_stat_t dma_mgr_cancel_reserve_specified_resource(DMA_Type *base, uint32_t channel);
 
 /**
  * @brief Release DMA resource

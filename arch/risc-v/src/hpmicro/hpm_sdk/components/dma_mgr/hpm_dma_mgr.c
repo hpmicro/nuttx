@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 HPMicro
+ * Copyright (c) 2022-2026 HPMicro
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -7,7 +7,6 @@
 
 #include <string.h>
 #include "hpm_dma_mgr.h"
-#include "hpm_soc.h"
 
 /*****************************************************************************************************************
  *
@@ -27,6 +26,7 @@ typedef struct _dma_instance_info {
  */
 typedef struct _dma_channel_context {
     bool is_allocated;           /**< Whether DMA channel was allocated */
+    bool is_reserved;            /**< Whether DMA channel is reserved from allocation */
     void *tc_cb_data_ptr;        /**< User data required by transfer complete callback */
     void *half_tc_cb_data_ptr;   /**< User data required by half transfer complete callback */
     void *error_cb_data_ptr;     /**< User data required by error callback */
@@ -112,17 +112,17 @@ ATTR_RAMFUNC void dma_mgr_isr_handler(DMA_Type *ptr, uint32_t instance)
     }
 }
 
-SDK_DECLARE_EXT_ISR_M(IRQn_HDMA, dma0_isr)
+SDK_DECLARE_EXT_ISR_M(DMA_MGR_IRQn_DMA0, dma0_isr)
 void dma0_isr(void)
 {
-    dma_mgr_isr_handler(HPM_HDMA, 0);
+    dma_mgr_isr_handler(DMA_MGR_DMA0, 0);
 }
 
-#ifdef HPM_XDMA
-SDK_DECLARE_EXT_ISR_M(IRQn_XDMA, dma1_isr)
+#ifdef DMA_MGR_DMA1
+SDK_DECLARE_EXT_ISR_M(DMA_MGR_IRQn_DMA1, dma1_isr)
 void dma1_isr(void)
 {
-    dma_mgr_isr_handler(HPM_XDMA, 1);
+    dma_mgr_isr_handler(DMA_MGR_DMA1, 1);
 }
 #endif
 
@@ -138,11 +138,11 @@ static void dma_mgr_exit_critical(uint32_t level)
 
 void dma_mgr_init(void)
 {
-    HPM_DMA_MGR->dma_instance[0].base = HPM_HDMA;
-    HPM_DMA_MGR->dma_instance[0].irq_num = IRQn_HDMA;
-#ifdef HPM_XDMA
-    HPM_DMA_MGR->dma_instance[1].base = HPM_XDMA;
-    HPM_DMA_MGR->dma_instance[1].irq_num = IRQn_XDMA;
+    HPM_DMA_MGR->dma_instance[0].base = DMA_MGR_DMA0;
+    HPM_DMA_MGR->dma_instance[0].irq_num = DMA_MGR_IRQn_DMA0;
+#ifdef DMA_MGR_DMA1
+    HPM_DMA_MGR->dma_instance[1].base = DMA_MGR_DMA1;
+    HPM_DMA_MGR->dma_instance[1].irq_num = DMA_MGR_IRQn_DMA1;
 #endif
 }
 
@@ -160,7 +160,7 @@ hpm_stat_t dma_mgr_request_resource(dma_resource_t *resource)
         for (instance = 0; instance < DMA_INSTANCE_MAX_COUNT; instance++) {
             if (HPM_DMA_MGR->dma_instance[instance].base != NULL) {
                 for (channel = 0; channel < DMA_SOC_CHANNEL_NUM; channel++) {
-                    if (!HPM_DMA_MGR->channels[instance][channel].is_allocated) {
+                    if (!HPM_DMA_MGR->channels[instance][channel].is_allocated && !HPM_DMA_MGR->channels[instance][channel].is_reserved) {
                         has_found = true;
                         break;
                     }
@@ -200,7 +200,7 @@ hpm_stat_t dma_mgr_request_specified_resource(dma_resource_t *resource, DMA_Type
         for (instance = 0; instance < DMA_INSTANCE_MAX_COUNT; instance++) {
             if (HPM_DMA_MGR->dma_instance[instance].base == base) {
                 for (channel = 0; channel < DMA_SOC_CHANNEL_NUM; channel++) {
-                    if (!HPM_DMA_MGR->channels[instance][channel].is_allocated) {
+                    if (!HPM_DMA_MGR->channels[instance][channel].is_allocated && !HPM_DMA_MGR->channels[instance][channel].is_reserved) {
                         has_found = true;
                         break;
                     }
@@ -222,6 +222,92 @@ hpm_stat_t dma_mgr_request_specified_resource(dma_resource_t *resource, DMA_Type
         }
         dma_mgr_exit_critical(level);
     }
+
+    return status;
+}
+
+hpm_stat_t dma_mgr_request_specified_resource_with_channel(dma_resource_t *resource, DMA_Type *base, uint32_t channel)
+{
+    hpm_stat_t status;
+
+    if ((resource == NULL) || (base == NULL) || (channel >= DMA_SOC_CHANNEL_NUM)) {
+        return status_invalid_argument;
+    }
+
+    uint32_t instance;
+    bool has_found = false;
+    uint32_t level = dma_mgr_enter_critical();
+    for (instance = 0; instance < DMA_INSTANCE_MAX_COUNT; instance++) {
+        if (HPM_DMA_MGR->dma_instance[instance].base == base) {
+            has_found = true;
+            break;
+        }
+    }
+
+    if (!has_found) {
+        status = status_invalid_argument;
+    } else if (HPM_DMA_MGR->channels[instance][channel].is_allocated) {
+        status = status_dma_mgr_no_resource;
+    } else {
+        HPM_DMA_MGR->channels[instance][channel].is_allocated = true;
+        resource->base = HPM_DMA_MGR->dma_instance[instance].base;
+        resource->channel = channel;
+        resource->irq_num = HPM_DMA_MGR->dma_instance[instance].irq_num;
+        status = status_success;
+    }
+    dma_mgr_exit_critical(level);
+
+    return status;
+}
+
+hpm_stat_t dma_mgr_reserve_specified_resource(DMA_Type *base, uint32_t channel)
+{
+    hpm_stat_t status;
+
+    if ((base == NULL) || (channel >= DMA_SOC_CHANNEL_NUM)) {
+        return status_invalid_argument;
+    }
+
+    uint32_t instance;
+    bool has_found = false;
+    uint32_t level = dma_mgr_enter_critical();
+    for (instance = 0; instance < DMA_INSTANCE_MAX_COUNT; instance++) {
+        if (HPM_DMA_MGR->dma_instance[instance].base == base) {
+            has_found = true;
+            break;
+        }
+    }
+
+    if (!has_found) {
+        status = status_invalid_argument;
+    } else if (HPM_DMA_MGR->channels[instance][channel].is_allocated || HPM_DMA_MGR->channels[instance][channel].is_reserved) {
+        status = status_dma_mgr_no_resource;
+    } else {
+        HPM_DMA_MGR->channels[instance][channel].is_reserved = true;
+        status = status_success;
+    }
+    dma_mgr_exit_critical(level);
+
+    return status;
+}
+
+hpm_stat_t dma_mgr_cancel_reserve_specified_resource(DMA_Type *base, uint32_t channel)
+{
+    hpm_stat_t status = status_invalid_argument;
+
+    if ((base == NULL) || (channel >= DMA_SOC_CHANNEL_NUM)) {
+        return status_invalid_argument;
+    }
+
+    uint32_t level = dma_mgr_enter_critical();
+    for (uint32_t instance = 0; instance < DMA_INSTANCE_MAX_COUNT; instance++) {
+        if (HPM_DMA_MGR->dma_instance[instance].base == base) {
+            HPM_DMA_MGR->channels[instance][channel].is_reserved = false;
+            status = status_success;
+            break;
+        }
+    }
+    dma_mgr_exit_critical(level);
 
     return status;
 }
